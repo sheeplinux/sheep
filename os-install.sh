@@ -30,14 +30,14 @@ EOF
 echo ' ' ; echo 'Mounting & Copying' ; echo ' '
 mount /dev/sda2 mnt
 cd /mnt
-wget http://172.19.118.1/distrib/ubuntu1604_root.tar.gz
-tar -pzxvf ubuntu1604_root.tar.gz
+wget --quiet http://172.19.118.1/distrib/ubuntu1604_root.tar.gz
+tar -pzxf ubuntu1604_root.tar.gz
 cd --
 cp -Rp /mnt/mnt/* /mnt ; rm -r /mnt/mnt
 rm /mnt/ubuntu1604_root.tar.gz
 mount /dev/sda1 /mnt/boot/efi
 cd /mnt/boot/efi
-wget http://172.19.118.1/distrib/efi.tar.gz
+wget --quiet http://172.19.118.1/distrib/efi.tar.gz
 tar -pzxvf efi.tar.gz
 mkdir tmp
 cp -Rp ./efi/* ./tmp ; rm -r efi
