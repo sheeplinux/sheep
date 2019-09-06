@@ -3,6 +3,7 @@
 set -x
 set -e
 
+{
 echo $("Ubuntu.16.04")
 # STEP 1 : Partionning ( clear the disk if it's not erased )
 echo ' ' ; echo 'Partitioning' ; echo ' '
@@ -61,3 +62,4 @@ macA=$(ip address | grep -A 1 "ens1" | grep "link/ether" | cut -d ' ' -f 6)
 curl -i -X PUT "http://172.19.118.1:3478/v1/configurations/local/deploy" -d '{"hosts":[{"macAddress":"'"$macA"'"}]}'
 umount -R /mnt
 reboot
+} 2>&1 | tee /var/log/os-install.log
