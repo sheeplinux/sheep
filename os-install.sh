@@ -1,6 +1,7 @@
 #!/bin/bash
 
 set -x
+set -e
 
 echo $("Ubuntu.16.04")
 # STEP 1 : Partionning ( clear the disk if it's not erased )
@@ -31,7 +32,7 @@ EOF
 
 #STEP 3 : Mounting partions & Copy of root and EFI 
 echo ' ' ; echo 'Mounting & Copying' ; echo ' '
-mount /dev/sda2 mnt
+mount /dev/sda2 /mnt
 cd /mnt
 wget --quiet http://172.19.118.1/distrib/ubuntu1604_root.tar.gz
 tar -pzxf ubuntu1604_root.tar.gz
