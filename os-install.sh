@@ -1,4 +1,7 @@
 #!/bin/bash
+
+set -x
+
 echo $("Ubuntu.16.04")
 # STEP 1 : Partionning ( clear the disk if it's not erased )
 echo ' ' ; echo 'Partitioning' ; echo ' '
