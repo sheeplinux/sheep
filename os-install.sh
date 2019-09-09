@@ -10,30 +10,30 @@ set -e
 #
 system_partitionning() {
     echo ' ' ; echo 'Partitioning' ; echo ' '
-    gdisk /dev/sda << EOF
-o
-Y
-n
-1
+    gdisk /dev/sda <<- EOF
+	o
+	Y
+	n
+	1
 
-+500M
-ef00
-n
-2
+	+500M
+	ef00
+	n
+	2
 
 
-8300
-wq
-yes
-EOF
+	8300
+	wq
+	yes
+	EOF
 }
 
 partitions_formating() {
     echo ' ' ; echo 'Formating' ; echo ' '
     mkfs.fat -F 32 -n EFI /dev/sda1
-    mkfs.ext4 -q -L fs_root /dev/sda2 << EOF
-y
-EOF
+    mkfs.ext4 -q -L fs_root /dev/sda2 <<- EOF
+	y
+	EOF
 }
 
 partitions_mounting() {
