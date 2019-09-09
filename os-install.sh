@@ -16,7 +16,7 @@ EFI_PARTITION="${BLOCK_DEVICE}1"
 LINUX_PARTITION="${BLOCK_DEVICE}2"
 
 #
-# Create tow partitions on the drive. One system EFI partition to install
+# Create two partitions on the drive. One system EFI partition to install
 # the bootloader nad on for the Linux root filesystem. If some partitions
 # previoulsly exist on the drive everything is wiped beforehand.
 #
