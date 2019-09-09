@@ -3,6 +3,18 @@
 set -x
 set -e
 
+BOOT_SERVER="172.19.118.1"
+PUBLIC_IFACE_NAME="ens1"
+PXE_PILOT_BASEURL="http://${BOOT_SERVER}:3478"
+LINUX_ROOTFS_URL="http://${BOOT_SERVER}/distrib/ubuntu1604_root.tar.gz"
+EFI_ARCHIVE_URL="http://${BOOT_SERVER}/distrib/efi.tar.gz"
+EFI_ENTRY_LABEL="Ubuntu 16.04"
+BLOCK_DEVICE="/dev/sda"
+BOOTLOADER_EFI_PATH="\EFI\ubuntu\shimx64.efi"
+
+EFI_PARTITION="${BLOCK_DEVICE}1"
+LINUX_PARTITION="${BLOCK_DEVICE}2"
+
 #
 # Create tow partitions on the drive. One system EFI partition to install
 # the bootloader nad on for the Linux root filesystem. If some partitions
@@ -10,7 +22,7 @@ set -e
 #
 system_partitionning() {
     echo ' ' ; echo 'Partitioning' ; echo ' '
-    gdisk /dev/sda <<- EOF
+    gdisk ${BLOCK_DEVICE} <<- EOF
 	o
 	Y
 	n
@@ -30,45 +42,47 @@ system_partitionning() {
 
 partitions_formating() {
     echo ' ' ; echo 'Formating' ; echo ' '
-    mkfs.fat -F 32 -n EFI /dev/sda1
-    mkfs.ext4 -q -L fs_root /dev/sda2 <<- EOF
+    mkfs.fat -F 32 -n EFI ${EFI_PARTITION}
+    mkfs.ext4 -q -L fs_root ${LINUX_PARTITION} <<- EOF
 	y
 	EOF
 }
 
 partitions_mounting() {
-    mount /dev/sda2 /mnt
+    mount ${LINUX_PARTITION} /mnt
     mkdir -p /mnt/boot/efi
-    mount /dev/sda1 /mnt/boot/efi
+    mount ${EFI_PARTITION} /mnt/boot/efi
 }
 
 bootloader_installation() {
     cd /mnt/boot/efi
-    wget --quiet http://172.19.118.1/distrib/efi.tar.gz
-    tar -pzxvf efi.tar.gz
+    local efi_archive=efi.tar.gz
+    wget --quiet -O ${efi_archive} ${EFI_ARCHIVE_URL}
+    tar -pzxvf ${efi_archive}
     mkdir tmp
     cp -Rp ./efi/* ./tmp ; rm -r efi
     cp -Rp tmp/* /mnt/boot/efi ; rm -r tmp
-    rm efi.tar.gz
+    rm ${efi_archive}
 }
 
 efi_entry_creation() {
-    efibootmgr -c -d /dev/sda -p 1 -L "Lancer ubuntu" -l "\EFI\ubuntu\shimx64.efi"
+    efibootmgr -c -d ${BLOCK_DEVICE} -p 1 -L "${EFI_ENTRY_LABEL}" -l "${BOOTLOADER_EFI_PATH}" 
 }
 
 linux_rootfs_installation() {
     cd /mnt
-    wget --quiet http://172.19.118.1/distrib/ubuntu1604_root.tar.gz
-    tar -pzxf ubuntu1604_root.tar.gz
+    local linux_rootfs=/tmp/linux-rootfs.tar.gz
+    wget --quiet -O ${linux_rootfs} ${LINUX_ROOTFS_URL}
+    tar -pzxf ${linux_rootfs}
     cd --
     cp -Rp /mnt/mnt/* /mnt ; rm -r /mnt/mnt
-    rm /mnt/ubuntu1604_root.tar.gz
+    rm ${linux_rootfs}
     cd --
 }
 
 linux_rootfs_configuration() {
-    uuid=$(blkid | grep /dev/sda2 | cut -d ' ' -f 3 | cut -d '"' -f 2)
-    efiID=$(blkid | grep /dev/sda1 | cut -d ' ' -f 4 | cut -d '"' -f 2)
+    uuid=$(blkid | grep ${LINUX_PARTITION} | cut -d ' ' -f 3 | cut -d '"' -f 2)
+    efiID=$(blkid | grep ${EFI_PARTITION} | cut -d ' ' -f 4 | cut -d '"' -f 2)
     sed -i -e 's/rootID/'$uuid'/' /mnt/boot/grub/grub.cfg
     sed -i -e 's/rootID/'$uuid'/' /mnt/boot/efi/EFI/ubuntu/grub.cfg
     sed -i -e 's/efiID/'$efiID'/' /mnt/etc/fstab
@@ -81,8 +95,8 @@ partitions_unmounting() {
 }
 
 notify_pxepilot_and_reboot() {
-    macA=$(ip address | grep -A 1 "ens1" | grep "link/ether" | cut -d ' ' -f 6)
-    curl -i -X PUT "http://172.19.118.1:3478/v1/configurations/local/deploy" -d '{"hosts":[{"macAddress":"'"$macA"'"}]}'
+    macA=$(ip address | grep -A 1 "${PUBLIC_IFACE_NAME}" | grep "link/ether" | cut -d ' ' -f 6)
+    curl -i -X PUT "${PXE_PILOT_BASEURL}/v1/configurations/local/deploy" -d '{"hosts":[{"macAddress":"'"$macA"'"}]}'
     reboot
 }
 
