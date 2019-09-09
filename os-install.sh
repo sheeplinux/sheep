@@ -6,7 +6,7 @@ set -e
 {
 # STEP 1 : Partionning ( clear the disk if it's not erased )
 echo ' ' ; echo 'Partitioning' ; echo ' '
-sed -e 's/\s*\([\+0-9a-zA-Z]*\).*/\1/' << EOF | gdisk /dev/sda
+gdisk /dev/sda << EOF
 o
 Y
 n
@@ -26,7 +26,7 @@ EOF
 #STEP 2 : Formating partitions
 echo ' ' ; echo 'Formating' ; echo ' '
 mkfs.fat -F 32 -n EFI /dev/sda1
-sed -e 's/\s*\([\+0-9a-zA-Z]*\).*/\1/' << EOF | mkfs.ext4 -q -L fs_root /dev/sda2
+mkfs.ext4 -q -L fs_root /dev/sda2 << EOF
 y
 EOF
 
