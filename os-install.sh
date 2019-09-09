@@ -4,7 +4,6 @@ set -x
 set -e
 
 {
-echo $("Ubuntu.16.04")
 # STEP 1 : Partionning ( clear the disk if it's not erased )
 echo ' ' ; echo 'Partitioning' ; echo ' '
 sed -e 's/\s*\([\+0-9a-zA-Z]*\).*/\1/' << EOF | gdisk /dev/sda
