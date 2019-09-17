@@ -58,10 +58,7 @@ bootloader_installation() {
     cd /mnt/boot/efi
     local efi_archive=efi.tar.gz
     wget --quiet -O ${efi_archive} ${EFI_ARCHIVE_URL}
-    tar -pzxvf ${efi_archive}
-    mkdir tmp
-    cp -Rp ./efi/* ./tmp ; rm -r efi
-    cp -Rp tmp/* /mnt/boot/efi ; rm -r tmp
+    tar -pzxf ${efi_archive}
     rm ${efi_archive}
 }
 
@@ -74,10 +71,7 @@ linux_rootfs_installation() {
     local linux_rootfs=/tmp/linux-rootfs.tar.gz
     wget --quiet -O ${linux_rootfs} ${LINUX_ROOTFS_URL}
     tar -pzxf ${linux_rootfs}
-    cd --
-    cp -Rp /mnt/mnt/* /mnt ; rm -r /mnt/mnt
     rm ${linux_rootfs}
-    cd --
 }
 
 linux_rootfs_configuration() {
@@ -90,7 +84,7 @@ linux_rootfs_configuration() {
 }
 
 partitions_unmounting() {
-    cd
+    cd /
     umount -R /mnt
 }
 
