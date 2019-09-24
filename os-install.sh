@@ -3,23 +3,83 @@
 set -x
 set -e
 
-BOOT_SERVER="172.19.118.1"
-PUBLIC_IFACE_NAME="ens1"
-PXE_PILOT_BASEURL="http://${BOOT_SERVER}:3478"
-LINUX_ROOTFS_URL="http://${BOOT_SERVER}/distrib/ubuntu1604_root.tar.gz"
-EFI_ARCHIVE_URL="http://${BOOT_SERVER}/distrib/efi.tar.gz"
-EFI_ENTRY_LABEL="Ubuntu 16.04"
-BLOCK_DEVICE="/dev/sda"
-BOOTLOADER_EFI_PATH="\EFI\ubuntu\shimx64.efi"
+OS_NAME=""
+OS_VERSION=0
+BOOT_SERVER=""
+PUBLIC_IFACE_NAME=""
+PXE_PILOT_BASEURL=""
+LINUX_ROOTFS_URL=""
+EFI_ARCHIVE_URL=""
+EFI_ENTRY_LABEL=""
+BLOCK_DEVICE=""
+BOOTLOADER_EFI_PATH=""
+PORT_PXE_PILOT=""
+EFI_PARTITION=""
+LINUX_PARTITION=""
 
-EFI_PARTITION="${BLOCK_DEVICE}1"
-LINUX_PARTITION="${BLOCK_DEVICE}2"
+exitOnError() {
+    echo "ERROR : $1"
+    exit 1
+}
+
+search_value() {
+	cmd=$(cat /proc/cmdline)
+	phrase=$cmd
+	der_save=""
+	while [ "$(echo $phrase | cut -d '=' -f 1 )" != "$1" ] ; do
+		phrase=$(echo $phrase | cut -d ' ' -f 2- )
+		if [ "$phrase" == "$der_save" ]; then
+			break;
+		fi
+		der_save=$phrase
+	done
+	phrase=$(echo $phrase | cut -d '=' -f 2 | cut -d ' ' -f 1)
+	#set default value
+	if [ -z "$phrase" ] && [ $# -gt 1 ]; then
+		echo $2
+	else
+		echo $phrase
+	fi
+}
+
+#
+# $1 - key
+# $2 - error message if the value is not found
+#
+search_mandatory_value() {
+    local value=$(search_value $1)
+    [ -z "$value" ] && exitOnError "$2"
+    echo "${value}"
+}
+
+config_variable() {
+    OS_NAME=$(search_mandatory_value osType "'osType' parameter must be provided")
+    OS_VERSION=$(search_mandatory_value osVersion "'osVersion' parameter must be provided")
+    BOOT_SERVER=$(search_value ipAdr)
+    PUBLIC_IFACE_NAME=$(search_mandatory_value intName "'intName' parameter must be provided")
+    PORT_PXE_PILOT=$(search_value portPxe 3478)
+    if [ -z "${BOOT_SERVER}" ] ; then
+    	PXE_PILOT_BASEURL=$(search_mandatory_value serverPxe "Either 'ipAdr' or 'serverPxe' parameter must be provided")
+	LINUX_ROOTFS_URL=$(search_mandatory_value linuxRootfs "Either 'ipAdr' or 'linuxRootfs ' parameter must be provided")
+	EFI_ARCHIVE_URL=$(search_mandatory_value efiRootfs "Either 'ipAdr' or 'efiRootfs' parameter must be provided")
+    else
+    	PXE_PILOT_BASEURL=$(search_value serverPxe "http://${BOOT_SERVER}:${PORT_PXE_PILOT}")
+    	LINUX_ROOTFS_URL=$(search_value linuxRootfs "http://${BOOT_SERVER}/archive_root/${OS_NAME}/${OS_NAME}${OS_VERSION}_root.tar.gz")
+    	EFI_ARCHIVE_URL=$(search_value efiRootfs "http://${BOOT_SERVER}/archive_root/${OS_NAME}/${OS_NAME}${OS_VERSION}_efi.tar.gz")
+    fi
+    EFI_ENTRY_LABEL="${OS_NAME} ${OS_VERSION}"
+    BLOCK_DEVICE=$(search_value blockDevice $(ls /dev/[hs]d[a-z] | head -1))
+    EFI_PARTITION="${BLOCK_DEVICE}1"
+    LINUX_PARTITION="${BLOCK_DEVICE}2"
+}
 
 #
 # Create two partitions on the drive. One system EFI partition to install
 # the bootloader nad on for the Linux root filesystem. If some partitions
 # previoulsly exist on the drive everything is wiped beforehand.
 #
+
+
 system_partitionning() {
     echo ' ' ; echo 'Partitioning' ; echo ' '
     gdisk ${BLOCK_DEVICE} <<- EOF
@@ -54,18 +114,25 @@ partitions_mounting() {
     mount ${EFI_PARTITION} /mnt/boot/efi
 }
 
+bootloader_efi_path_value(){
+	case ${OS_NAME} in
+		ubuntu )
+			case ${OS_VERSION} in
+				1604 ) BOOTLOADER_EFI_PATH="\EFI\ubuntu\shimx64.efi";;
+			esac;;
+	esac
+}
+
 bootloader_installation() {
     cd /mnt/boot/efi
     local efi_archive=efi.tar.gz
     wget --quiet -O ${efi_archive} ${EFI_ARCHIVE_URL}
-    tar -pzxvf ${efi_archive}
-    mkdir tmp
-    cp -Rp ./efi/* ./tmp ; rm -r efi
-    cp -Rp tmp/* /mnt/boot/efi ; rm -r tmp
+    tar -pzxf ${efi_archive}
     rm ${efi_archive}
 }
 
 efi_entry_creation() {
+    bootloader_efi_path_value
     efibootmgr -c -d ${BLOCK_DEVICE} -p 1 -L "${EFI_ENTRY_LABEL}" -l "${BOOTLOADER_EFI_PATH}" 
 }
 
@@ -74,10 +141,7 @@ linux_rootfs_installation() {
     local linux_rootfs=/tmp/linux-rootfs.tar.gz
     wget --quiet -O ${linux_rootfs} ${LINUX_ROOTFS_URL}
     tar -pzxf ${linux_rootfs}
-    cd --
-    cp -Rp /mnt/mnt/* /mnt ; rm -r /mnt/mnt
     rm ${linux_rootfs}
-    cd --
 }
 
 linux_rootfs_configuration() {
@@ -90,7 +154,7 @@ linux_rootfs_configuration() {
 }
 
 partitions_unmounting() {
-    cd
+    cd /
     umount -R /mnt
 }
 
@@ -101,6 +165,7 @@ notify_pxepilot_and_reboot() {
 }
 
 {
+    config_variable
     system_partitionning
     partitions_formating
     partitions_mounting
