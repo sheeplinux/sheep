@@ -1,6 +1,5 @@
 #!/bin/bash
 
-set -x
 set -e
 
 exitOnError() {
@@ -167,15 +166,20 @@ notify_pxepilot_and_reboot() {
     reboot
 }
 
-{
-    config_variable
-    system_partitionning
-    partitions_formating
-    partitions_mounting
-    linux_rootfs_installation
-    bootloader_installation
-    efi_entry_creation
-    linux_rootfs_configuration
-    partitions_unmounting
-    notify_pxepilot_and_reboot
-} 2>&1 | tee /var/log/os-install.log
+main() {
+	config_variable
+	system_partitionning
+	partitions_formating
+	partitions_mounting
+	linux_rootfs_installation
+	bootloader_installation
+	efi_entry_creation
+	linux_rootfs_configuration
+	partitions_unmounting
+	notify_pxepilot_and_reboot
+}
+
+if [ "$(basename $0)" = "os-install.sh" ] ; then
+	set -x
+	main 2>&1 | tee /var/log/os-install.log
+fi
