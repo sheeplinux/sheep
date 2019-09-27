@@ -75,6 +75,13 @@ config_variable() {
     BLOCK_DEVICE=$(search_value blockDevice $(ls /dev/[hs]d[a-z] | head -1))
     EFI_PARTITION="${BLOCK_DEVICE}1"
     LINUX_PARTITION="${BLOCK_DEVICE}2"
+    case $OS_NAME in
+	ubuntu ) CODE_PARTITIONNING=8300
+        ;;
+    	centos ) CODE_PARTITIONNING=0700
+    	;;
+    esac
+
 }
 
 #
@@ -98,7 +105,7 @@ system_partitionning() {
 	2
 
 
-	8300
+	$CODE_PARTITIONNING
 	wq
 	yes
 	EOF
@@ -107,9 +114,14 @@ system_partitionning() {
 partitions_formating() {
     echo ' ' ; echo 'Formating' ; echo ' '
     mkfs.fat -F 32 -n EFI ${EFI_PARTITION}
-    mkfs.ext4 -q -L fs_root ${LINUX_PARTITION} <<- EOF
-	y
-	EOF
+    case $OS_NAME in
+        ubuntu ) mkfs.ext4 -q -L fs_root ${LINUX_PARTITION} <<- EOF
+		y
+		EOF
+		 ;;
+        centos ) mkfs.xfs -f -L fs_root ${LINUX_PARTITION}
+                 ;;
+    esac
 }
 
 partitions_mounting() {
@@ -119,12 +131,7 @@ partitions_mounting() {
 }
 
 bootloader_efi_path_value(){
-	case ${OS_NAME} in
-		ubuntu )
-			case ${OS_VERSION} in
-				1604 ) BOOTLOADER_EFI_PATH="\EFI\ubuntu\shimx64.efi";;
-			esac;;
-	esac
+	BOOTLOADER_EFI_PATH="\EFI\\"$OS_NAME"\shimx64.efi"
 }
 
 bootloader_installation() {
@@ -151,8 +158,10 @@ linux_rootfs_installation() {
 linux_rootfs_configuration() {
     uuid=$(blkid | grep ${LINUX_PARTITION} | cut -d ' ' -f 3 | cut -d '"' -f 2)
     efiID=$(blkid | grep ${EFI_PARTITION} | cut -d ' ' -f 4 | cut -d '"' -f 2)
-    sed -i -e 's/rootID/'$uuid'/' /mnt/boot/grub/grub.cfg
-    sed -i -e 's/rootID/'$uuid'/' /mnt/boot/efi/EFI/ubuntu/grub.cfg
+    if [ $OS_NAME = "ubuntu" ]; then
+    	sed -i -e 's/rootID/'$uuid'/' /mnt/boot/grub/grub.cfg
+    fi
+    sed -i -e 's/rootID/'$uuid'/' /mnt/boot/efi/EFI/$OS_NAME/grub.cfg
     sed -i -e 's/efiID/'$efiID'/' /mnt/etc/fstab
     sed -i -e 's/rootID/'$uuid'/' /mnt/etc/fstab
 }
