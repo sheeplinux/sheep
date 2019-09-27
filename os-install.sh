@@ -22,8 +22,25 @@ exitOnError() {
     exit 1
 }
 
+#
+# search_value returns the value matching a given parameter identifier.
+# if the parameter is not defined or if its value is blank, it returns
+# a default value if provided.
+#
+# By default, parameters are retrieved from the kernel command line
+# reading /proc/cmdline content. This can be overriden by setting up
+# the OS_DEPLOY_PARAMETERS environment variable with the exact same
+# syntax.
+#
+# $1 - Parameter identifier
+# $2 - Default value
+#
 search_value() {
-	cmd=$(cat /proc/cmdline)
+	if [ -n "${OS_DEPLOY_PARAMETERS}" ] ; then
+		cmd=${OS_DEPLOY_PARAMETERS}
+	else
+		cmd=$(cat /proc/cmdline)
+	fi
 	phrase=$cmd
 	der_save=""
 	while [ "$(echo $phrase | cut -d '=' -f 1 )" != "$1" ] ; do
