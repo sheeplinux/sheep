@@ -1,0 +1,17 @@
+image: sds-ubuntu-14.04:1.9-rc0
+
+stages:
+  - test
+
+before_script:
+  - cd $HOME
+  - wget -O /tmp/bats.tar.gz https://github.com/sstephenson/bats/archive/v0.4.0.tar.gz
+  - tar -C /tmp -xzf /tmp/bats.tar.gz
+  - cd /tmp/bats-*
+  - ./install.sh /usr
+
+unit-test:
+  stage: test
+  script:
+    - cd ${CI_PROJECT_DIR}
+    - tests/run

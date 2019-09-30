@@ -1,6 +1,5 @@
 #!/bin/bash
 
-set -x
 set -e
 
 exitOnError() {
@@ -9,9 +8,17 @@ exitOnError() {
 }
 
 #
+# Configuration map populated when search_value is called the first time.
+#
+declare -A configMap
+
+#
 # search_value returns the value matching a given parameter identifier.
 # if the parameter is not defined or if its value is blank, it returns
 # a default value if provided.
+#
+# When the function is called the first it populate the `configMap``
+# variable parsing the commande line parameter.
 #
 # By default, parameters are retrieved from the kernel command line
 # reading /proc/cmdline content. This can be overriden by setting up
@@ -22,27 +29,21 @@ exitOnError() {
 # $2 - Default value
 #
 search_value() {
-	if [ -n "${OS_DEPLOY_PARAMETERS}" ] ; then
-		cmd=${OS_DEPLOY_PARAMETERS}
-	else
-		cmd=$(cat /proc/cmdline)
-	fi
-	phrase=$cmd
-	der_save=""
-	while [ "$(echo $phrase | cut -d '=' -f 1 )" != "$1" ] ; do
-		phrase=$(echo $phrase | cut -d ' ' -f 2- )
-		if [ "$phrase" == "$der_save" ]; then
-			break;
+    if [ ${#configMap[@]} -eq 0 ] ; then
+		local cmd=${OS_DEPLOY_PARAMETERS}
+		if [ -z "${cmd}" ] ; then
+			cmd=$(cat /proc/cmdline)
 		fi
-		der_save=$phrase
-	done
-	phrase=$(echo $phrase | cut -d '=' -f 2 | cut -d ' ' -f 1)
-	#set default value
-	if [ -z "$phrase" ] && [ $# -gt 1 ]; then
-		echo $2
-	else
-		echo $phrase
-	fi
+
+		IFS=' ' read -r -a array <<< "${cmd}"
+		for param in ${array[@]} ; do
+			local key=$(echo "${param}" | cut -d '=' -f 1)
+			local value=$(echo "${param}" | cut -d '=' -f 2-)
+			configMap[${key}]=${value}
+		done
+    fi
+    local value=${configMap[${1}]}
+    echo ${value:-${2}}
 }
 
 #
@@ -167,15 +168,20 @@ notify_pxepilot_and_reboot() {
     reboot
 }
 
-{
-    config_variable
-    system_partitionning
-    partitions_formating
-    partitions_mounting
-    linux_rootfs_installation
-    bootloader_installation
-    efi_entry_creation
-    linux_rootfs_configuration
-    partitions_unmounting
-    notify_pxepilot_and_reboot
-} 2>&1 | tee /var/log/os-install.log
+main() {
+	config_variable
+	system_partitionning
+	partitions_formating
+	partitions_mounting
+	linux_rootfs_installation
+	bootloader_installation
+	efi_entry_creation
+	linux_rootfs_configuration
+	partitions_unmounting
+	notify_pxepilot_and_reboot
+}
+
+if [ "$(basename $0)" = "os-install.sh" ] ; then
+	set -x
+	main 2>&1 | tee /var/log/os-install.log
+fi

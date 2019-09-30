@@ -1,0 +1,31 @@
+#!/bin/bash
+
+bats -v > /dev/null 2>&1
+
+if [ $? -ne 0 ] ; then
+    echo ""
+    echo "ERROR : Bats binary was not found. Please ensure bats is installed on your system."
+    echo "        See https://github.com/sstephenson/bats"
+    echo ""
+    exit 1
+fi
+
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+
+export TEST_LOG_FILE="tests-$(date "+%Y-%m-%d_%H-%M-%S").log"
+
+bats ${DIR}/*.bats
+
+test_status=$?
+
+if [ ${test_status} -ne 0 ] ; then
+    if [ -n ${CI} ] ; then
+        echo ""
+        echo "!!! See failures in log file ${DIR}/${TEST_LOG_FILE}"
+        echo ""
+    else
+        cat ${DIR}/${TEST_LOG_FILE}
+    fi
+fi
+
+exit ${test_status}
