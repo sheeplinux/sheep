@@ -78,8 +78,8 @@ config_variable() {
     case $OS_NAME in
 	ubuntu ) CODE_PARTITIONNING=8300
         ;;
-    	centos ) CODE_PARTITIONNING=0700
-    	;;
+    	centos ) CODE_PARTITIONNING=0700 ; SELINUX=$(search_value selinux "disable")
+	;;
     esac
 
 }
@@ -166,6 +166,16 @@ linux_rootfs_configuration() {
     sed -i -e 's/rootID/'$uuid'/' /mnt/etc/fstab
 }
 
+SElinux_configuration(){
+    if [ "${OS_NAME}" == "centos" ]; then
+        if [ "${SELINUX}" == "enable" ]; then
+            touch /mnt/.autorelabel
+        else
+            sed -i -e 's/SELINUX=enforcing/SELINUX=disabled/' /mnt/etc/selinux/config
+        fi
+    fi
+}
+
 partitions_unmounting() {
     cd /
     umount -R /mnt
@@ -186,6 +196,7 @@ main() {
 	bootloader_installation
 	efi_entry_creation
 	linux_rootfs_configuration
+	SElinux_configuration
 	partitions_unmounting
 	notify_pxepilot_and_reboot
 }
