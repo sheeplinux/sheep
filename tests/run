@@ -19,9 +19,13 @@ bats ${DIR}/*.bats
 test_status=$?
 
 if [ ${test_status} -ne 0 ] ; then
-    echo ""
-    echo "!!! See failures in log file ${DIR}/${TEST_LOG_FILE}"
-    echo ""
+    if [ -n ${CI} ] ; then
+        echo ""
+        echo "!!! See failures in log file ${DIR}/${TEST_LOG_FILE}"
+        echo ""
+    else
+        cat ${DIR}/${TEST_LOG_FILE}
+    fi
 fi
 
 exit ${test_status}
