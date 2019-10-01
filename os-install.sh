@@ -130,9 +130,6 @@ partitions_mounting() {
     mount ${EFI_PARTITION} /mnt/boot/efi
 }
 
-bootloader_efi_path_value(){
-	BOOTLOADER_EFI_PATH="\EFI\\"$OS_NAME"\shimx64.efi"
-}
 
 bootloader_installation() {
     cd /mnt/boot/efi
@@ -143,8 +140,7 @@ bootloader_installation() {
 }
 
 efi_entry_creation() {
-    bootloader_efi_path_value
-    efibootmgr -c -d ${BLOCK_DEVICE} -p 1 -L "${EFI_ENTRY_LABEL}" -l "${BOOTLOADER_EFI_PATH}" 
+    efibootmgr -c -d ${BLOCK_DEVICE} -p 1 -L "${EFI_ENTRY_LABEL}" -l "\EFI\\"${OS_NAME}"\shimx64.efi"
 }
 
 linux_rootfs_installation() {
