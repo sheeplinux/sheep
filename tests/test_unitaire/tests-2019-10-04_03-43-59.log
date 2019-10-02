@@ -1,0 +1,85 @@
+
+---------------------------------------------------------------------------------------------------------------------
+--- #1 | Begin test | test_search-2d5fmandatory-2d5fvalue_with_existing_values | /home/mathou/os-deploy-tool/tests/test_unitaire/mandatory_value.bats
+---------------------------------------------------------------------------------------------------------------------
+
+value1
+value2
+value3
+
+---------------------------------------------------------------------------------------------------------------------
+--- #1 | End test   | test_search-2d5fmandatory-2d5fvalue_with_existing_values | /home/mathou/os-deploy-tool/tests/test_unitaire/mandatory_value.bats
+---------------------------------------------------------------------------------------------------------------------
+
+
+---------------------------------------------------------------------------------------------------------------------
+--- #2 | Begin test | test_search-2d5fmandatory-2d5fvalue_with_no_existing_values_without_default_value | /home/mathou/os-deploy-tool/tests/test_unitaire/mandatory_value.bats
+---------------------------------------------------------------------------------------------------------------------
+
+ERROR : 
+ERROR : 
+ERROR : 
+
+---------------------------------------------------------------------------------------------------------------------
+--- #2 | End test   | test_search-2d5fmandatory-2d5fvalue_with_no_existing_values_without_default_value | /home/mathou/os-deploy-tool/tests/test_unitaire/mandatory_value.bats
+---------------------------------------------------------------------------------------------------------------------
+
+
+---------------------------------------------------------------------------------------------------------------------
+--- #3 | Begin test | test_search-2d5fmandatory-2d5fvalue_with_not_existing_param | /home/mathou/os-deploy-tool/tests/test_unitaire/mandatory_value.bats
+---------------------------------------------------------------------------------------------------------------------
+
+ERROR : 
+
+---------------------------------------------------------------------------------------------------------------------
+--- #3 | End test   | test_search-2d5fmandatory-2d5fvalue_with_not_existing_param | /home/mathou/os-deploy-tool/tests/test_unitaire/mandatory_value.bats
+---------------------------------------------------------------------------------------------------------------------
+
+
+---------------------------------------------------------------------------------------------------------------------
+--- #1 | Begin test | test_search-2d5fvalue_with_existing_values | /home/mathou/os-deploy-tool/tests/test_unitaire/search_value.bats
+---------------------------------------------------------------------------------------------------------------------
+
+value1
+value2
+value3
+
+---------------------------------------------------------------------------------------------------------------------
+--- #1 | End test   | test_search-2d5fvalue_with_existing_values | /home/mathou/os-deploy-tool/tests/test_unitaire/search_value.bats
+---------------------------------------------------------------------------------------------------------------------
+
+
+---------------------------------------------------------------------------------------------------------------------
+--- #2 | Begin test | test_search-2d5fvalue_with_existing_values_with_a_default_value | /home/mathou/os-deploy-tool/tests/test_unitaire/search_value.bats
+---------------------------------------------------------------------------------------------------------------------
+
+value1
+value2
+value3
+
+---------------------------------------------------------------------------------------------------------------------
+--- #2 | End test   | test_search-2d5fvalue_with_existing_values_with_a_default_value | /home/mathou/os-deploy-tool/tests/test_unitaire/search_value.bats
+---------------------------------------------------------------------------------------------------------------------
+
+
+---------------------------------------------------------------------------------------------------------------------
+--- #3 | Begin test | test_search-2d5fvalue_with_not_existing_param_and_no_default_value | /home/mathou/os-deploy-tool/tests/test_unitaire/search_value.bats
+---------------------------------------------------------------------------------------------------------------------
+
+
+
+---------------------------------------------------------------------------------------------------------------------
+--- #3 | End test   | test_search-2d5fvalue_with_not_existing_param_and_no_default_value | /home/mathou/os-deploy-tool/tests/test_unitaire/search_value.bats
+---------------------------------------------------------------------------------------------------------------------
+
+
+---------------------------------------------------------------------------------------------------------------------
+--- #4 | Begin test | test_search-2d5fvalue_with_not_existing_param_and_a_default_value | /home/mathou/os-deploy-tool/tests/test_unitaire/search_value.bats
+---------------------------------------------------------------------------------------------------------------------
+
+defaultForParam4
+
+---------------------------------------------------------------------------------------------------------------------
+--- #4 | End test   | test_search-2d5fvalue_with_not_existing_param_and_a_default_value | /home/mathou/os-deploy-tool/tests/test_unitaire/search_value.bats
+---------------------------------------------------------------------------------------------------------------------
+
