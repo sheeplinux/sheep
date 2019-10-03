@@ -14,4 +14,4 @@ unit-test:
   stage: test
   script:
     - cd ${CI_PROJECT_DIR}
-    - tests/run
+    - tests/unit_tests/run

@@ -1,0 +1,6 @@
+DEFAULT install1
+
+label install1
+        kernel /GRUB_TEST/vmlinuz
+        append live-media-path=/live/grml64-full boot=live fetch=http://172.19.118.1/grmlInit/grml64-full.v1.5.squashfs initrd=/GRUB_TEST/initrd.img  console=ttyS1,57600n8 deployScript=/var/www/html/script/os-install.sh osType=ubuntu osVersion=1604 intName=ens1 serverPxe=http://172.19.118.1:3478 linuxRootfs=http://172.19.118.1/archive_root/ubuntu/ubuntu1604_root.tar.gz efiRootfs=http://172.19.118.1/archive_root/ubuntu/ubuntu1604_efi.tar.gz blockDevice=/dev/sda portPxe=3478
+

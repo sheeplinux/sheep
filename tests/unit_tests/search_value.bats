@@ -3,7 +3,7 @@
 load test_helper
 
 @test "search_value with existing values" {
-    source ${BATS_TEST_DIRNAME}/../os-install.sh
+    source ${BATS_TEST_DIRNAME}/../../os-install.sh
 
     export OS_DEPLOY_PARAMETERS="param1=value1 param2=value2 param3=value3"
 
@@ -25,7 +25,7 @@ load test_helper
 }
 
 @test "search_value with existing values with a default value" {
-    source ${BATS_TEST_DIRNAME}/../os-install.sh
+    source ${BATS_TEST_DIRNAME}/../../os-install.sh
 
     export OS_DEPLOY_PARAMETERS="param1=value1 param2=value2 param3=value3"
 
@@ -47,7 +47,7 @@ load test_helper
 }
 
 @test "search_value with not existing param and no default value" {
-    source ${BATS_TEST_DIRNAME}/../os-install.sh
+    source ${BATS_TEST_DIRNAME}/../../os-install.sh
 
     export OS_DEPLOY_PARAMETERS="param1=value1 param2=value2 param3=value3"
 
@@ -57,7 +57,7 @@ load test_helper
 }
 
 @test "search_value with not existing param and a default value" {
-    source ${BATS_TEST_DIRNAME}/../os-install.sh
+    source ${BATS_TEST_DIRNAME}/../../os-install.sh
 
     export OS_DEPLOY_PARAMETERS="param1=value1 param2=value2 param3=value3"
 
