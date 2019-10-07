@@ -1,17 +1,66 @@
 image: sds-ubuntu-14.04:1.9-rc0
 
-stages:
-  - test
+variables:
+  OS_DEPLOY_CI_RUNNER_IP: '17.18.99.1'
+  EFI_BOOTLOADER_IMAGE: 'https://github.com/ggiamarchi/sandbox/raw/os-deploy/grub.tar.gz'
 
-before_script:
-  - cd $HOME
-  - wget -O /tmp/bats.tar.gz https://github.com/sstephenson/bats/archive/v0.4.0.tar.gz
-  - tar -C /tmp -xzf /tmp/bats.tar.gz
-  - cd /tmp/bats-*
-  - ./install.sh /usr
+stages:
+  - test-unit
+  - test-integ
 
 unit-test:
-  stage: test
+  stage: test-unit
   script:
+    - cd $HOME
+    - wget -O /tmp/bats.tar.gz https://github.com/sstephenson/bats/archive/v0.4.0.tar.gz
+    - tar -C /tmp -xzf /tmp/bats.tar.gz
+    - cd /tmp/bats-*
+    - ./install.sh /usr
     - cd ${CI_PROJECT_DIR}
     - tests/unit_tests/run
+  tags:
+    - unit-tests
+
+ubuntu16.04-qcow2:
+  stage: test-integ
+  variables:
+    LINUX_IMAGE: 'https://cloud-images.ubuntu.com/xenial/current/xenial-server-cloudimg-amd64-disk1.img'
+    EXPECTED_UNAME: 'Linux ubuntu 4.4.0-169-generic'
+  script:
+    - cd ${CI_PROJECT_DIR}
+    - tests/integration_test/run
+  tags:
+    - integration
+
+centos7-qcow2:
+  stage: test-integ
+  variables:
+    LINUX_IMAGE: 'https://cloud.centos.org/centos/7/images/CentOS-7-x86_64-GenericCloud-1907.qcow2'
+    EXPECTED_UNAME: 'Linux localhost.localdomain 3.10.0-957.27.2.el7.x86_64'
+  script:
+    - cd ${CI_PROJECT_DIR}
+    - tests/integration_test/run
+  tags:
+    - integration
+
+debian9-qcow2:
+  stage: test-integ
+  variables:
+    LINUX_IMAGE: 'https://cdimage.debian.org/cdimage/openstack/archive/9.11.2-20190926/debian-9.11.2-20190926-openstack-amd64.qcow2'
+    EXPECTED_UNAME: 'Linux debian.example.com 4.9.0-11-amd64'
+  script:
+    - cd ${CI_PROJECT_DIR}
+    - tests/integration_test/run
+  tags:
+    - integration
+
+opensuse15.1-qcow2:
+  stage: test-integ
+  variables:
+    LINUX_IMAGE: 'https://download.opensuse.org/repositories/Cloud:/Images:/Leap_15.1/images/openSUSE-Leap-15.1-OpenStack.x86_64.qcow2'
+    EXPECTED_UNAME: 'Linux localhost 4.12.14-lp151.28.32-default'
+  script:
+    - cd ${CI_PROJECT_DIR}
+    - tests/integration_test/run
+  tags:
+    - integration
