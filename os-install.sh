@@ -139,6 +139,21 @@ bootloader_installation() {
     rm ${efi_archive}
 }
 
+# This function is useful to erase unecessary efi boot entry
+
+# - Unecessary boot entry are those which have been add with a path to the bootloader
+# - Permit to avoid bug after reboot
+
+efi_entry_cleanup() {
+    num=$(efibootmgr -v | grep  "File" | cut -d ' ' -f 1 | grep "0" | cut -d 't' -f 2 | cut -d '*' -f 1)
+    N=$(echo $num | wc -w)
+    for i in $(seq 1 $N)
+    do
+        entry=$(echo $num | cut -d ' ' -f $i)
+        efibootmgr -b $entry -B
+    done
+}
+
 efi_entry_creation() {
     efibootmgr -c -d ${BLOCK_DEVICE} -p 1 -L "${EFI_ENTRY_LABEL}" -l "\EFI\\"${OS_NAME}"\shimx64.efi"
 }
@@ -185,7 +200,8 @@ notify_pxepilot_and_reboot() {
 
 main() {
 	config_variable
-	system_partitionning
+	efi_entry_cleanup
+        system_partitionning
 	partitions_formating
 	partitions_mounting
 	linux_rootfs_installation
