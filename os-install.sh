@@ -124,6 +124,28 @@ partitions_mounting() {
 }
 
 linux_rootfs_installation() {
+    linux_image_dir=/mnt/image
+    linux_image=/tmp/linux-rootfs
+
+    wget --quiet -O ${linux_image} ${LINUX_ROOTFS_URL}
+
+    if [ -e ${linux_image_dir} ] ; then
+        rm -r ${linux_image_dir}
+    fi
+
+    mkdir ${linux_image_dir}
+
+    if [ -n "$(file ${linux_image} | grep gzip)" ] ; then
+        echo 'o' #TODO : call functioninstallation for tar.gz root fs
+    elif [ -n "$(file ${linux_image} | grep Squashfs)" ] ; then
+        echo 'o' #TODO : call functioninstallation for squashfs root fs
+    elif [ -n "$(file ${linux_image} | grep QCOW)" ] ; then
+        qcow2_installation
+    elif [ -n "$(file ${linux_image} | grep ISO)" ] ; then
+        echo 'o' #TODO : call functioninstallation for iso root fs
+    fi
+}
+qcow2_installation() {
     ### Workaround for Debian repos issue when runnning GRML
     ###     E: The repository 'http://security.debian.org testing/updates Release' does not have a Release file.
     ### We don't need this package repository so we delete it
@@ -135,15 +157,6 @@ linux_rootfs_installation() {
     apt update
     apt install -y libguestfs-tools
 
-    local linux_image_dir=/mnt/image
-    local linux_image=/tmp/linux-rootfs.qcow2
-
-    wget --quiet -O ${linux_image} ${LINUX_ROOTFS_URL}
-
-    if [ -e ${linux_image_dir} ] ; then
-        rm -r ${linux_image_dir}
-    fi
-    mkdir ${linux_image_dir}
     guestmount -a ${linux_image} -m /dev/sda1 ${linux_image_dir}
 
     cp -rp ${linux_image_dir}/* ${rootfs}
