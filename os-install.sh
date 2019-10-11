@@ -122,6 +122,7 @@ partitions_mounting() {
     mkdir -p ${rootfs}/boot/efi
     mount ${EFI_PARTITION} ${rootfs}/boot/efi
 }
+
 linux_rootfs_installation() {
     linux_image_dir=/mnt/image
     linux_image=/tmp/linux-rootfs
@@ -129,7 +130,6 @@ linux_rootfs_installation() {
     wget --quiet -O ${linux_image} ${LINUX_ROOTFS_URL}
 
     if [ -e ${linux_image_dir} ] ; then
-        rm -r ${linux_image_dir}
         rm -rf ${linux_image_dir}
     fi
 
@@ -153,6 +153,10 @@ archiveTar_installation() {
     cp -rp ${linux_image_dir}/* ${rootfs}
 }
 
+squashfs_installation(){
+    unsquashfs -d ${linux_image_dir} ${linux_image}
+    cp -rp ${linux_image_dir}/* ${rootfs}
+}
 
 qcow2_installation() {
     ### Workaround for Debian repos issue when runnning GRML
