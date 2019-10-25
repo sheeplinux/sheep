@@ -122,7 +122,6 @@ partitions_mounting() {
     mkdir -p ${rootfs}/boot/efi
     mount ${EFI_PARTITION} ${rootfs}/boot/efi
 }
-
 linux_rootfs_installation() {
     linux_image_dir=/mnt/image
     linux_image=/tmp/linux-rootfs
@@ -131,20 +130,30 @@ linux_rootfs_installation() {
 
     if [ -e ${linux_image_dir} ] ; then
         rm -r ${linux_image_dir}
+        rm -rf ${linux_image_dir}
     fi
 
     mkdir ${linux_image_dir}
 
-    if [ -n "$(file ${linux_image} | grep gzip)" ] ; then
-        echo 'o' #TODO : call functioninstallation for tar.gz root fs
+    if [ -n "$(file ${linux_image} | grep XZ)" ] ; then
+        archiveTar_installation "xfJ"
+    elif [ -n "$(file ${linux_image} | grep gzip)" ] ; then
+        archiveTar_installation "xzf"
     elif [ -n "$(file ${linux_image} | grep Squashfs)" ] ; then
-        echo 'o' #TODO : call functioninstallation for squashfs root fs
+        squashfs_installation
     elif [ -n "$(file ${linux_image} | grep QCOW)" ] ; then
         qcow2_installation
     elif [ -n "$(file ${linux_image} | grep ISO)" ] ; then
         echo 'o' #TODO : call functioninstallation for iso root fs
     fi
 }
+
+archiveTar_installation() {
+    (cd  ${linux_image_dir} ; tar ${1} ${linux_image})
+    cp -rp ${linux_image_dir}/* ${rootfs}
+}
+
+
 qcow2_installation() {
     ### Workaround for Debian repos issue when runnning GRML
     ###     E: The repository 'http://security.debian.org testing/updates Release' does not have a Release file.
