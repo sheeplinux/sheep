@@ -145,7 +145,7 @@ linux_rootfs_installation() {
     elif [ -n "$(file ${linux_image} | grep QCOW)" ] ; then
         qcow2_installation
     elif [ -n "$(file ${linux_image} | grep ISO)" ] ; then
-        echo 'o' #TODO : call functioninstallation for iso root fs
+        : #TODO : call functioninstallation for iso root fs
     fi
 }
 
