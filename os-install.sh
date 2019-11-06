@@ -140,6 +140,7 @@ linux_rootfs_installation() {
     elif [ -n "$(file ${linux_image} | grep gzip)" ] ; then
         archiveTar_installation "xzf"
     elif [ -n "$(file ${linux_image} | grep Squashfs)" ] ; then
+        rm -rf ${linux_image_dir}
         squashfs_installation
     elif [ -n "$(file ${linux_image} | grep QCOW)" ] ; then
         qcow2_installation
