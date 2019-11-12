@@ -2,7 +2,7 @@
 
 set -e
 
-exitOnError() {
+exit_on_error() {
     echo "ERROR : $1"
     exit 1
 }
@@ -52,7 +52,7 @@ search_value() {
 #
 search_mandatory_value() {
     local value=$(search_value $1)
-    [ -z "$value" ] && exitOnError "$2"
+    [ -z "$value" ] && exit_on_error "$2"
     echo "${value}"
 }
 
@@ -325,7 +325,7 @@ rootfs_bootloader_configuration() {
         local legacyGrubFile=${rootfs}/boot/grub/grub.cfg
 
         if [ ! -e ${legacyGrubFile} ] ; then
-            exitOnError "Unable to locate GRUB config file"
+            exit_on_error "Unable to locate GRUB config file"
         fi
 
         mkdir -p ${rootfs}/boot/grub2/
@@ -342,7 +342,7 @@ rootfs_bootloader_configuration() {
         # e.g. /mnt/boot/loader/entries/f241772f3e32496c92975269b5794615-5.0.9-301.fc30.x86_64.conf
         :
         if [[ -z "${kernel}" || -z ${initrd} ]] ; then
-            exitOnError "Can't find kernel or initrd file path"
+            exit_on_error "Can't find kernel or initrd file path"
         fi
     fi
 
