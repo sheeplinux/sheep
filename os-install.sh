@@ -62,9 +62,17 @@ config_variable() {
     BOOT_SERVER=$(search_value ipAdr)
     PUBLIC_IFACE_NAME=$(search_mandatory_value intName "'intName' parameter must be provided")
     PORT_PXE_PILOT=$(search_value portPxe 3478)
+    PXE_PILOT_ENABLED=$(search_value pxePilotEnabled false)
+    PXE_PILOT_CFG=$(search_value pxePilotCfg "local")
     if [ -z "${BOOT_SERVER}" ] ; then
-    	PXE_PILOT_BASEURL=$(search_mandatory_value serverPxe "Either 'ipAdr' or 'serverPxe' parameter must be provided")
-	LINUX_ROOTFS_URL=$(search_mandatory_value linuxRootfs "Either 'ipAdr' or 'linuxRootfs ' parameter must be provided")
+        if [ "${PXE_PILOT_ENABLED}" == "true" ] ; then
+    	    PXE_PILOT_BASEURL=$(search_mandatory_value serverPxe "Either 'ipAdr' or 'serverPxe' parameter must be provided")
+	    local ret=$?
+            if [ ${ret} -ne 0 ] ; then
+                exit ${ret}
+            fi
+        fi
+        LINUX_ROOTFS_URL=$(search_mandatory_value linuxRootfs "Either 'ipAdr' or 'linuxRootfs ' parameter must be provided")
 	EFI_ARCHIVE_URL=$(search_mandatory_value efiRootfs "Either 'ipAdr' or 'efiRootfs' parameter must be provided")
     else
     	PXE_PILOT_BASEURL=$(search_value serverPxe "http://${BOOT_SERVER}:${PORT_PXE_PILOT}")
@@ -377,7 +385,9 @@ partitions_unmounting() {
 
 notify_pxepilot_and_reboot() {
     macA=$(ip address | grep -A 1 "${PUBLIC_IFACE_NAME}" | grep "link/ether" | cut -d ' ' -f 6)
-    curl -i -X PUT "${PXE_PILOT_BASEURL}/v1/configurations/local/deploy" -d '{"hosts":[{"macAddress":"'"$macA"'"}]}'
+    if [ "${PXE_PILOT_ENABLED}" == "true" ] ; then
+       curl -i -X PUT "${PXE_PILOT_BASEURL}/v1/configurations/${PXE_PILOT_CFG}/deploy" -d '{"hosts":[{"macAddress":"'"$macA"'"}]}'
+    fi
     reboot
 }
 
