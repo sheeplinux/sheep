@@ -2,6 +2,9 @@
 
 set -e
 
+#
+# $1 - Error message
+#
 exit_on_error() {
     echo "ERROR : $1"
     exit 1
@@ -56,6 +59,9 @@ search_mandatory_value() {
     echo "${value}"
 }
 
+#
+#Create every variable needed by calling search_value or search_mandatory_value
+#
 config_variable() {
     OS_NAME=$(search_value osType "linux")
     OS_VERSION=$(search_value osVersion "current")
@@ -112,6 +118,7 @@ system_partitionning() {
 	EOF
 }
 
+
 partitions_formating() {
     echo ' ' ; echo 'Formating' ; echo ' '
     mkfs.fat -F 32 -n EFI ${EFI_PARTITION}
@@ -121,6 +128,12 @@ partitions_formating() {
     # TODO rootfs filesystem type should be an input parameter
 }
 
+#
+# Create a directory : rootfs
+# Mounts the root file system partition on this one
+# Create two directories in it : boot and inside efi
+# Mounts efi partition on efi directory
+#
 partitions_mounting() {
     if [ -e ${rootfs} ] ; then
         rm -rf ${rootfs}
@@ -131,6 +144,13 @@ partitions_mounting() {
     mount ${EFI_PARTITION} ${rootfs}/boot/efi
 }
 
+#
+# Download the file containing the root file system in /tmp directory and named it as linux_rootfs.
+#
+# The type supported are archive compressed like .tar.gz and .tar.xz, squashfs, qcow2.
+#
+# Analyses the type of root file system file and call function for extracting and copying the file system depending on the type.
+#
 linux_rootfs_installation() {
     linux_image_dir=/mnt/image
     linux_image=/tmp/linux-rootfs
@@ -211,7 +231,7 @@ bootloader_installation() {
 
 # This function is useful to erase unecessary efi boot entry
 #
-# - Unecessary boot entry are those which have been add with a path to the bootloader
+# - Unecessary boot entry are those which have been added with a path to the bootloader
 # - Permit to avoid bug after reboot
 efi_entry_cleanup() {
     num=$(efibootmgr -v | grep  "File" | cut -d ' ' -f 1 | grep "0" | cut -d 't' -f 2 | cut -d '*' -f 1)
@@ -232,6 +252,12 @@ chroot_exec() {
     LANG=C chroot ${rootfs} $@
 }
 
+#
+# Prepare chroot environement
+#
+# Copy the resolv.conf file of the live OS of grml live session to having DNS service
+# As it, allow command with apt install in this chroot environment
+#
 prepare_chroot() {
     mkdir -p ${rootfs}/proc
     mkdir -p ${rootfs}/sys
@@ -247,6 +273,9 @@ prepare_chroot() {
     cp /etc/resolv.conf ${rootfs}/etc/
 }
 
+# Create linux user and his directory, add it to the sudoers.
+# /!\ Configure the /mnt/rootfs/etc/sudoers.d/linux as sudoer password not requested /!\
+# Configure ssh
 create_user() {
     chroot_exec useradd --shell /bin/bash -m -d /home/linux linux
     echo "linux ALL=(ALL:ALL) NOPASSWD: ALL" > ${rootfs}/etc/sudoers.d/linux
@@ -254,6 +283,7 @@ create_user() {
 
     # FIXME : Hardcode my SSH key for test purpose because
     # password authentication is disabled in Ubuntu 18.04 image 
+    #TODO :put it in parameter
     mkdir -p ${rootfs}/home/linux/.ssh/
     echo 'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDdXnRJVWf7OvFa0UZPkvDBave2BWhr29HFlO/bI/98rmPc0zn24a8Wplo/Sts4SrL3xZNATH5tWwNpPulBThPqnjdMU4Rw2Jf/mjlQXiT7+w3w60/HrMd62J/d/dyYrIuvuog3OAEi1vsiKCRm/9ptpbNA4E34ZUBSOpT3bx0b4NszYB2g7VdcmgHHXSY16AVCv3I3ZN0UmWphw1hpjpxfHTinE2pR5L0HVMikxqaxjCZI7DSpi8f4gQJn7gjLTh905o751Z3s7Y4L/v9NTEXmCPF425krwxDD4EMSMJ6BXgAExvPolWV0/W9HUtKX7XtEJUKWLUlikb7qTRWR1sld ubuntu@dev-01' > ${rootfs}/home/linux/.ssh/authorized_keys
     chroot_exec chown -R linux: /home/linux/.ssh
@@ -324,6 +354,11 @@ linux_rootfs_configuration() {
     cleanup_rootfs
 }
 
+#
+# Verification of grub.cfg file presence
+# Existing grub.cfg file is used to check the path to the kernel an initrd file
+# These paths are used to recreate a new grub.cfg file
+#
 rootfs_bootloader_configuration() {
     local grubFile=${rootfs}/boot/grub2/grub.cfg
 
@@ -367,6 +402,16 @@ rootfs_bootloader_configuration() {
 	EOF
 }
 
+#
+# This function disable the SElinux service in the configuration file by default
+# If selinux variable is set to enable, it create the file .autorelabel on root : selinux uses extended attributes
+# and by copying the rootfile system this way, it comes to a problem on it
+#
+# So SElinux is locking everyfing. You can't log after reboot.
+# Having the file .autorelabel after reboot involves two reboots before beeing able to login.
+# At the first reboot, the presence of .autorelabel launch the relabelling of all files.
+# Then the system reboot and you're able to login.
+#
 SElinux_configuration(){
     local config_file=${rootfs}/etc/selinux/config
     if [ -e ${config_file} ]; then
