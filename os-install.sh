@@ -424,7 +424,7 @@ SElinux_configuration(){
 }
 
 partitions_unmounting() {
-    cd
+    cd /
     umount -R ${rootfs}
 }
 
