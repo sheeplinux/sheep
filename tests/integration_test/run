@@ -208,7 +208,7 @@ main() {
     log "Starting test on machine '${DUT_NAME}'"
     start_dut ${DUT_NAME}
 
-    wait_for_ip ${mac} 240
+    wait_for_ip ${mac} 450
     ip=$(get_ip_from_mac ${mac})
     if [ -z "${ip}" ] ; then
         log "Error.... Server did not boot !"
@@ -216,10 +216,10 @@ main() {
     fi
 
     log  "Waiting for GRML to boot..."
-    wait_for_ssh ${ip} root grml 300
+    wait_for_ssh ${ip} root grml 600
 
     log  "Waiting for newly installed Linux to boot..."
-    wait_for_ssh ${ip} linux linux 900
+    wait_for_ssh ${ip} linux linux 1200
 
     if [ -n "${EXPECTED_UNAME}" ] ; then
         log "Checking machine '${DUT_NAME}' is running the expected operating system..."
@@ -267,6 +267,6 @@ if [ -z "${CONFIG_FILE_NAME}" ] ; then
     exit 1
 fi
 
-trap cleanup EXIT
+#trap cleanup EXIT
 
 main

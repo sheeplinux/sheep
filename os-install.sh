@@ -229,6 +229,7 @@ config_variable() {
     PORT_PXE_PILOT=$(search_value ".pxePilot.port" 3478)
     PXE_PILOT_ENABLED=$(search_value ".pxePilot.enable" "false")
     PXE_PILOT_CFG=$(search_value ".pxePilot.config_after_reboot" "local")
+    BOOT_MODE=$(search_value ".bootloader.mode" "uefi")
     if [ -z "${BOOT_SERVER}" ] ; then
 		if [ "${PXE_PILOT_ENABLED}" == "true" ] ; then
 			PXE_PILOT_BASEURL="$(search_mandatory_value .pxePilot.url \"Either 'ipAdr' or 'serverPxe' parameter must be provided\"):3478"
@@ -260,6 +261,16 @@ config_variable() {
     SERIAL_TTY=$(search_value ".bootloader.kernel_parameter.console.serial" "ttyS1")
     BAUD_RATE=$(search_value ".bootloader.kernel_parameter.console.baudRate" "57600n8")
     SELINUX=$(search_value ".linux.selinux" "disable")
+    if [ "${BOOT_MODE}" == "legacy" ] ; then
+    	CODE_PARTITIONNING_BOOT=ef02
+    	BOOT_PARTITION_SIZE=2M
+	elif [ "${BOOT_MODE}" == "uefi" ] ; then
+   		CODE_PARTITIONNING_BOOT=ef00
+    	BOOT_PARTITION_SIZE=500M
+	else
+    	exit_on_error "Boot mode '${BOOT_MODE}' is not supported"
+	fi
+
 }
 
 #
@@ -277,13 +288,13 @@ system_partitionning() {
 	n
 	1
 
-	+500M
-	ef00
+	+$BOOT_PARTITION_SIZE
+	$CODE_PARTITIONNING_BOOT
 	n
 	2
 
 
-	$CODE_PARTITIONNING
+	$CODE_PARTITIONNING_FS
 	wq
 	yes
 	EOF
@@ -293,8 +304,9 @@ system_partitionning() {
 partitions_formating() {
     log_debug "-> ${FUNCNAME[0]} $*"
 
-    echo ' ' ; echo 'Formating' ; echo ' '
-    mkfs.fat -F 32 -n EFI ${EFI_PARTITION}
+    if [ "${BOOT_MODE}" == "uefi" ] ; then
+        mkfs.fat -F 32 -n EFI ${EFI_PARTITION}
+    fi
     mkfs.ext4 -q -L cloudimg-rootfs ${LINUX_PARTITION} <<- EOF
 	y
 	EOF
@@ -315,8 +327,10 @@ partitions_mounting() {
     fi
     mkdir ${rootfs}
     mount ${LINUX_PARTITION} ${rootfs}
-    mkdir -p ${rootfs}/boot/efi
-    mount ${EFI_PARTITION} ${rootfs}/boot/efi
+    if [ "${BOOT_MODE}" == "uefi" ] ; then
+        mkdir -p ${rootfs}/boot/efi
+        mount ${EFI_PARTITION} ${rootfs}/boot/efi
+    fi
 }
 
 #
@@ -371,8 +385,7 @@ squashfs_installation(){
 qcow2_installation() {
     log_debug "-> ${FUNCNAME[0]} $*"
 
-    apt install -y libguestfs-tools
-
+    DEBIAN_FRONTEND=noninteractive apt install -y libguestfs-tools
     guestmount -a ${linux_image} -m /dev/sda1 ${linux_image_dir}
 
     cp -rp ${linux_image_dir}/* ${rootfs}
@@ -383,6 +396,15 @@ qcow2_installation() {
 bootloader_installation() {
     log_debug "-> ${FUNCNAME[0]} $*"
 
+    if [ "${BOOT_MODE}" == "uefi" ] ; then
+        bootloader_installation_uefi
+    elif [ "${BOOT_MODE}" == "legacy" ] ; then
+        grub-install --root-directory=${rootfs} ${BLOCK_DEVICE}
+    fi
+}
+
+bootloader_installation_uefi() {
+    log_debug "-> ${FUNCNAME[0]} $*"
     local bootloader_name=ubuntu # bootloader_name is used to name the bootloader folder
                                  # in the EFI partition. For now, it have to be 'ubuntu' and
                                  # can't be changed as long we rely on Grub EFI comming from
@@ -469,6 +491,14 @@ create_user() {
     mkdir -p ${rootfs}/home/linux/.ssh/
     echo 'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDdXnRJVWf7OvFa0UZPkvDBave2BWhr29HFlO/bI/98rmPc0zn24a8Wplo/Sts4SrL3xZNATH5tWwNpPulBThPqnjdMU4Rw2Jf/mjlQXiT7+w3w60/HrMd62J/d/dyYrIuvuog3OAEi1vsiKCRm/9ptpbNA4E34ZUBSOpT3bx0b4NszYB2g7VdcmgHHXSY16AVCv3I3ZN0UmWphw1hpjpxfHTinE2pR5L0HVMikxqaxjCZI7DSpi8f4gQJn7gjLTh905o751Z3s7Y4L/v9NTEXmCPF425krwxDD4EMSMJ6BXgAExvPolWV0/W9HUtKX7XtEJUKWLUlikb7qTRWR1sld ubuntu@dev-01' > ${rootfs}/home/linux/.ssh/authorized_keys
     chroot_exec chown -R linux: /home/linux/.ssh
+    
+    if [ ${bootMode} == "legacy" ] ; then
+        # Workaround for some hardware running with legacy boot that have problem with the two following modules
+		cat <<- EOF >> ${rootfs}/etc/modprobe.d/blacklist.conf
+		blacklist me
+		blacklist mei_me
+		EOF
+	fi
 }
 
 configure_fstab() {
@@ -476,8 +506,13 @@ configure_fstab() {
 
     cat <<- EOF > ${rootfs}/etc/fstab
 	LABEL=cloudimg-rootfs /                       ext4     defaults        0 0
+	EOF
+
+    if [ "${BOOT_MODE}" == "uefi" ] ; then
+	cat <<- EOF >> ${rootfs}/etc/fstab
 	LABEL=EFI             /boot/efi               vfat     defaults        0 0
 	EOF
+    fi
 }
 
 remove_cloudinit() {
@@ -570,16 +605,17 @@ rootfs_bootloader_configuration() {
     log_debug "-> ${FUNCNAME[0]} $*"
 
     local grubFile=${rootfs}/boot/grub2/grub.cfg
+    local legacyGrubFile=${rootfs}/boot/grub/grub.cfg
 
     if [ -e ${grubFile} ] ; then
         cp ${grubFile} ${grubFile}.bak
+        if [ ${BOOT_MODE} == "legacy" ] && [ ! -e ${legacyGrubFile} ]; then
+            (cd ${rootfs}/boot/grub2 && ln -s ./../grub2/grub.cfg ./../grub/grub.cfg)
+        fi
     else
-        local legacyGrubFile=${rootfs}/boot/grub/grub.cfg
-
         if [ ! -e ${legacyGrubFile} ] ; then
             exit_on_error "Unable to locate GRUB config file"
         fi
-
         mkdir -p ${rootfs}/boot/grub2/
         cp ${legacyGrubFile} ${grubFile}
         mv ${legacyGrubFile} ${legacyGrubFile}.bak
@@ -668,13 +704,15 @@ main() {
 	config_variable
 
 	log "Cleaning local boot EFI entries from the EFI Boot Manager"
-	efi_entry_cleanup
+	if [ "${BOOT_MODE}" == "uefi" ] ; then
+            efi_entry_cleanup
+        fi
 
 	log "Erasing drive an creating the partition table"
 	system_partitionning
 
 	log "Formating partitions"
-	partitions_formating
+    partitions_formating
 
 	log "Mount partition in read-write mode"
 	partitions_mounting
