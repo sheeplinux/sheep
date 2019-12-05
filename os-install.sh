@@ -90,6 +90,8 @@ config_variable() {
     EFI_PARTITION="${BLOCK_DEVICE}1"
     LINUX_PARTITION="${BLOCK_DEVICE}2"
     CODE_PARTITIONNING=8300
+    SERIAL_TTY=$(search_value serialTty "ttyS1")
+    BAUD_RATE=$(search_value baudRate "57600n8")
     SELINUX=$(search_value selinux "disable")
 }
 
@@ -396,7 +398,7 @@ rootfs_bootloader_configuration() {
 	menuentry 'Linux' {
 	    insmod gzio
 	    search --label cloudimg-rootfs --set
-	    linux  ${kernel} root=LABEL=cloudimg-rootfs ro console=ttyS1,57600n8
+	    linux  ${kernel} root=LABEL=cloudimg-rootfs ro console=${SERIAL_TTY},${BAUD_RATE}
 	    initrd ${initrd}
 	}
 	EOF
