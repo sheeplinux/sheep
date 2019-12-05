@@ -25,7 +25,7 @@ ubuntu16.04-qcow2:
   stage: test-integ
   variables:
     LINUX_IMAGE: 'https://cloud-images.ubuntu.com/xenial/current/xenial-server-cloudimg-amd64-disk1.img'
-    EXPECTED_UNAME: 'Linux ubuntu 4.4.0-169-generic'
+    EXPECTED_UNAME: 'Linux ubuntu 4.4.0-170-generic'
   script:
     - cd ${CI_PROJECT_DIR}
     - tests/integration_test/run
