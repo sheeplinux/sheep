@@ -21,7 +21,7 @@ load test_helper
 
 }
 
-@test "cofig_variable with no ipAdr , and no pxePilotEnabled, efiRootfs & linuxRootfs given" {
+@test "config_variable with no ipAdr , and no pxePilotEnabled, efiRootfs & linuxRootfs given" {
     source ${BATS_TEST_DIRNAME}/../../os-install.sh
 
     export OS_DEPLOY_PARAMETERS="intName=value efiRootfs=value linuxRootfs=value pxePilotEnabled=true pxePilotCfg=local"
@@ -36,5 +36,41 @@ load test_helper
     export OS_DEPLOY_PARAMETERS="intName=value efiRootfs=value linuxRootfs=value pxePilotEnabled=false pxePilotCfg=local"
 
     run config_variable 
+    [ "${status}" -eq 0 ]
+}
+
+@test "config_variable with ipAdr but  no intName" {
+    source ${BATS_TEST_DIRNAME}/../../os-install.sh
+
+    export OS_DEPLOY_PARAMETERS="ipAdr=value"
+
+    run config_variable
+    [ "${status}" -eq 1 ]
+}
+
+@test "config_variable with no ipAdr,  but no linuxRootfs , but efiRootfs given and intName too" {
+    source ${BATS_TEST_DIRNAME}/../../os-install.sh
+
+    export OS_DEPLOY_PARAMETERS="intName=value efiRootfs=value"
+
+    run config_variable
+    [ "${status}" -eq 1 ]
+}
+
+@test "config_variable with no ipAdr,  but no efiRootfs , but linuxRootfs given and intName too" {
+    source ${BATS_TEST_DIRNAME}/../../os-install.sh
+
+    export OS_DEPLOY_PARAMETERS="intName=value linuxRootfs=value"
+
+    run config_variable
+    [ "${status}" -eq 1 ]
+}
+
+@test "config_variable with minimal configuration to work : ipAdr and intName given" {
+    source ${BATS_TEST_DIRNAME}/../../os-install.sh
+
+    export OS_DEPLOY_PARAMETERS="intName=value ipAdr=value"
+
+    run config_variable
     [ "${status}" -eq 0 ]
 }
