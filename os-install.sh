@@ -3,10 +3,114 @@
 set -e
 
 #
+# Shortcut for log_info function
+#
+# $* - Text to log
+#
+log() {
+    log_info $*
+}
+
+#
+# Log text in file specified by the environment variable
+# OS_INSTALL_LOG_FILE when log level level is ERROR or INFO
+#
+# $* - Text to log
+#
+log_info() {
+    _log INFO $*
+}
+
+#
+# Log text in file specified by the environment variable
+# OS_INSTALL_LOG_FILE when log level level is ERROR or INFO
+#
+# $* - Text to log
+#
+log_warning() {
+    _log WARNING $*
+}
+
+#
+# Log text in file specified by the environment variable
+# OS_INSTALL_LOG_FILE (always)
+#
+# $* - Text to log
+#
+log_error() {
+    _log ERROR $*
+}
+
+#
+# Log text in file specified by the environment variable
+# OS_INSTALL_LOG_FILE when log level level is DEBUG
+#
+# $* - Text to log
+#
+log_debug() {
+    _log DEBUG $*
+}
+
+#
+# Internal function for logging. The one that actually do logging
+#
+# $1 - Log severity (i.e. ERROR, WARNING, INFO or DEBUG)
+# $* - Text to log
+#
+_log() {
+    #
+    # Log file to log into
+    #
+    if [ -z "${OS_INSTALL_LOG_FILE}" ] ; then
+        OS_INSTALL_LOG_FILE="/tmp/os-install-$(date +%s).log"
+    fi
+    touch ${OS_INSTALL_LOG_FILE}
+
+    #
+    # Authorized log level are ERROR, WARNING, INFO and DEBUG
+    #
+    if [ -z "${OS_INSTALL_LOG_LEVEL}" ] ; then
+        OS_INSTALL_LOG_LEVEL=INFO
+    fi
+
+    local severity="${1}"
+
+    if [ "${severity}" = 'ERROR' ] ; then
+        :
+    elif [ "${severity}" = 'WARNING' ] ; then
+        if [[ "${OS_INSTALL_LOG_LEVEL}" = "ERROR" ]] ; then
+            return
+        fi
+    elif [ "${severity}" = 'DEBUG' ] ; then
+        if [ "${OS_INSTALL_LOG_LEVEL}" != "DEBUG" ] ; then
+            return
+        fi
+    else
+        #
+        # If severity is equals to something else, the only one remaining authorized value is 'INFO',
+        # so we force this value. It is equivalent to have a fallback value to INFO when the value is unknown
+        #
+        severity=INFO
+        if [[ "${OS_INSTALL_LOG_LEVEL}" = "ERROR" || "${OS_INSTALL_LOG_LEVEL}" = "WARNING" ]] ; then
+            return
+        fi
+    fi
+
+    {
+        printf "$(date '+[%D %T %z]') %-7s | " ${severity}
+        shift
+        echo "$*"
+    } >> $OS_INSTALL_LOG_FILE
+}
+
+#
 # $1 - Error message
 #
 exit_on_error() {
-    echo "ERROR : $1"
+    log_debug "-> ${FUNCNAME[0]} $*"
+
+    echo "ERROR : $1" >&2
+    log "Exit with status code 1"
     exit 1
 }
 
@@ -32,6 +136,8 @@ declare -A configMap
 # $2 - Default value
 #
 search_value() {
+    log_debug "-> ${FUNCNAME[0]} $*"
+
     if [ ${#configMap[@]} -eq 0 ] ; then
 		local cmd=${OS_DEPLOY_PARAMETERS}
 		if [ -z "${cmd}" ] ; then
@@ -54,8 +160,11 @@ search_value() {
 # $2 - error message if the value is not found
 #
 search_mandatory_value() {
+    log_debug "-> ${FUNCNAME[0]} $*"
+
     local value=$(search_value $1)
     [ -z "$value" ] && exit_on_error "$2"
+    log "Mandatory value for '$1' found => '${value}'"
     echo "${value}"
 }
 
@@ -63,6 +172,8 @@ search_mandatory_value() {
 #Create every variable needed by calling search_value or search_mandatory_value
 #
 config_variable() {
+    log_debug "-> ${FUNCNAME[0]} $*"
+
     OS_NAME=$(search_value osType "linux")
     OS_VERSION=$(search_value osVersion "current")
     BOOT_SERVER=$(search_value ipAdr)
@@ -101,6 +212,8 @@ config_variable() {
 # previoulsly exist on the drive everything is wiped beforehand.
 #
 system_partitionning() {
+    log_debug "-> ${FUNCNAME[0]} $*"
+
     echo ' ' ; echo 'Partitioning' ; echo ' '
     gdisk ${BLOCK_DEVICE} <<- EOF
 	o
@@ -122,6 +235,8 @@ system_partitionning() {
 
 
 partitions_formating() {
+    log_debug "-> ${FUNCNAME[0]} $*"
+
     echo ' ' ; echo 'Formating' ; echo ' '
     mkfs.fat -F 32 -n EFI ${EFI_PARTITION}
     mkfs.ext4 -q -L cloudimg-rootfs ${LINUX_PARTITION} <<- EOF
@@ -137,6 +252,8 @@ partitions_formating() {
 # Mounts efi partition on efi directory
 #
 partitions_mounting() {
+    log_debug "-> ${FUNCNAME[0]} $*"
+
     if [ -e ${rootfs} ] ; then
         rm -rf ${rootfs}
     fi
@@ -154,6 +271,8 @@ partitions_mounting() {
 # Analyses the type of root file system file and call function for extracting and copying the file system depending on the type.
 #
 linux_rootfs_installation() {
+    log_debug "-> ${FUNCNAME[0]} $*"
+
     linux_image_dir=/mnt/image
     linux_image=/tmp/linux-rootfs
 
@@ -180,16 +299,22 @@ linux_rootfs_installation() {
 }
 
 archiveTar_installation() {
+    log_debug "-> ${FUNCNAME[0]} $*"
+
     (cd  ${linux_image_dir} ; tar ${1} ${linux_image})
     cp -rp ${linux_image_dir}/* ${rootfs}
 }
 
 squashfs_installation(){
+    log_debug "-> ${FUNCNAME[0]} $*"
+
     unsquashfs -d ${linux_image_dir} ${linux_image}
     cp -rp ${linux_image_dir}/* ${rootfs}
 }
 
 qcow2_installation() {
+    log_debug "-> ${FUNCNAME[0]} $*"
+
     ### Workaround for Debian repos issue when runnning GRML
     ###     E: The repository 'http://security.debian.org testing/updates Release' does not have a Release file.
     ### We don't need this package repository so we delete it
@@ -209,6 +334,7 @@ qcow2_installation() {
 }
 
 bootloader_installation() {
+    log_debug "-> ${FUNCNAME[0]} $*"
 
     local bootloader_name=ubuntu # bootloader_name is used to name the bootloader folder
                                  # in the EFI partition. For now, it have to be 'ubuntu' and
@@ -236,6 +362,8 @@ bootloader_installation() {
 # - Unecessary boot entry are those which have been added with a path to the bootloader
 # - Permit to avoid bug after reboot
 efi_entry_cleanup() {
+    log_debug "-> ${FUNCNAME[0]} $*"
+
     num=$(efibootmgr -v | grep  "File" | cut -d ' ' -f 1 | grep "0" | cut -d 't' -f 2 | cut -d '*' -f 1)
     N=$(echo $num | wc -w)
     for i in $(seq 1 $N)
@@ -251,6 +379,8 @@ efi_entry_cleanup() {
 # $@ - command to execute
 #
 chroot_exec() {
+    log_debug "-> ${FUNCNAME[0]} $*"
+
     LANG=C chroot ${rootfs} $@
 }
 
@@ -261,6 +391,8 @@ chroot_exec() {
 # As it, allow command with apt install in this chroot environment
 #
 prepare_chroot() {
+    log_debug "-> ${FUNCNAME[0]} $*"
+
     mkdir -p ${rootfs}/proc
     mkdir -p ${rootfs}/sys
     mkdir -p ${rootfs}/dev
@@ -279,6 +411,8 @@ prepare_chroot() {
 # /!\ Configure the /mnt/rootfs/etc/sudoers.d/linux as sudoer password not requested /!\
 # Configure ssh
 create_user() {
+    log_debug "-> ${FUNCNAME[0]} $*"
+
     chroot_exec useradd --shell /bin/bash -m -d /home/linux linux
     echo "linux ALL=(ALL:ALL) NOPASSWD: ALL" > ${rootfs}/etc/sudoers.d/linux
     echo -e 'linux\nlinux' | chroot_exec passwd linux
@@ -292,6 +426,8 @@ create_user() {
 }
 
 configure_fstab() {
+    log_debug "-> ${FUNCNAME[0]} $*"
+
     cat <<- EOF > ${rootfs}/etc/fstab
 	LABEL=cloudimg-rootfs /                       ext4     defaults        0 0
 	LABEL=EFI             /boot/efi               vfat     defaults        0 0
@@ -299,6 +435,8 @@ configure_fstab() {
 }
 
 remove_cloudinit() {
+    log_debug "-> ${FUNCNAME[0]} $*"
+
     if [ -d ${rootfs}/etc/yum ] ; then
         chroot_exec yum -y erase cloud-init
     elif [ -d ${rootfs}/etc/apt ] ; then
@@ -308,7 +446,10 @@ remove_cloudinit() {
 }
 
 configure_networking() {
+    log_debug "-> ${FUNCNAME[0]} $*"
+
     if [ -d ${rootfs}/etc/netplan ] ; then
+        log "Configuring Linux | Configure network interface | Netplan configuration detected"
         cat <<- EOF > ${rootfs}/etc/netplan/network.yaml
 		network:
 		    version: 2
@@ -318,6 +459,7 @@ configure_networking() {
 		            dhcp6: false
 		EOF
     elif [ -e ${rootfs}/etc/network/interfaces ] ; then
+        log "Configuring Linux | Configure network interface | /etc/network/interfaces configuration detected"
         cat <<- EOF > ${rootfs}/etc/network/interfaces
 		auto lo
 		iface lo inet loopback
@@ -326,6 +468,7 @@ configure_networking() {
 		iface ${PUBLIC_IFACE_NAME} inet dhcp
 		EOF
     elif [ -d ${rootfs}/etc/sysconfig/network-scripts ] ; then
+        log "Configuring Linux | Configure network interface | SysConfig configuration detected"
         cat <<- EOF > ${rootfs}/etc/sysconfig/network-scripts/ifcfg-${PUBLIC_IFACE_NAME}
 		DEVICE="${PUBLIC_IFACE_NAME}"
 		BOOTPROTO="dhcp"
@@ -337,22 +480,38 @@ configure_networking() {
 		PERSISTENT_DHCLIENT="1"
 		EOF
     else
-        # Something else ?
-        :
+        log_warning "Configuring Linux | Configure network interface | No configuration detected"
     fi
 }
 
 cleanup_rootfs() {
+    log_debug "-> ${FUNCNAME[0]} $*"
+
     rm -f ${rootfs}/etc/resolv.conf
 }
 
 linux_rootfs_configuration() {
+    log_debug "-> ${FUNCNAME[0]} $*"
+
+    log "Configuring Linux | Prepare chroot environment"
     prepare_chroot
+
+    log "Configuring Linux | Configure partitions mount in /etc/fstab"
     configure_fstab
+
+    log "Configuring Linux | Create a sudoer user"
     create_user
+
+    log "Configuring Linux | Configure GRUB bootloader"
     rootfs_bootloader_configuration
+
+    log "Configuring Linux | Remove cloud-init if present"
     remove_cloudinit
+
+    log "Configuring Linux | Configure network interface"
     configure_networking
+
+    log "Configuring Linux | Cleanup the root filesystem"
     cleanup_rootfs
 }
 
@@ -362,6 +521,8 @@ linux_rootfs_configuration() {
 # These paths are used to recreate a new grub.cfg file
 #
 rootfs_bootloader_configuration() {
+    log_debug "-> ${FUNCNAME[0]} $*"
+
     local grubFile=${rootfs}/boot/grub2/grub.cfg
 
     if [ -e ${grubFile} ] ; then
@@ -415,6 +576,8 @@ rootfs_bootloader_configuration() {
 # Then the system reboot and you're able to login.
 #
 SElinux_configuration(){
+    log_debug "-> ${FUNCNAME[0]} $*"
+
     local config_file=${rootfs}/etc/selinux/config
     if [ -e ${config_file} ]; then
         if [ "${SELINUX}" == "enable" ]; then
@@ -426,11 +589,15 @@ SElinux_configuration(){
 }
 
 partitions_unmounting() {
+    log_debug "-> ${FUNCNAME[0]} $*"
+
     cd /
     umount -R ${rootfs}
 }
 
 notify_pxepilot_and_reboot() {
+    log_debug "-> ${FUNCNAME[0]} $*"
+
     macA=$(ip address | grep -A 1 "${PUBLIC_IFACE_NAME}" | grep "link/ether" | cut -d ' ' -f 6)
     if [ "${PXE_PILOT_ENABLED}" == "true" ] ; then
        curl -i -X PUT "${PXE_PILOT_BASEURL}/v1/configurations/${PXE_PILOT_CFG}/deploy" -d '{"hosts":[{"macAddress":"'"$macA"'"}]}'
@@ -439,18 +606,43 @@ notify_pxepilot_and_reboot() {
 }
 
 main() {
+	log_debug "-> ${FUNCNAME[0]} $*"
+
+	log "Starting installation process"
+
 	rootfs=/mnt/rootfs
 
+	log "Reading input configuration"
 	config_variable
+
+	log "Cleaning local boot EFI entries from the EFI Boot Manager"
 	efi_entry_cleanup
+
+	log "Erasing drive an creating the partition table"
 	system_partitionning
+
+	log "Formating partitions"
 	partitions_formating
+
+	log "Mount partition in read-write mode"
 	partitions_mounting
+
+	log "Installing Linux root filesystem into the Linux partition"
 	linux_rootfs_installation
+
+	log "Installing bootloader"
 	bootloader_installation
+
+	log "Configuring Linux"
 	linux_rootfs_configuration
+
+	log "Configuring SELinux if present"
 	SElinux_configuration   
+
+	log "Unmounting partitions"
 	partitions_unmounting
+
+	log "Installation complete. Notify PXE Pilot and reboot system"
 	notify_pxepilot_and_reboot
 }
 
