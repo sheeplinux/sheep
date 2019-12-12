@@ -1,0 +1,23 @@
+bootloader:
+  mode:
+  image:
+  kernel_parameter:
+    console:
+      serial:
+      baudRate:
+
+linux:
+  image: http://172.19.118.1/squashfs/disco.squashfs
+  label:
+  device:
+  selinux:
+
+network:
+  interface: ens1
+  ipAdr_serverPxe:
+
+pxePilot:
+  enable:
+  url:
+  port:
+  config_after_reboot:

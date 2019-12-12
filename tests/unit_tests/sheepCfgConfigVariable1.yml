@@ -1,0 +1,23 @@
+bootloader:
+  mode:
+  image:
+  kernel_parameter:
+    console:
+      serial:
+      baudRate:
+
+linux:
+  image:
+  label:
+  device:
+  selinux:
+
+network:
+  interface: ens1
+  ipAdr_serverPxe: 172.19.118.1
+
+pxePilot:
+  enable: true
+  url:
+  port:
+  config_after_reboot:
