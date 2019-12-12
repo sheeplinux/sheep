@@ -178,6 +178,10 @@ config_variable() {
     OS_VERSION=$(search_value osVersion "current")
     BOOT_SERVER=$(search_value ipAdr)
     PUBLIC_IFACE_NAME=$(search_mandatory_value intName "'intName' parameter must be provided")
+    local ret=$?
+    if [ ${ret} -ne 0 ] ; then
+       exit ${ret}
+    fi
     PORT_PXE_PILOT=$(search_value portPxe 3478)
     PXE_PILOT_ENABLED=$(search_value pxePilotEnabled false)
     PXE_PILOT_CFG=$(search_value pxePilotCfg "local")
@@ -190,7 +194,15 @@ config_variable() {
             fi
         fi
         LINUX_ROOTFS_URL=$(search_mandatory_value linuxRootfs "Either 'ipAdr' or 'linuxRootfs ' parameter must be provided")
+        local ret=$?
+        if [ ${ret} -ne 0 ] ; then
+            exit ${ret}
+        fi
 	EFI_ARCHIVE_URL=$(search_mandatory_value efiRootfs "Either 'ipAdr' or 'efiRootfs' parameter must be provided")
+        local ret=$?
+        if [ ${ret} -ne 0 ] ; then
+           exit ${ret}
+        fi
     else
     	PXE_PILOT_BASEURL=$(search_value serverPxe "http://${BOOT_SERVER}:${PORT_PXE_PILOT}")
     	LINUX_ROOTFS_URL=$(search_value linuxRootfs "http://${BOOT_SERVER}/archive_root/${OS_NAME}/${OS_NAME}${OS_VERSION}_root.tar.gz")
