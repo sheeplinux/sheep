@@ -58,7 +58,7 @@ opensuse15.1-qcow2:
   stage: test-integ
   variables:
     LINUX_IMAGE: 'https://download.opensuse.org/repositories/Cloud:/Images:/Leap_15.1/images/openSUSE-Leap-15.1-OpenStack.x86_64.qcow2'
-    EXPECTED_UNAME: 'Linux localhost 4.12.14-lp151.28.32-default'
+    EXPECTED_UNAME: 'Linux localhost 4.12.14-lp151.28.36-default'
   script:
     - cd ${CI_PROJECT_DIR}
     - tests/integration_test/run
