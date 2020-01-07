@@ -130,15 +130,16 @@ deploy_boot_config() {
 	default grml
 	label grml
 	kernel /grml/vmlinuz
-	append boot=live fetch=${OS_DEPLOY_SQUASHFS} initrd=/grml/initrd.img ssh=grml console=ttyS1,57600n8 startup=/usr/bin/os-deploy deployScript=${OS_DEPLOY_SCRIPT} serverPxe=${PXE_PILOT_API} intName=ens1 linuxRootfs=${LINUX_IMAGE} blockDevice=/dev/sda efiRootfs=${EFI_BOOTLOADER_IMAGE} pxePilotEnabled=true
+	append boot=live fetch=${OS_DEPLOY_SQUASHFS} initrd=/grml/initrd.img ssh=grml console=ttyS1,57600n8 startup=/usr/bin/os-deploy deployScript=${OS_DEPLOY_SCRIPT} deployConfig=${OS_DEPLOY_CONFIG}
 	EOF
 
     sudo mkdir -p /var/www/html/os-deploy
 
-    sudo rm -f /var/www/html/os-deploy/${CONFIG_NAME} /var/tftp/pxelinux.cfg/conf/${CONFIG_NAME}
+    sudo rm -f /var/www/html/os-deploy/${CONFIG_NAME} /var/tftp/pxelinux.cfg/conf/${CONFIG_NAME} /var/www/html/os-deploy/${CONFIG_NAME}.yml
     sudo cp ${OS_DEPLOY_SCRIPT_SOURCE} /var/www/html/os-deploy/${CONFIG_NAME}
     sudo cp ${WORKDIR}/netboot /var/tftp/pxelinux.cfg/conf/${CONFIG_NAME}
-
+    sudo cp ${OS_DEPLOY_CONFIG_SOURCE} /var/www/html/os-deploy/${CONFIG_NAME}.yml
+    
     log "Set PXE Pilot configuration '${CONFIG_NAME}' for machine '${DUT_NAME}'"
     pxe-pilot config deploy ${CONFIG_NAME} ${DUT_NAME} > /dev/null 2>&1
 }
@@ -242,10 +243,12 @@ main() {
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 OS_DEPLOY_SCRIPT_SOURCE=$SCRIPT_DIR/../../os-install.sh
+OS_DEPLOY_CONFIG_SOURCE=$SCRIPT_DIR/${CONFIG_FILE_NAME}
 DUT_NAME=${CI_RUNNER_DESCRIPTION}
 CONFIG_NAME=${CI_RUNNER_DESCRIPTION}_${CI_COMMIT_SHORT_SHA}_${CI_PIPELINE_ID}_${CI_JOB_ID}
 OS_DEPLOY_SQUASHFS=http://${OS_DEPLOY_CI_RUNNER_IP}/os-deploy.squashfs
 OS_DEPLOY_SCRIPT=http://${OS_DEPLOY_CI_RUNNER_IP}/os-deploy/${CONFIG_NAME}
+OS_DEPLOY_CONFIG=http://${OS_DEPLOY_CI_RUNNER_IP}/os-deploy/${CONFIG_NAME}.yml
 PXE_PILOT_API=http://${OS_DEPLOY_CI_RUNNER_IP}:3478
 WORKDIR=$(mktemp -d)
 
@@ -259,13 +262,8 @@ if [ -z "${OS_DEPLOY_CI_RUNNER_IP}" ] ; then
     exit 1
 fi
 
-if [ -z "${LINUX_IMAGE}" ] ; then
-    log "ERROR : Variable 'LINUX_IMAGE' is not defined..."
-    exit 1
-fi
-
-if [ -z "${EFI_BOOTLOADER_IMAGE}" ] ; then
-    log "ERROR : Variable 'EFI_BOOTLOADER_IMAGE' is not defined..."
+if [ -z "${CONFIG_FILE_NAME}" ] ; then
+    log "ERROR : Variable 'CONFIG_FILE_NAME' is not defined..."
     exit 1
 fi
 

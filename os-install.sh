@@ -139,10 +139,7 @@ search_value() {
     log_debug "-> ${FUNCNAME[0]} $*"
 
     if [ ${#configMap[@]} -eq 0 ] ; then
-		local cmd=${OS_DEPLOY_PARAMETERS}
-		if [ -z "${cmd}" ] ; then
-			cmd=$(cat /proc/cmdline)
-		fi
+		local cmd=$(cat /proc/cmdline)
 
 		IFS=' ' read -r -a array <<< "${cmd}"
 		for param in ${array[@]} ; do
@@ -151,7 +148,14 @@ search_value() {
 			configMap[${key}]=${value}
 		done
     fi
-    local value=${configMap[${1}]}
+	if [ "${1}" == "deployConfig" ] || [ "${1}" == "deployOS" ] ; then
+		local value=${configMap[${1}]}
+    else
+		local value=$(yq -r $1 ${CONFIG_FILE})
+		if [ ${value} == "null" ] ; then
+			value=""
+		fi
+	fi
     echo ${value:-${2}}
 }
 
@@ -162,60 +166,100 @@ search_value() {
 search_mandatory_value() {
     log_debug "-> ${FUNCNAME[0]} $*"
 
-    local value=$(search_value $1)
-    [ -z "$value" ] && exit_on_error "$2"
+    local value=$(yq -r $1 ${CONFIG_FILE})
+
+    [ "${value}" == "null" ] && exit_on_error "$2"
     log "Mandatory value for '$1' found => '${value}'"
     echo "${value}"
 }
 
+#
+# This function prepare the environment by downloading tools required by the code for installation, parser yaml for variables implementation
+#
+prepare_env() {
+    log_debug "-> ${FUNCNAME[0]} $*"
+
+    ### Workaround for Debian repos issue when runnning GRML
+    ###     E: The repository 'http://security.debian.org testing/updates Release' does not have a Release file.
+    ### We don't need this package repository so we delete it
+    cat <<- 'EOF' > /etc/apt/sources.list.d/debian.list
+        deb     http://snapshot.debian.org/archive/debian/20181230/ testing main contrib non-free
+        deb-src http://snapshot.debian.org/archive/debian/20181230/ testing main contrib non-free
+		EOF
+
+    # Downloading of paquet needed to parse YAML configuration file
+    apt update
+    log_debug "apt-update return : $?"
+    apt install -y python-pip
+    log_debug "apt install python-pip return : $?"
+    apt install -y python-setuptools
+    log_debug "apt install python-setuptools return : $?"
+    pip install wheel
+    log_debug "apt install wheel return : $?"
+    apt install -y jq
+    log_debug "apt install jq return : $?"
+    pip install yq
+    log_debug "apt install yq return : $?"
+}
+
+load_config() {
+    log_debug "-> ${FUNCNAME[0]} $*"
+
+    local CONFIG_FILE_PATH=$(search_value  deployConfig)
+    if [ -z ${CONFIG_FILE_PATH} ] ; then
+        exit_on_error "Configuration file is missing"
+    fi
+    CONFIG_FILE=$(mktemp -d)/config
+    wget --quiet -O ${CONFIG_FILE} ${CONFIG_FILE_PATH}
+    log_debug "downloading of config file by wget return : $?"
+}
 #
 #Create every variable needed by calling search_value or search_mandatory_value
 #
 config_variable() {
     log_debug "-> ${FUNCNAME[0]} $*"
 
-    OS_NAME=$(search_value osType "linux")
-    OS_VERSION=$(search_value osVersion "current")
-    BOOT_SERVER=$(search_value ipAdr)
-    PUBLIC_IFACE_NAME=$(search_mandatory_value intName "'intName' parameter must be provided")
+    OS_NAME=$(search_value ".linux.label" "linux")
+    BOOT_SERVER=$(search_value ".network.ipAdr_serverPxe")
+    PUBLIC_IFACE_NAME=$(search_mandatory_value ".network.interface" "'intName' parameter must be provided")
     local ret=$?
     if [ ${ret} -ne 0 ] ; then
-       exit ${ret}
+		exit ${ret}
     fi
-    PORT_PXE_PILOT=$(search_value portPxe 3478)
-    PXE_PILOT_ENABLED=$(search_value pxePilotEnabled false)
-    PXE_PILOT_CFG=$(search_value pxePilotCfg "local")
+    PORT_PXE_PILOT=$(search_value ".pxePilot.port" 3478)
+    PXE_PILOT_ENABLED=$(search_value ".pxePilot.enable" "false")
+    PXE_PILOT_CFG=$(search_value ".pxePilot.config_after_reboot" "local")
     if [ -z "${BOOT_SERVER}" ] ; then
-        if [ "${PXE_PILOT_ENABLED}" == "true" ] ; then
-    	    PXE_PILOT_BASEURL=$(search_mandatory_value serverPxe "Either 'ipAdr' or 'serverPxe' parameter must be provided")
-	    local ret=$?
-            if [ ${ret} -ne 0 ] ; then
-                exit ${ret}
-            fi
+		if [ "${PXE_PILOT_ENABLED}" == "true" ] ; then
+			PXE_PILOT_BASEURL="$(search_mandatory_value .pxePilot.url \"Either 'ipAdr' or 'serverPxe' parameter must be provided\"):3478"
+			local ret=$?
+			if [ ${ret} -ne 0 ] ; then
+				exit ${ret}
+    	    fi
         fi
-        LINUX_ROOTFS_URL=$(search_mandatory_value linuxRootfs "Either 'ipAdr' or 'linuxRootfs ' parameter must be provided")
+        LINUX_ROOTFS_URL=$(search_mandatory_value ".linux.image" "Either 'ipAdr' or 'linuxRootfs ' parameter must be provided")
         local ret=$?
         if [ ${ret} -ne 0 ] ; then
             exit ${ret}
         fi
-	EFI_ARCHIVE_URL=$(search_mandatory_value efiRootfs "Either 'ipAdr' or 'efiRootfs' parameter must be provided")
+		EFI_ARCHIVE_URL=$(search_mandatory_value .bootloader.image "Either 'ipAdr' or 'efiRootfs' parameter must be provided")
         local ret=$?
         if [ ${ret} -ne 0 ] ; then
-           exit ${ret}
+            exit ${ret}
         fi
     else
-    	PXE_PILOT_BASEURL=$(search_value serverPxe "http://${BOOT_SERVER}:${PORT_PXE_PILOT}")
-    	LINUX_ROOTFS_URL=$(search_value linuxRootfs "http://${BOOT_SERVER}/archive_root/${OS_NAME}/${OS_NAME}${OS_VERSION}_root.tar.gz")
-    	EFI_ARCHIVE_URL=$(search_value efiRootfs "http://${BOOT_SERVER}/archive_root/${OS_NAME}/${OS_NAME}${OS_VERSION}_efi.tar.gz")
+    	PXE_PILOT_BASEURL="$(search_value '.pxePilot.url' 'http://${BOOT_SERVER}'):${PORT_PXE_PILOT}"
+    	LINUX_ROOTFS_URL=$(search_value ".linux.image" "http://${BOOT_SERVER}/archive_root/${OS_NAME}/${OS_NAME}${OS_VERSION}_root.tar.gz")
+    	EFI_ARCHIVE_URL=$(search_value ".bootloader.image" "http://${BOOT_SERVER}/archive_root/${OS_NAME}/${OS_NAME}${OS_VERSION}_efi.tar.gz")
     fi
     EFI_ENTRY_LABEL="${OS_NAME}"
-    BLOCK_DEVICE=$(search_value blockDevice $(ls /dev/[hs]d[a-z] | head -1))
+    BLOCK_DEVICE=$(search_value ".linux.device" $(ls /dev/[hs]d[a-z] | head -1))
     EFI_PARTITION="${BLOCK_DEVICE}1"
     LINUX_PARTITION="${BLOCK_DEVICE}2"
     CODE_PARTITIONNING=8300
-    SERIAL_TTY=$(search_value serialTty "ttyS1")
-    BAUD_RATE=$(search_value baudRate "57600n8")
-    SELINUX=$(search_value selinux "disable")
+    SERIAL_TTY=$(search_value ".bootloader.kernel_parameter.console.serial" "ttyS1")
+    BAUD_RATE=$(search_value ".bootloader.kernel_parameter.console.baudRate" "57600n8")
+    SELINUX=$(search_value ".linux.selinux" "disable")
 }
 
 #
@@ -327,15 +371,6 @@ squashfs_installation(){
 qcow2_installation() {
     log_debug "-> ${FUNCNAME[0]} $*"
 
-    ### Workaround for Debian repos issue when runnning GRML
-    ###     E: The repository 'http://security.debian.org testing/updates Release' does not have a Release file.
-    ### We don't need this package repository so we delete it
-    cat <<- 'EOF' > /etc/apt/sources.list.d/debian.list
-	deb     http://snapshot.debian.org/archive/debian/20181230/ testing main contrib non-free
-	deb-src http://snapshot.debian.org/archive/debian/20181230/ testing main contrib non-free
-	EOF
-
-    apt update
     apt install -y libguestfs-tools
 
     guestmount -a ${linux_image} -m /dev/sda1 ${linux_image_dir}
@@ -359,7 +394,6 @@ bootloader_installation() {
     wget --quiet -O ${bootloader_archive_file} ${EFI_ARCHIVE_URL}
     tar xvzf ${bootloader_archive_file} -C ${rootfs}/boot/efi
     rm -f ${bootloader_archive_file}
-
     cat <<- 'EOF' > ${bootloader_dir}/grub.cfg
 	search --label cloudimg-rootfs --set
 	set prefix=($root)'/boot/grub2'
@@ -624,6 +658,12 @@ main() {
 
 	rootfs=/mnt/rootfs
 
+	log "Preparing tools required for installation"
+        prepare_env
+
+	log "Download configuration file"
+	load_config
+
 	log "Reading input configuration"
 	config_variable
 
@@ -649,7 +689,7 @@ main() {
 	linux_rootfs_configuration
 
 	log "Configuring SELinux if present"
-	SElinux_configuration   
+	SElinux_configuration
 
 	log "Unmounting partitions"
 	partitions_unmounting
