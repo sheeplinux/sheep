@@ -216,7 +216,7 @@ main() {
     fi
 
     log  "Waiting for GRML to boot..."
-    wait_for_ssh ${ip} root grml 180
+    wait_for_ssh ${ip} root grml 300
 
     log  "Waiting for newly installed Linux to boot..."
     wait_for_ssh ${ip} linux linux 900
