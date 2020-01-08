@@ -130,7 +130,7 @@ deploy_boot_config() {
 	default grml
 	label grml
 	kernel /grml/vmlinuz
-	append boot=live fetch=${OS_DEPLOY_SQUASHFS} initrd=/grml/initrd.img ssh=grml console=ttyS1,57600n8 startup=/usr/bin/os-deploy deployScript=${OS_DEPLOY_SCRIPT} deployConfig=${OS_DEPLOY_CONFIG}
+	append boot=live fetch=${OS_DEPLOY_SQUASHFS} initrd=/grml/initrd.img ssh=grml ${EXTRA_KERNEL_CMDLINE} startup=/usr/bin/os-deploy deployScript=${OS_DEPLOY_SCRIPT} deployConfig=${OS_DEPLOY_CONFIG}
 	EOF
 
     sudo mkdir -p /var/www/html/os-deploy

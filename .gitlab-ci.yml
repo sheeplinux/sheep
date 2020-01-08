@@ -31,6 +31,7 @@ ubuntu16.04-qcow2:
   variables:
     CONFIG_FILE_NAME: SheepCfg_ubuntu16_04_qcow2.yml
     EXPECTED_UNAME: 'Linux ubuntu 4.4.0-170-generic'
+    EXTRA_KERNEL_CMDLINE: console=ttyS1,57600n8
   script:
     - cd ${CI_PROJECT_DIR}
     - tests/integration_test/run
@@ -42,6 +43,7 @@ centos7-qcow2:
   variables:
     CONFIG_FILE_NAME: SheepCfg_centos7_qcow2.yml
     EXPECTED_UNAME: 'Linux localhost.localdomain 3.10.0-957.27.2.el7.x86_64'
+    EXTRA_KERNEL_CMDLINE: console=ttyS1,57600n8
   script:
     - cd ${CI_PROJECT_DIR}
     - tests/integration_test/run
@@ -53,6 +55,7 @@ debian9-qcow2:
   variables:
     CONFIG_FILE_NAME: SheepCfg_debian9_qcow2.yml
     EXPECTED_UNAME: 'Linux debian.example.com 4.9.0-11-amd64'
+    EXTRA_KERNEL_CMDLINE: console=ttyS1,57600n8
   script:
     - cd ${CI_PROJECT_DIR}
     - tests/integration_test/run
@@ -64,6 +67,7 @@ opensuse15.1-qcow2:
   variables:
     CONFIG_FILE_NAME: SheepCfg_opensuse15_1_qcow2.yml
     EXPECTED_UNAME: 'Linux localhost 4.12.14-lp151.28.36-default'
+    EXTRA_KERNEL_CMDLINE: console=ttyS1,57600n8
   script:
     - cd ${CI_PROJECT_DIR}
     - tests/integration_test/run
