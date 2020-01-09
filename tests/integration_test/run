@@ -123,6 +123,55 @@ wait_for_ssh() {
 }
 
 #
+# $1 - Linux IP address
+# $2 - Linux username
+# $3 - Linux password
+#
+print_sheep_log() {
+    log ""
+    log "!!! See Sheep log below !!!"
+    log ""
+    ssh_cmd ${1} ${2} ${3} 'cat /var/log/os-install.log'
+    log ""
+    log "!!! End of Sheep log !!!"
+    log ""
+}
+
+#
+# $1 - Linux IP address
+# $2 - Linux username
+# $3 - Linux password
+# $4 - Timeout in secconds
+#
+wait_for_installation_complete() {
+    local ip=$1
+    local username=$2
+    local password=$3
+    local max_wait=$4
+    local s_time=$(date +%s)
+    local c_time=
+    local ssh_ok=0
+    while true ; do
+        c_time=$(date +%s)
+
+        if [ "$(ssh_cmd ${ip} ${username} ${password} 'if [ -e /var/run/sheep.success ] ; then echo ok ; fi')" == 'ok' ] ; then
+            log 'Installation complete'
+            break
+        fi
+
+        if [ $(($c_time - $s_time)) -gt ${max_wait} ] ; then
+            print_sheep_log ${ip} ${username} ${password}
+            exit 1
+        fi
+
+        log "Waiting for Sheep to complete OS installation..."
+        sleep 10
+    done
+
+    print_sheep_log ${ip} ${username} ${password}
+}
+
+#
 # Deploy TFTP and HTTP configuration file for network boot
 #
 deploy_boot_config() {
@@ -243,8 +292,14 @@ main() {
     log  "Waiting for GRML to boot..."
     wait_for_ssh ${ip} root grml 600
 
+    log  "Waiting for the installation process to complete..."
+    wait_for_installation_complete ${ip} root grml 600
+
+    log  "Rebooting the machine..."
+    pxe-pilot host reboot ${DUT_NAME}
+
     log  "Waiting for newly installed Linux to boot..."
-    wait_for_ssh ${ip} linux linux 1200
+    wait_for_ssh ${ip} linux linux 600
 
     if [ -n "${EXPECTED_UNAME}" ] ; then
         log "Checking machine '${DUT_NAME}' is running the expected operating system..."

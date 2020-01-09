@@ -685,6 +685,9 @@ notify_pxepilot_and_reboot() {
        curl -i -X PUT "${PXE_PILOT_BASEURL}/v1/configurations/${PXE_PILOT_CFG}/deploy" -d '{"hosts":[{"macAddress":"'"$macA"'"}]}'
     fi
 
+    # Marker to indicate installation is successful
+    touch /var/run/sheep.success
+
     if [ "${REBOOT_WHEN_DONE}" == "true" ] ; then
         reboot
     fi
