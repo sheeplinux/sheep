@@ -270,7 +270,7 @@ config_variable() {
 	else
     	exit_on_error "Boot mode '${BOOT_MODE}' is not supported"
 	fi
-
+    REBOOT_WHEN_DONE=$(search_value ".sheep.reboot" "true")
 }
 
 #
@@ -684,7 +684,10 @@ notify_pxepilot_and_reboot() {
     if [ "${PXE_PILOT_ENABLED}" == "true" ] ; then
        curl -i -X PUT "${PXE_PILOT_BASEURL}/v1/configurations/${PXE_PILOT_CFG}/deploy" -d '{"hosts":[{"macAddress":"'"$macA"'"}]}'
     fi
-    reboot
+
+    if [ "${REBOOT_WHEN_DONE}" == "true" ] ; then
+        reboot
+    fi
 }
 
 main() {
