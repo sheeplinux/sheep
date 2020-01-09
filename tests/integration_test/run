@@ -156,7 +156,14 @@ get_ipmi_ip() {
 # $2 - IPMI command
 #
 ipmi() {
-    ipmitool -I lanplus -U USERID -P PASSW0RD -H $(get_ipmi_ip ${1}) $2
+    set +e
+    local cmd="ipmitool -I lanplus -U USERID -P PASSW0RD -H $(get_ipmi_ip ${1}) ${2}"
+    ${cmd}
+    if [ $? -ne 0 ] ; then
+        set -e
+        sleep 2
+        ${cmd}
+    fi
 }
 
 #
