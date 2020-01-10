@@ -21,3 +21,6 @@ pxePilot:
   url: http://17.18.99.1
   port: 3478
   config_after_reboot: local
+
+sheep:
+  reboot: false

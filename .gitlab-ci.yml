@@ -30,7 +30,7 @@ ubuntu16.04-qcow2-uefi_boot:
   stage: test-integ
   variables:
     CONFIG_FILE_NAME: SheepCfg_ubuntu16_04_qcow2_leo.yml
-    EXPECTED_UNAME: 'Linux ubuntu 4.4.0-170-generic'
+    EXPECTED_UNAME: 'Linux ubuntu 4.4.0-171-generic'
     EXTRA_KERNEL_CMDLINE: console=ttyS1,57600n8
   script:
     - cd ${CI_PROJECT_DIR}

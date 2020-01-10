@@ -123,6 +123,55 @@ wait_for_ssh() {
 }
 
 #
+# $1 - Linux IP address
+# $2 - Linux username
+# $3 - Linux password
+#
+print_sheep_log() {
+    log ""
+    log "!!! See Sheep log below !!!"
+    log ""
+    ssh_cmd ${1} ${2} ${3} 'cat /var/log/os-install.log'
+    log ""
+    log "!!! End of Sheep log !!!"
+    log ""
+}
+
+#
+# $1 - Linux IP address
+# $2 - Linux username
+# $3 - Linux password
+# $4 - Timeout in secconds
+#
+wait_for_installation_complete() {
+    local ip=$1
+    local username=$2
+    local password=$3
+    local max_wait=$4
+    local s_time=$(date +%s)
+    local c_time=
+    local ssh_ok=0
+    while true ; do
+        c_time=$(date +%s)
+
+        if [ "$(ssh_cmd ${ip} ${username} ${password} 'if [ -e /var/run/sheep.success ] ; then echo ok ; fi')" == 'ok' ] ; then
+            log 'Installation complete'
+            break
+        fi
+
+        if [ $(($c_time - $s_time)) -gt ${max_wait} ] ; then
+            print_sheep_log ${ip} ${username} ${password}
+            exit 1
+        fi
+
+        log "Waiting for Sheep to complete OS installation..."
+        sleep 10
+    done
+
+    print_sheep_log ${ip} ${username} ${password}
+}
+
+#
 # Deploy TFTP and HTTP configuration file for network boot
 #
 deploy_boot_config() {
@@ -156,7 +205,14 @@ get_ipmi_ip() {
 # $2 - IPMI command
 #
 ipmi() {
-    ipmitool -I lanplus -U USERID -P PASSW0RD -H $(get_ipmi_ip ${1}) $2
+    set +e
+    local cmd="ipmitool -I lanplus -U USERID -P PASSW0RD -H $(get_ipmi_ip ${1}) ${2}"
+    ${cmd}
+    if [ $? -ne 0 ] ; then
+        set -e
+        sleep 2
+        ${cmd}
+    fi
 }
 
 #
@@ -171,6 +227,18 @@ start_dut() {
 #
 stop_dut() {
     ipmi $1 "power off" > /dev/null 2>&1
+}
+
+#
+# $1 - DUT Name
+#
+status_dut() {
+    local status=$(ipmi $1 "power status" 2> /dev/null | sed "s/Chassis Power is //")
+    if [[ ${status} != 'on' && ${status} != 'off' ]] ; then
+        echo 'unknown'
+        return
+    fi
+    echo "${status}"
 }
 
 #
@@ -193,8 +261,14 @@ cleanup() {
 # Run the overall testing scenario
 #
 main() {
-    log "Stopping machine '${DUT_NAME}'"
-    stop_dut ${DUT_NAME}
+    local dut_status="$(status_dut ${DUT_NAME})"
+
+    log "Machine '${DUT_NAME}' power status is ${dut_status}"
+
+    if [ ${dut_status} == 'on' ] ; then
+        log "Stopping machine '${DUT_NAME}'"
+        stop_dut ${DUT_NAME}
+    fi
 
     log "Generate and deploy netboot configuration..."
     deploy_boot_config
@@ -218,8 +292,14 @@ main() {
     log  "Waiting for GRML to boot..."
     wait_for_ssh ${ip} root grml 600
 
+    log  "Waiting for the installation process to complete..."
+    wait_for_installation_complete ${ip} root grml 600
+
+    log  "Rebooting the machine..."
+    pxe-pilot host reboot ${DUT_NAME}
+
     log  "Waiting for newly installed Linux to boot..."
-    wait_for_ssh ${ip} linux linux 1200
+    wait_for_ssh ${ip} linux linux 600
 
     if [ -n "${EXPECTED_UNAME}" ] ; then
         log "Checking machine '${DUT_NAME}' is running the expected operating system..."
