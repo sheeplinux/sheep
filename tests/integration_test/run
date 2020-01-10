@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -e
+set -e 
 
 #
 # Log on stdout
@@ -207,10 +207,10 @@ get_ipmi_ip() {
 ipmi() {
     set +e
     local cmd="ipmitool -I lanplus -U USERID -P PASSW0RD -H $(get_ipmi_ip ${1}) ${2}"
+    sleep 3
     ${cmd}
     if [ $? -ne 0 ] ; then
-        set -e
-        sleep 2
+        sleep 3
         ${cmd}
     fi
 }
@@ -219,14 +219,55 @@ ipmi() {
 # $1 - DUT Name
 #
 start_dut() {
+    local status=
+    local s_time=$(date +%s)
+    local c_time=
+    local max_wait=20
+
     ipmi $1 "power on" > /dev/null 2>&1
+
+    while true ; do
+        c_time=$(date +%s)
+        status=$(status_dut $1)
+        if [ ${status} == 'on' ] ; then
+            break
+        fi
+
+        if [ $(($c_time - $s_time)) -gt ${max_wait} ] ; then
+            log "Time out due to ipmi unreachable"
+            exit 1
+        fi
+
+        sleep 1
+    done
+
 }
 
 #
 # $1 - DUT Name
 #
 stop_dut() {
+    local status=
+    local s_time=$(date +%s)
+    local c_time=
+    local max_wait=20
+
     ipmi $1 "power off" > /dev/null 2>&1
+
+    while true ; do
+        c_time=$(date +%s)
+        status=$(status_dut $1)
+        if [ ${status} == 'off' ] ; then
+            break
+        fi
+
+        if [ $(($c_time - $s_time)) -gt ${max_wait} ] ; then
+            log "Time out due to ipmi unreachable"
+            exit 1
+        fi
+
+        sleep 1
+    done
 }
 
 #
