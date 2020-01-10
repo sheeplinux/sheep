@@ -33,6 +33,10 @@ ubuntu16.04-qcow2-uefi_boot:
   script:
     - cd ${CI_PROJECT_DIR}
     - tests/integration_test/run
+  artifacts:
+    when: always
+    paths:
+      - '*.cast'
   tags:
     - integration
 
@@ -45,6 +49,10 @@ centos7-qcow2-uefi_boot:
   script:
     - cd ${CI_PROJECT_DIR}
     - tests/integration_test/run
+  artifacts:
+    when: always
+    paths:
+      - '*.cast'
   tags:
     - integration
 
@@ -57,6 +65,10 @@ debian9-qcow2-uefi_boot:
   script:
     - cd ${CI_PROJECT_DIR}
     - tests/integration_test/run
+  artifacts:
+    when: always
+    paths:
+      - '*.cast'
   tags:
     - integration
 
@@ -69,6 +81,10 @@ opensuse15.1-qcow2-uefi_boot:
   script:
     - cd ${CI_PROJECT_DIR}
     - tests/integration_test/run
+  artifacts:
+    when: always
+    paths:
+      - '*.cast'
   tags:
     - integration
 
@@ -81,6 +97,10 @@ ubuntu16.04-qcow2-legacy_boot:
   script:
     - cd ${CI_PROJECT_DIR}
     - tests/integration_test/run
+  artifacts:
+    when: always
+    paths:
+      - '*.cast'
   tags:
     - integration-legacy
 
@@ -93,6 +113,10 @@ centos7-qcow2-legacy_boot:
   script:
     - cd ${CI_PROJECT_DIR}
     - tests/integration_test/run
+  artifacts:
+    when: always
+    paths:
+      - '*.cast'
   tags:
     - integration-legacy
 
@@ -105,6 +129,10 @@ debian9-qcow2-legacy_boot:
   script:
     - cd ${CI_PROJECT_DIR}
     - tests/integration_test/run
+  artifacts:
+    when: always
+    paths:
+      - '*.cast'
   tags:
     - integration-legacy
 
@@ -117,5 +145,9 @@ opensuse15.1-qcow2-legacy_boot:
   script:
     - cd ${CI_PROJECT_DIR}
     - tests/integration_test/run
+  artifacts:
+    when: always
+    paths:
+      - '*.cast'
   tags:
     - integration-legacy

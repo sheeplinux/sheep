@@ -302,9 +302,53 @@ current_datetime() {
 }
 
 #
+# $1 - DUT Name
+#
+start_asciinema() {
+	mkdir -p ${HOME}/job-cast
+	local ip="$(get_ipmi_ip ${1})"
+	local sol_script=${WORKDIR}/sol-${1}.sh
+
+	cat > ${sol_script} <<- EOF
+		while true ; do
+			ipmitool -I lanplus -U USERID -P PASSW0RD -H ${ip} sol deactivate
+			sleep 1
+			ipmitool -I lanplus -U USERID -P PASSW0RD -H ${ip} sol activate
+		done
+	EOF
+
+	screen -d -m asciinema rec -c "bash ${sol_script}" ${ASCIINEMA_FILE}
+}
+
+#
+# $1 - DUT Name
+#
+stop_asciinema() {
+	local sol_script=${WORKDIR}/sol-${1}.sh
+
+	local pid=$(
+		ps -edf | grep -e "[a]sciinema rec .* ${sol_script}" | grep -v SCREEN | head -n 1 | awk '{print $2}'
+	)
+
+	if [ -z "${pid}" ]; then
+		log "!!! No asciinema process is running for machine '${1}' !!!"
+	else
+		kill ${pid}
+	fi
+
+	if [ -e ${ASCIINEMA_FILE} ]; then
+		log "Asciinema recording saved in ${ASCIINEMA_FILE}"
+		cp ${ASCIINEMA_FILE} ${CI_PROJECT_DIR}
+	fi
+}
+
+#
 # Delete configurations created by the the test
 #
 cleanup() {
+	log "Stopping asciinema SOL recording for ${DUT_NAME}"
+	stop_asciinema ${DUT_NAME}
+
 	log "Cleanup environment"
 	sudo rm -f /var/tftp/pxelinux.cfg/conf/${CONFIG_NAME}
 	sudo rm -f /var/www/html/os-deploy/${CONFIG_NAME}
@@ -347,6 +391,19 @@ main() {
 	log "Starting test on machine '${DUT_NAME}'"
 	current_step=start_dut
 	start_dut ${DUT_NAME}
+
+	sleep 5
+
+	#
+	# In theory, we should start the SOL session and then start the machine. Because of a buggy
+	# Behaviour on OCP Winterfell servers (DUT we use for legacy boot), we have to do it in the
+	# reverse order. When starting the server with a SOL session already activated, serial output
+	# is not always correctly captured. Starting the SOL session a couple of seconds after the
+	# server is powered on do the trick. The downside is that we can lost the begining of the boot,
+	# usually some POST codes, but in our use case it's not a big issue...
+	#
+	log "Starting asciinema SOL recording for machine '${DUT_NAME}'"
+	start_asciinema ${DUT_NAME}
 
 	wait_for_ip ${mac} 450
 	ip=$(get_ip_from_mac ${mac})
@@ -404,6 +461,7 @@ OS_DEPLOY_SQUASHFS=http://${OS_DEPLOY_CI_RUNNER_IP}/os-deploy.squashfs
 OS_DEPLOY_SCRIPT=http://${OS_DEPLOY_CI_RUNNER_IP}/os-deploy/${CONFIG_NAME}
 OS_DEPLOY_CONFIG=http://${OS_DEPLOY_CI_RUNNER_IP}/os-deploy/${CONFIG_NAME}.yml
 PXE_PILOT_API=http://${OS_DEPLOY_CI_RUNNER_IP}:3478
+ASCIINEMA_FILE=${HOME}/job-cast/${CONFIG_NAME}.cast
 WORKDIR=$(mktemp -d)
 
 if [ -z "${CI_RUNNER_DESCRIPTION}" ]; then
