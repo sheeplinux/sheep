@@ -209,7 +209,9 @@ ipmi() {
     local cmd="ipmitool -I lanplus -U USERID -P PASSW0RD -H $(get_ipmi_ip ${1}) ${2}"
     sleep 3
     ${cmd}
-    if [ $? -ne 0 ] ; then
+    local status=$?
+    set -e
+    if [ ${status} -ne 0 ] ; then
         sleep 3
         ${cmd}
     fi
