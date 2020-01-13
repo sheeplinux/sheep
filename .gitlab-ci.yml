@@ -25,6 +25,7 @@ unit-test:
     - tests/unit_tests/run
   tags:
     - unit-tests
+  allow_failure: true
 
 ubuntu16.04-qcow2-uefi_boot:
   stage: test-integ
