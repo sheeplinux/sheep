@@ -390,6 +390,6 @@ if [ -z "${CONFIG_FILE_NAME}" ] ; then
     exit 1
 fi
 
-#trap cleanup EXIT
+trap cleanup EXIT
 
 main
