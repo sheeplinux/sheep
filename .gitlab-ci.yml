@@ -1,4 +1,4 @@
-image: sds-ubuntu-14.04:1.9-rc0
+image: sesame-ubuntu-14.04:1.10
 
 variables:
   OS_DEPLOY_CI_RUNNER_IP: '17.18.99.1'
@@ -10,27 +10,16 @@ stages:
 unit-test:
   stage: test-unit
   script:
-    - cd $HOME
-    - apt update
-    - apt install -y python-pip
-    - apt install -y python-setuptools
-    - pip install wheel
-    - apt install -y jq
-    - pip install yq
-    - wget -O /tmp/bats.tar.gz https://github.com/sstephenson/bats/archive/v0.4.0.tar.gz
-    - tar -C /tmp -xzf /tmp/bats.tar.gz
-    - cd /tmp/bats-*
-    - ./install.sh /usr
     - cd ${CI_PROJECT_DIR}
     - tests/unit_tests/run
   tags:
     - unit-tests
 
-ubuntu16.04-qcow2:
+ubuntu16.04-qcow2-uefi_boot:
   stage: test-integ
   variables:
-    CONFIG_FILE_NAME: SheepCfg_ubuntu16_04_qcow2.yml
-    EXPECTED_UNAME: 'Linux ubuntu 4.4.0-170-generic'
+    CONFIG_FILE_NAME: SheepCfg_ubuntu16_04_qcow2_leo.yml
+    EXPECTED_UNAME: 'Linux ubuntu 4.4.0-171-generic'
     EXTRA_KERNEL_CMDLINE: console=ttyS1,57600n8
   script:
     - cd ${CI_PROJECT_DIR}
@@ -38,10 +27,10 @@ ubuntu16.04-qcow2:
   tags:
     - integration
 
-centos7-qcow2:
+centos7-qcow2-uefi_boot:
   stage: test-integ
   variables:
-    CONFIG_FILE_NAME: SheepCfg_centos7_qcow2.yml
+    CONFIG_FILE_NAME: SheepCfg_centos7_qcow2_leo.yml
     EXPECTED_UNAME: 'Linux localhost.localdomain 3.10.0-957.27.2.el7.x86_64'
     EXTRA_KERNEL_CMDLINE: console=ttyS1,57600n8
   script:
@@ -50,10 +39,10 @@ centos7-qcow2:
   tags:
     - integration
 
-debian9-qcow2:
+debian9-qcow2-uefi_boot:
   stage: test-integ
   variables:
-    CONFIG_FILE_NAME: SheepCfg_debian9_qcow2.yml
+    CONFIG_FILE_NAME: SheepCfg_debian9_qcow2_leo.yml
     EXPECTED_UNAME: 'Linux debian.example.com 4.9.0-11-amd64'
     EXTRA_KERNEL_CMDLINE: console=ttyS1,57600n8
   script:
@@ -62,10 +51,10 @@ debian9-qcow2:
   tags:
     - integration
 
-opensuse15.1-qcow2:
+opensuse15.1-qcow2-uefi_boot:
   stage: test-integ
   variables:
-    CONFIG_FILE_NAME: SheepCfg_opensuse15_1_qcow2.yml
+    CONFIG_FILE_NAME: SheepCfg_opensuse15_1_qcow2_leo.yml
     EXPECTED_UNAME: 'Linux localhost 4.12.14-lp151.28.36-default'
     EXTRA_KERNEL_CMDLINE: console=ttyS1,57600n8
   script:
@@ -73,3 +62,51 @@ opensuse15.1-qcow2:
     - tests/integration_test/run
   tags:
     - integration
+
+ubuntu16.04-qcow2-legacy_boot:
+  stage: test-integ
+  variables:
+    CONFIG_FILE_NAME: SheepCfg_ubuntu16_04_qcow2_win.yml
+    EXPECTED_UNAME: 'Linux ubuntu 4.4.0-171-generic'
+    EXTRA_KERNEL_CMDLINE: console=ttyS1,115200n8 iomem=relaxed ethdevice=enp12s0 module_blacklist=mei,mei_me
+  script:
+    - cd ${CI_PROJECT_DIR}
+    - tests/integration_test/run
+  tags:
+    - integration-legacy
+
+centos7-qcow2-legacy_boot:
+  stage: test-integ
+  variables:
+    CONFIG_FILE_NAME: SheepCfg_centos7_qcow2_win.yml
+    EXPECTED_UNAME: 'Linux localhost.localdomain 3.10.0-957.27.2.el7.x86_64'
+    EXTRA_KERNEL_CMDLINE: console=ttyS1,115200n8 iomem=relaxed ethdevice=enp12s0 module_blacklist=mei,mei_me
+  script:
+    - cd ${CI_PROJECT_DIR}
+    - tests/integration_test/run
+  tags:
+    - integration-legacy
+
+debian9-qcow2-legacy_boot:
+  stage: test-integ
+  variables:
+    CONFIG_FILE_NAME: SheepCfg_debian9_qcow2_win.yml
+    EXPECTED_UNAME: 'Linux debian.example.com 4.9.0-11-amd64'
+    EXTRA_KERNEL_CMDLINE: console=ttyS1,115200n8 iomem=relaxed ethdevice=enp12s0 module_blacklist=mei,mei_me
+  script:
+    - cd ${CI_PROJECT_DIR}
+    - tests/integration_test/run
+  tags:
+    - integration-legacy
+
+opensuse15.1-qcow2-legacy_boot:
+  stage: test-integ
+  variables:
+    CONFIG_FILE_NAME: SheepCfg_opensuse15_1_qcow2_win.yml
+    EXPECTED_UNAME: 'Linux localhost 4.12.14-lp151.28.36-default'
+    EXTRA_KERNEL_CMDLINE: console=ttyS1,115200n8 iomem=relaxed ethdevice=enp12s0 module_blacklist=mei,mei_me
+  script:
+    - cd ${CI_PROJECT_DIR}
+    - tests/integration_test/run
+  tags:
+    - integration-legacy

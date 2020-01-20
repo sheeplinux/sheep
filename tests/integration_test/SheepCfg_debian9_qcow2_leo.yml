@@ -7,8 +7,8 @@ bootloader:
       baudRate: 57600n8
 
 linux:
-  image: https://download.opensuse.org/repositories/Cloud:/Images:/Leap_15.1/images/openSUSE-Leap-15.1-OpenStack.x86_64.qcow2
-  label: OpenSUSE_15.1
+  image: https://cdimage.debian.org/cdimage/openstack/archive/9.11.2-20190926/debian-9.11.2-20190926-openstack-amd64.qcow2
+  label: Debian_9
   device: /dev/sda
   selinux: disable
 
@@ -21,3 +21,6 @@ pxePilot:
   url: http://17.18.99.1
   port: 3478
   config_after_reboot: local
+
+sheep:
+  reboot: false

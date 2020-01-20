@@ -1,0 +1,26 @@
+bootloader:
+  mode: legacy
+  image: https://github.com/ggiamarchi/sandbox/raw/os-deploy/grub.tar.gz
+  kernel_parameter:
+    console: 
+      serial: ttyS4
+      baudRate: 115200n8
+
+linux:
+  image: https://download.opensuse.org/repositories/Cloud:/Images:/Leap_15.1/images/openSUSE-Leap-15.1-OpenStack.x86_64.qcow2
+  label: openSUSE_15_1
+  device: /dev/sda
+  selinux: disable
+
+network:
+  interface: enp12s0
+  ipAdr_serverPxe: 17.18.99.1
+
+pxePilot:
+  enable: true
+  url: http://17.18.99.1
+  port: 3478
+  config_after_reboot: local
+
+sheep:
+  reboot: false

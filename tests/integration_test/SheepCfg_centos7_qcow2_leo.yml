@@ -1,26 +1,26 @@
 bootloader:
   mode: uefi
-  image: http://172.19.118.1/qcow2/os-deploy-bootloader.tar.gz
+  image: https://github.com/ggiamarchi/sandbox/raw/os-deploy/grub.tar.gz
   kernel_parameter:
     console: 
       serial: ttyS1
       baudRate: 57600n8
 
 linux:
-  image: http://172.19.118.1/squashfs/disco.squashfs
-  label: ubuntu-19.10
+  image: https://cloud.centos.org/centos/7/images/CentOS-7-x86_64-GenericCloud-1907.qcow2
+  label: centOS_7
   device: /dev/sda
   selinux: disable
 
 network:
   interface: ens1
-  ipAdr_serverPxe: 172.19.118.1
+  ipAdr_serverPxe: 17.18.99.1
 
 pxePilot:
   enable: true
-  url: http://172.19.118.1
+  url: http://17.18.99.1
   port: 3478
   config_after_reboot: local
 
 sheep:
-  reboot: true
+  reboot: false

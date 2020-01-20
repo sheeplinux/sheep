@@ -1,19 +1,19 @@
 bootloader:
-  mode: uefi
+  mode: legacy
   image: https://github.com/ggiamarchi/sandbox/raw/os-deploy/grub.tar.gz
   kernel_parameter:
-    console: 
-      serial: ttyS1
-      baudRate: 57600n8
+    console:
+      serial: ttyS4
+      baudRate: 115200n8
 
 linux:
-  image: https://cloud.centos.org/centos/7/images/CentOS-7-x86_64-GenericCloud-1907.qcow2
-  label: centOS_7
+  image: https://cloud-images.ubuntu.com/xenial/current/xenial-server-cloudimg-amd64-disk1.img
+  label: ubuntu_16_09
   device: /dev/sda
   selinux: disable
 
 network:
-  interface: ens1
+  interface: enp12s0
   ipAdr_serverPxe: 17.18.99.1
 
 pxePilot:
@@ -21,3 +21,6 @@ pxePilot:
   url: http://17.18.99.1
   port: 3478
   config_after_reboot: local
+
+sheep:
+  reboot: false
