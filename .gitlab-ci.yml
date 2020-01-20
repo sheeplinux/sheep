@@ -1,4 +1,4 @@
-image: sds-ubuntu-14.04:1.9-rc0
+image: sesame-ubuntu-14.04:1.10
 
 variables:
   OS_DEPLOY_CI_RUNNER_IP: '17.18.99.1'
@@ -10,22 +10,10 @@ stages:
 unit-test:
   stage: test-unit
   script:
-    - cd $HOME
-    - apt update
-    - apt install -y python-pip
-    - apt install -y python-setuptools
-    - pip install wheel
-    - apt install -y jq
-    - pip install yq
-    - wget -O /tmp/bats.tar.gz https://github.com/sstephenson/bats/archive/v0.4.0.tar.gz
-    - tar -C /tmp -xzf /tmp/bats.tar.gz
-    - cd /tmp/bats-*
-    - ./install.sh /usr
     - cd ${CI_PROJECT_DIR}
     - tests/unit_tests/run
   tags:
     - unit-tests
-  allow_failure: true
 
 ubuntu16.04-qcow2-uefi_boot:
   stage: test-integ
