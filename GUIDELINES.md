@@ -51,9 +51,9 @@ keywords `then` or `do`. We use semicolon instead.
 For instance, we write
 
 ```
-if [ condition1 ] ; then
+if [ condition1 ]; then
     cmd1
-elif [ condition2 ] ; then
+elif [ condition2 ]; then
     cmd2
 else
     cmd3
