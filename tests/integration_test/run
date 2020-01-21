@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -e 
+set -e
 
 #
 # Log on stdout
@@ -8,24 +8,24 @@ set -e
 # $* - Text to log
 #
 log() {
-    echo "[$(date "+%Y-%m-%d %H:%M:%S")] $*"
+	echo "[$(date "+%Y-%m-%d %H:%M:%S")] $*"
 }
 
 #
 # $1 - MAC address
 #
 get_ip_from_mac() {
-    sudo arp -an | awk /$1/'{print $2}' | sed 's/[()]//g'
+	sudo arp -an | awk /$1/'{print $2}' | sed 's/[()]//g'
 }
 
 #
 # $1 - MAC address
 #
 delete_arp_entry() {
-    ip_to_delete=$(get_ip_from_mac $1)
-    if [ -n "${ip_to_delete}" ] ; then
-        sudo arp -d ${ip_to_delete}
-    fi
+	ip_to_delete=$(get_ip_from_mac $1)
+	if [ -n "${ip_to_delete}" ]; then
+		sudo arp -d ${ip_to_delete}
+	fi
 }
 
 #
@@ -36,29 +36,29 @@ delete_arp_entry() {
 # $2 - Timeout in seconds
 #
 wait_for_ip() {
-    local mac=$1
-    local max_wait=$2
-    local s_time=$(date +%s)
-    local c_time=
-    local ip=
-    while true ; do
-        c_time=$(date +%s)
+	local mac=$1
+	local max_wait=$2
+	local s_time=$(date +%s)
+	local c_time=
+	local ip=
+	while true; do
+		c_time=$(date +%s)
 
-        ip=$(get_ip_from_mac ${mac})
-        if [ -n "${ip}" ] ; then
-            log "IP $ip found for MAC ${mac}"
-            break
-        fi
+		ip=$(get_ip_from_mac ${mac})
+		if [ -n "${ip}" ]; then
+			log "IP $ip found for MAC ${mac}"
+			break
+		fi
 
-        if [ $(($c_time - $s_time)) -gt ${max_wait} ] ; then
-            log "ERROR : Timeout..."
-            exit 1
-        fi
+		if [ $(($c_time - $s_time)) -gt ${max_wait} ]; then
+			log "ERROR : Timeout..."
+			exit 1
+		fi
 
-        log "Waiting for IP to be reachable for MAC ${mac}..."
+		log "Waiting for IP to be reachable for MAC ${mac}..."
 
-        sleep 10
-    done
+		sleep 10
+	done
 }
 
 #
@@ -70,18 +70,20 @@ wait_for_ip() {
 # $* Command to execute
 #
 ssh_cmd() {
-    local ip=$1
-    local username=$2
-    local password=$3
-    shift ; shift ; shift
-    {
-        timeout 20 sshpass -p ${password} \
-                             ssh -o StrictHostKeyChecking=no \
-                                 -o UserKnownHostsFile=/dev/null \
-                                 -o LogLevel=QUIET \
-                                 ${username}@${ip} $*
-        return $?
-    } < /dev/null
+	local ip=$1
+	local username=$2
+	local password=$3
+	shift
+	shift
+	shift
+	{
+		timeout 20 sshpass -p ${password} \
+			ssh -o StrictHostKeyChecking=no \
+			-o UserKnownHostsFile=/dev/null \
+			-o LogLevel=QUIET \
+			${username}@${ip} $*
+		return $?
+	} < /dev/null
 }
 
 #
@@ -94,32 +96,32 @@ ssh_cmd() {
 # $4 - Timeout in secconds
 #
 wait_for_ssh() {
-    local ip=$1
-    local username=$2
-    local password=$3
-    local max_wait=$4
-    local s_time=$(date +%s)
-    local c_time=
-    local ssh_ok=0
-    while true ; do
-        c_time=$(date +%s)
-        ssh_ok=$(sudo nmap -sT -p 22 ${ip} | grep '22/tcp open' | wc -l)
-        if [ $ssh_ok -eq 1 ] ; then
-            if [ "$(ssh_cmd ${ip} ${username} ${password} echo ok)" = "ok" ] ; then
-                log "SSH connection ok"
-                break
-            fi
-            ssh_ok=0
-        fi
+	local ip=$1
+	local username=$2
+	local password=$3
+	local max_wait=$4
+	local s_time=$(date +%s)
+	local c_time=
+	local ssh_ok=0
+	while true; do
+		c_time=$(date +%s)
+		ssh_ok=$(sudo nmap -sT -p 22 ${ip} | grep '22/tcp open' | wc -l)
+		if [ $ssh_ok -eq 1 ]; then
+			if [ "$(ssh_cmd ${ip} ${username} ${password} echo ok)" = "ok" ]; then
+				log "SSH connection ok"
+				break
+			fi
+			ssh_ok=0
+		fi
 
-        if [ $(($c_time - $s_time)) -gt ${max_wait} ] ; then
-            log "ERROR : Timeout !"
-            exit 1
-        fi
+		if [ $(($c_time - $s_time)) -gt ${max_wait} ]; then
+			log "ERROR : Timeout !"
+			exit 1
+		fi
 
-        log "Waiting for Linux to be SSH accessible on IP ${ip}..."
-        sleep 10
-    done
+		log "Waiting for Linux to be SSH accessible on IP ${ip}..."
+		sleep 10
+	done
 }
 
 #
@@ -128,13 +130,13 @@ wait_for_ssh() {
 # $3 - Linux password
 #
 print_sheep_log() {
-    log ""
-    log "!!! See Sheep log below !!!"
-    log ""
-    ssh_cmd ${1} ${2} ${3} 'cat /var/log/os-install.log'
-    log ""
-    log "!!! End of Sheep log !!!"
-    log ""
+	log ""
+	log "!!! See Sheep log below !!!"
+	log ""
+	ssh_cmd ${1} ${2} ${3} 'cat /var/log/os-install.log'
+	log ""
+	log "!!! End of Sheep log !!!"
+	log ""
 }
 
 #
@@ -144,60 +146,60 @@ print_sheep_log() {
 # $4 - Timeout in secconds
 #
 wait_for_installation_complete() {
-    local ip=$1
-    local username=$2
-    local password=$3
-    local max_wait=$4
-    local s_time=$(date +%s)
-    local c_time=
-    local ssh_ok=0
-    while true ; do
-        c_time=$(date +%s)
+	local ip=$1
+	local username=$2
+	local password=$3
+	local max_wait=$4
+	local s_time=$(date +%s)
+	local c_time=
+	local ssh_ok=0
+	while true; do
+		c_time=$(date +%s)
 
-        if [ "$(ssh_cmd ${ip} ${username} ${password} 'if [ -e /var/run/sheep.success ] ; then echo ok ; fi')" == 'ok' ] ; then
-            log 'Installation complete'
-            break
-        fi
+		if [ "$(ssh_cmd ${ip} ${username} ${password} 'if [ -e /var/run/sheep.success ] ; then echo ok ; fi')" == 'ok' ]; then
+			log 'Installation complete'
+			break
+		fi
 
-        if [ $(($c_time - $s_time)) -gt ${max_wait} ] ; then
-            print_sheep_log ${ip} ${username} ${password}
-            exit 1
-        fi
+		if [ $(($c_time - $s_time)) -gt ${max_wait} ]; then
+			print_sheep_log ${ip} ${username} ${password}
+			exit 1
+		fi
 
-        log "Waiting for Sheep to complete OS installation..."
-        sleep 10
-    done
+		log "Waiting for Sheep to complete OS installation..."
+		sleep 10
+	done
 
-    print_sheep_log ${ip} ${username} ${password}
+	print_sheep_log ${ip} ${username} ${password}
 }
 
 #
 # Deploy TFTP and HTTP configuration file for network boot
 #
 deploy_boot_config() {
-    cat > ${WORKDIR}/netboot <<- EOF
-	default grml
-	label grml
-	kernel /grml/vmlinuz
-	append boot=live fetch=${OS_DEPLOY_SQUASHFS} initrd=/grml/initrd.img ssh=grml ${EXTRA_KERNEL_CMDLINE} startup=/usr/bin/os-deploy deployScript=${OS_DEPLOY_SCRIPT} deployConfig=${OS_DEPLOY_CONFIG}
+	cat > ${WORKDIR}/netboot <<- EOF
+		default grml
+		label grml
+		kernel /grml/vmlinuz
+		append boot=live fetch=${OS_DEPLOY_SQUASHFS} initrd=/grml/initrd.img ssh=grml ${EXTRA_KERNEL_CMDLINE} startup=/usr/bin/os-deploy deployScript=${OS_DEPLOY_SCRIPT} deployConfig=${OS_DEPLOY_CONFIG}
 	EOF
 
-    sudo mkdir -p /var/www/html/os-deploy
+	sudo mkdir -p /var/www/html/os-deploy
 
-    sudo rm -f /var/www/html/os-deploy/${CONFIG_NAME} /var/tftp/pxelinux.cfg/conf/${CONFIG_NAME} /var/www/html/os-deploy/${CONFIG_NAME}.yml
-    sudo cp ${OS_DEPLOY_SCRIPT_SOURCE} /var/www/html/os-deploy/${CONFIG_NAME}
-    sudo cp ${WORKDIR}/netboot /var/tftp/pxelinux.cfg/conf/${CONFIG_NAME}
-    sudo cp ${OS_DEPLOY_CONFIG_SOURCE} /var/www/html/os-deploy/${CONFIG_NAME}.yml
-    
-    log "Set PXE Pilot configuration '${CONFIG_NAME}' for machine '${DUT_NAME}'"
-    pxe-pilot config deploy ${CONFIG_NAME} ${DUT_NAME} > /dev/null 2>&1
+	sudo rm -f /var/www/html/os-deploy/${CONFIG_NAME} /var/tftp/pxelinux.cfg/conf/${CONFIG_NAME} /var/www/html/os-deploy/${CONFIG_NAME}.yml
+	sudo cp ${OS_DEPLOY_SCRIPT_SOURCE} /var/www/html/os-deploy/${CONFIG_NAME}
+	sudo cp ${WORKDIR}/netboot /var/tftp/pxelinux.cfg/conf/${CONFIG_NAME}
+	sudo cp ${OS_DEPLOY_CONFIG_SOURCE} /var/www/html/os-deploy/${CONFIG_NAME}.yml
+
+	log "Set PXE Pilot configuration '${CONFIG_NAME}' for machine '${DUT_NAME}'"
+	pxe-pilot config deploy ${CONFIG_NAME} ${DUT_NAME} > /dev/null 2>&1
 }
 
 #
 # $1 - DUT Name
 #
 get_ipmi_ip() {
-    pxe-pilot host list | grep " $1 " | sed -e 's/.* | \([0-9]*.[0-9]*.[0-9]*.[0-9]*\) | .*/\1/'
+	pxe-pilot host list | grep " $1 " | sed -e 's/.* | \([0-9]*.[0-9]*.[0-9]*.[0-9]*\) | .*/\1/'
 }
 
 #
@@ -205,43 +207,43 @@ get_ipmi_ip() {
 # $2 - IPMI command
 #
 ipmi() {
-    set +e
-    local cmd="ipmitool -I lanplus -U USERID -P PASSW0RD -H $(get_ipmi_ip ${1}) ${2}"
-    sleep 3
-    ${cmd}
-    local status=$?
-    set -e
-    if [ ${status} -ne 0 ] ; then
-        sleep 3
-        ${cmd}
-    fi
+	set +e
+	local cmd="ipmitool -I lanplus -U USERID -P PASSW0RD -H $(get_ipmi_ip ${1}) ${2}"
+	sleep 3
+	${cmd}
+	local status=$?
+	set -e
+	if [ ${status} -ne 0 ]; then
+		sleep 3
+		${cmd}
+	fi
 }
 
 #
 # $1 - DUT Name
 #
 start_dut() {
-    local status=
-    local s_time=$(date +%s)
-    local c_time=
-    local max_wait=20
+	local status=
+	local s_time=$(date +%s)
+	local c_time=
+	local max_wait=20
 
-    ipmi $1 "power on" > /dev/null 2>&1
+	ipmi $1 "power on" > /dev/null 2>&1
 
-    while true ; do
-        c_time=$(date +%s)
-        status=$(status_dut $1)
-        if [ ${status} == 'on' ] ; then
-            break
-        fi
+	while true; do
+		c_time=$(date +%s)
+		status=$(status_dut $1)
+		if [ ${status} == 'on' ]; then
+			break
+		fi
 
-        if [ $(($c_time - $s_time)) -gt ${max_wait} ] ; then
-            log "Time out due to ipmi unreachable"
-            exit 1
-        fi
+		if [ $(($c_time - $s_time)) -gt ${max_wait} ]; then
+			log "Time out due to ipmi unreachable"
+			exit 1
+		fi
 
-        sleep 1
-    done
+		sleep 1
+	done
 
 }
 
@@ -249,122 +251,122 @@ start_dut() {
 # $1 - DUT Name
 #
 stop_dut() {
-    local status=
-    local s_time=$(date +%s)
-    local c_time=
-    local max_wait=20
+	local status=
+	local s_time=$(date +%s)
+	local c_time=
+	local max_wait=20
 
-    ipmi $1 "power off" > /dev/null 2>&1
+	ipmi $1 "power off" > /dev/null 2>&1
 
-    while true ; do
-        c_time=$(date +%s)
-        status=$(status_dut $1)
-        if [ ${status} == 'off' ] ; then
-            break
-        fi
+	while true; do
+		c_time=$(date +%s)
+		status=$(status_dut $1)
+		if [ ${status} == 'off' ]; then
+			break
+		fi
 
-        if [ $(($c_time - $s_time)) -gt ${max_wait} ] ; then
-            log "Time out due to ipmi unreachable"
-            exit 1
-        fi
+		if [ $(($c_time - $s_time)) -gt ${max_wait} ]; then
+			log "Time out due to ipmi unreachable"
+			exit 1
+		fi
 
-        sleep 1
-    done
+		sleep 1
+	done
 }
 
 #
 # $1 - DUT Name
 #
 status_dut() {
-    local status=$(ipmi $1 "power status" 2> /dev/null | sed "s/Chassis Power is //")
-    if [[ ${status} != 'on' && ${status} != 'off' ]] ; then
-        echo 'unknown'
-        return
-    fi
-    echo "${status}"
+	local status=$(ipmi $1 "power status" 2> /dev/null | sed "s/Chassis Power is //")
+	if [[ ${status} != 'on' && ${status} != 'off' ]]; then
+		echo 'unknown'
+		return
+	fi
+	echo "${status}"
 }
 
 #
 # $1 - PXE Pilot host name
 #
 get_mac_address() {
-    echo $(curl ${PXE_PILOT_API}/v1/hosts 2>/dev/null | jq -r ".[] | select(.name == \"${1}\") | .macAddresses[0]")
+	echo $(curl ${PXE_PILOT_API}/v1/hosts 2> /dev/null | jq -r ".[] | select(.name == \"${1}\") | .macAddresses[0]")
 }
 
 #
 # Delete configurations created by the the test
 #
 cleanup() {
-    log "Cleanup environment"
-    sudo rm -f /var/tftp/pxelinux.cfg/conf/${CONFIG_NAME}
-    sudo rm -f /var/www/html/os-deploy/${CONFIG_NAME}
+	log "Cleanup environment"
+	sudo rm -f /var/tftp/pxelinux.cfg/conf/${CONFIG_NAME}
+	sudo rm -f /var/www/html/os-deploy/${CONFIG_NAME}
 }
 
 #
 # Run the overall testing scenario
 #
 main() {
-    local dut_status="$(status_dut ${DUT_NAME})"
+	local dut_status="$(status_dut ${DUT_NAME})"
 
-    log "Machine '${DUT_NAME}' power status is ${dut_status}"
+	log "Machine '${DUT_NAME}' power status is ${dut_status}"
 
-    if [ ${dut_status} == 'on' ] ; then
-        log "Stopping machine '${DUT_NAME}'"
-        stop_dut ${DUT_NAME}
-    fi
+	if [ ${dut_status} == 'on' ]; then
+		log "Stopping machine '${DUT_NAME}'"
+		stop_dut ${DUT_NAME}
+	fi
 
-    log "Generate and deploy netboot configuration..."
-    deploy_boot_config
+	log "Generate and deploy netboot configuration..."
+	deploy_boot_config
 
-    mac=$(get_mac_address ${DUT_NAME})
-    log "MAC address for host '${DUT_NAME}' is ${mac}"
+	mac=$(get_mac_address ${DUT_NAME})
+	log "MAC address for host '${DUT_NAME}' is ${mac}"
 
-    log "Deleting ARP entry for MAC ${mac}"
-    delete_arp_entry ${mac}
+	log "Deleting ARP entry for MAC ${mac}"
+	delete_arp_entry ${mac}
 
-    log "Starting test on machine '${DUT_NAME}'"
-    start_dut ${DUT_NAME}
+	log "Starting test on machine '${DUT_NAME}'"
+	start_dut ${DUT_NAME}
 
-    wait_for_ip ${mac} 450
-    ip=$(get_ip_from_mac ${mac})
-    if [ -z "${ip}" ] ; then
-        log "Error.... Server did not boot !"
-        exit 1
-    fi
+	wait_for_ip ${mac} 450
+	ip=$(get_ip_from_mac ${mac})
+	if [ -z "${ip}" ]; then
+		log "Error.... Server did not boot !"
+		exit 1
+	fi
 
-    log  "Waiting for GRML to boot..."
-    wait_for_ssh ${ip} root grml 600
+	log "Waiting for GRML to boot..."
+	wait_for_ssh ${ip} root grml 600
 
-    log  "Waiting for the installation process to complete..."
-    wait_for_installation_complete ${ip} root grml 600
+	log "Waiting for the installation process to complete..."
+	wait_for_installation_complete ${ip} root grml 600
 
-    log  "Rebooting the machine..."
-    pxe-pilot host reboot ${DUT_NAME}
+	log "Rebooting the machine..."
+	pxe-pilot host reboot ${DUT_NAME}
 
-    log  "Waiting for newly installed Linux to boot..."
-    wait_for_ssh ${ip} linux linux 600
+	log "Waiting for newly installed Linux to boot..."
+	wait_for_ssh ${ip} linux linux 600
 
-    if [ -n "${EXPECTED_UNAME}" ] ; then
-        log "Checking machine '${DUT_NAME}' is running the expected operating system..."
-        local uname_output=$(ssh_cmd ${ip} linux linux uname -a)
-        if [ $(echo ${uname_output} | grep "${EXPECTED_UNAME}" | wc -l) -ne 1 ] ; then
-            log "ERROR - Operating system detected : ${uname_output}"
-            exit 1
-        fi
-        log "Operating system : ${uname_output}"
-    fi
+	if [ -n "${EXPECTED_UNAME}" ]; then
+		log "Checking machine '${DUT_NAME}' is running the expected operating system..."
+		local uname_output=$(ssh_cmd ${ip} linux linux uname -a)
+		if [ $(echo ${uname_output} | grep "${EXPECTED_UNAME}" | wc -l) -ne 1 ]; then
+			log "ERROR - Operating system detected : ${uname_output}"
+			exit 1
+		fi
+		log "Operating system : ${uname_output}"
+	fi
 
-    log "Power off server ${DUT_NAME}"
-    # Sending a poweroff command through ssh lead to close SSH connection and return a non-zero
-    # exit code. Disabling -e flag to ignore this error
-    set +e
-    ssh_cmd ${ip} linux linux sudo poweroff
-    set -e
+	log "Power off server ${DUT_NAME}"
+	# Sending a poweroff command through ssh lead to close SSH connection and return a non-zero
+	# exit code. Disabling -e flag to ignore this error
+	set +e
+	ssh_cmd ${ip} linux linux sudo poweroff
+	set -e
 
-    log "Success :)"
+	log "Success :)"
 }
 
-SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" > /dev/null 2>&1 && pwd)"
 OS_DEPLOY_SCRIPT_SOURCE=$SCRIPT_DIR/../../os-install.sh
 OS_DEPLOY_CONFIG_SOURCE=$SCRIPT_DIR/${CONFIG_FILE_NAME}
 DUT_NAME=${CI_RUNNER_DESCRIPTION}
@@ -375,19 +377,19 @@ OS_DEPLOY_CONFIG=http://${OS_DEPLOY_CI_RUNNER_IP}/os-deploy/${CONFIG_NAME}.yml
 PXE_PILOT_API=http://${OS_DEPLOY_CI_RUNNER_IP}:3478
 WORKDIR=$(mktemp -d)
 
-if [ -z "${CI_RUNNER_DESCRIPTION}" ] ; then
-    log "ERROR : Variable 'CI_RUNNER_DESCRIPTION' is not defined..."
-    exit 1
+if [ -z "${CI_RUNNER_DESCRIPTION}" ]; then
+	log "ERROR : Variable 'CI_RUNNER_DESCRIPTION' is not defined..."
+	exit 1
 fi
 
-if [ -z "${OS_DEPLOY_CI_RUNNER_IP}" ] ; then
-    log "ERROR : Variable 'OS_DEPLOY_CI_RUNNER_IP' is not defined..."
-    exit 1
+if [ -z "${OS_DEPLOY_CI_RUNNER_IP}" ]; then
+	log "ERROR : Variable 'OS_DEPLOY_CI_RUNNER_IP' is not defined..."
+	exit 1
 fi
 
-if [ -z "${CONFIG_FILE_NAME}" ] ; then
-    log "ERROR : Variable 'CONFIG_FILE_NAME' is not defined..."
-    exit 1
+if [ -z "${CONFIG_FILE_NAME}" ]; then
+	log "ERROR : Variable 'CONFIG_FILE_NAME' is not defined..."
+	exit 1
 fi
 
 trap cleanup EXIT

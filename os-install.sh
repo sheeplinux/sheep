@@ -61,7 +61,7 @@ _log() {
 	#
 	# Log file to log into
 	#
-	if [ -z "${OS_INSTALL_LOG_FILE}" ] ; then
+	if [ -z "${OS_INSTALL_LOG_FILE}" ]; then
 		OS_INSTALL_LOG_FILE="/tmp/os-install-$(date +%s).log"
 	fi
 	touch ${OS_INSTALL_LOG_FILE}
@@ -69,20 +69,20 @@ _log() {
 	#
 	# Authorized log level are ERROR, WARNING, INFO and DEBUG
 	#
-	if [ -z "${OS_INSTALL_LOG_LEVEL}" ] ; then
+	if [ -z "${OS_INSTALL_LOG_LEVEL}" ]; then
 		OS_INSTALL_LOG_LEVEL=INFO
 	fi
 
 	local severity="${1}"
 
-	if [ "${severity}" = 'ERROR' ] ; then
+	if [ "${severity}" = 'ERROR' ]; then
 		:
-	elif [ "${severity}" = 'WARNING' ] ; then
-		if [[ "${OS_INSTALL_LOG_LEVEL}" = "ERROR" ]] ; then
+	elif [ "${severity}" = 'WARNING' ]; then
+		if [[ "${OS_INSTALL_LOG_LEVEL}" = "ERROR" ]]; then
 			return
 		fi
-	elif [ "${severity}" = 'DEBUG' ] ; then
-		if [ "${OS_INSTALL_LOG_LEVEL}" != "DEBUG" ] ; then
+	elif [ "${severity}" = 'DEBUG' ]; then
+		if [ "${OS_INSTALL_LOG_LEVEL}" != "DEBUG" ]; then
 			return
 		fi
 	else
@@ -91,7 +91,7 @@ _log() {
 		# so we force this value. It is equivalent to have a fallback value to INFO when the value is unknown
 		#
 		severity=INFO
-		if [[ "${OS_INSTALL_LOG_LEVEL}" = "ERROR" || "${OS_INSTALL_LOG_LEVEL}" = "WARNING" ]] ; then
+		if [[ "${OS_INSTALL_LOG_LEVEL}" = "ERROR" || "${OS_INSTALL_LOG_LEVEL}" = "WARNING" ]]; then
 			return
 		fi
 	fi
@@ -138,21 +138,21 @@ declare -A configMap
 search_value() {
 	log_debug "-> ${FUNCNAME[0]} $*"
 
-	if [ ${#configMap[@]} -eq 0 ] ; then
+	if [ ${#configMap[@]} -eq 0 ]; then
 		local cmd=$(cat /proc/cmdline)
 
 		IFS=' ' read -r -a array <<< "${cmd}"
-		for param in ${array[@]} ; do
+		for param in ${array[@]}; do
 			local key=$(echo "${param}" | cut -d '=' -f 1)
 			local value=$(echo "${param}" | cut -d '=' -f 2-)
 			configMap[${key}]=${value}
 		done
 	fi
-	if [ "${1}" == "deployConfig" ] || [ "${1}" == "deployOS" ] ; then
+	if [ "${1}" == "deployConfig" ] || [ "${1}" == "deployOS" ]; then
 		local value=${configMap[${1}]}
 	else
 		local value=$(yq -r $1 ${CONFIG_FILE})
-		if [ ${value} == "null" ] ; then
+		if [ ${value} == "null" ]; then
 			value=""
 		fi
 	fi
@@ -185,7 +185,7 @@ prepare_env() {
 	cat <<- 'EOF' > /etc/apt/sources.list.d/debian.list
 		deb     http://snapshot.debian.org/archive/debian/20181230/ testing main contrib non-free
 		deb-src http://snapshot.debian.org/archive/debian/20181230/ testing main contrib non-free
-		EOF
+	EOF
 
 	# Downloading of paquet needed to parse YAML configuration file
 	apt update
@@ -205,16 +205,17 @@ prepare_env() {
 load_config() {
 	log_debug "-> ${FUNCNAME[0]} $*"
 
-	local CONFIG_FILE_PATH=$(search_value  deployConfig)
-	if [ -z ${CONFIG_FILE_PATH} ] ; then
+	local CONFIG_FILE_PATH=$(search_value deployConfig)
+	if [ -z ${CONFIG_FILE_PATH} ]; then
 		exit_on_error "Configuration file is missing"
 	fi
 	CONFIG_FILE=$(mktemp -d)/config
 	wget --quiet -O ${CONFIG_FILE} ${CONFIG_FILE_PATH}
 	log_debug "downloading of config file by wget return : $?"
 }
+
 #
-#Create every variable needed by calling search_value or search_mandatory_value
+# Create every variable needed by calling search_value or search_mandatory_value
 #
 config_variable() {
 	log_debug "-> ${FUNCNAME[0]} $*"
@@ -223,29 +224,29 @@ config_variable() {
 	BOOT_SERVER=$(search_value ".network.ipAdr_serverPxe")
 	PUBLIC_IFACE_NAME=$(search_mandatory_value ".network.interface" "'intName' parameter must be provided")
 	local ret=$?
-	if [ ${ret} -ne 0 ] ; then
+	if [ ${ret} -ne 0 ]; then
 		exit ${ret}
 	fi
 	PORT_PXE_PILOT=$(search_value ".pxePilot.port" 3478)
 	PXE_PILOT_ENABLED=$(search_value ".pxePilot.enable" "false")
 	PXE_PILOT_CFG=$(search_value ".pxePilot.config_after_reboot" "local")
 	BOOT_MODE=$(search_value ".bootloader.mode" "uefi")
-	if [ -z "${BOOT_SERVER}" ] ; then
-		if [ "${PXE_PILOT_ENABLED}" == "true" ] ; then
+	if [ -z "${BOOT_SERVER}" ]; then
+		if [ "${PXE_PILOT_ENABLED}" == "true" ]; then
 			PXE_PILOT_BASEURL="$(search_mandatory_value .pxePilot.url \"Either 'ipAdr' or 'serverPxe' parameter must be provided\"):3478"
 			local ret=$?
-			if [ ${ret} -ne 0 ] ; then
+			if [ ${ret} -ne 0 ]; then
 				exit ${ret}
 			fi
 		fi
 		LINUX_ROOTFS_URL=$(search_mandatory_value ".linux.image" "Either 'ipAdr' or 'linuxRootfs ' parameter must be provided")
 		local ret=$?
-		if [ ${ret} -ne 0 ] ; then
+		if [ ${ret} -ne 0 ]; then
 			exit ${ret}
 		fi
 		EFI_ARCHIVE_URL=$(search_mandatory_value .bootloader.image "Either 'ipAdr' or 'efiRootfs' parameter must be provided")
 		local ret=$?
-		if [ ${ret} -ne 0 ] ; then
+		if [ ${ret} -ne 0 ]; then
 			exit ${ret}
 		fi
 	else
@@ -261,11 +262,11 @@ config_variable() {
 	SERIAL_TTY=$(search_value ".bootloader.kernel_parameter.console.serial" "ttyS1")
 	BAUD_RATE=$(search_value ".bootloader.kernel_parameter.console.baudRate" "57600n8")
 	SELINUX=$(search_value ".linux.selinux" "disable")
-	if [ "${BOOT_MODE}" == "legacy" ] ; then
+	if [ "${BOOT_MODE}" == "legacy" ]; then
 		CODE_PARTITIONNING_BOOT=ef02
 		BOOT_PARTITION_SIZE=2M
-	elif [ "${BOOT_MODE}" == "uefi" ] ; then
-		   CODE_PARTITIONNING_BOOT=ef00
+	elif [ "${BOOT_MODE}" == "uefi" ]; then
+		CODE_PARTITIONNING_BOOT=ef00
 		BOOT_PARTITION_SIZE=500M
 	else
 		exit_on_error "Boot mode '${BOOT_MODE}' is not supported"
@@ -281,34 +282,35 @@ config_variable() {
 system_partitionning() {
 	log_debug "-> ${FUNCNAME[0]} $*"
 
-	echo ' ' ; echo 'Partitioning' ; echo ' '
+	echo ' '
+	echo 'Partitioning'
+	echo ' '
 	gdisk ${BLOCK_DEVICE} <<- EOF
-	o
-	Y
-	n
-	1
+		o
+		Y
+		n
+		1
 
-	+${BOOT_PARTITION_SIZE}
-	${CODE_PARTITIONNING_BOOT}
-	n
-	2
+		+${BOOT_PARTITION_SIZE}
+		${CODE_PARTITIONNING_BOOT}
+		n
+		2
 
 
-	${CODE_PARTITIONNING_FS}
-	wq
-	yes
+		${CODE_PARTITIONNING_FS}
+		wq
+		yes
 	EOF
 }
-
 
 partitions_formating() {
 	log_debug "-> ${FUNCNAME[0]} $*"
 
-	if [ "${BOOT_MODE}" == "uefi" ] ; then
+	if [ "${BOOT_MODE}" == "uefi" ]; then
 		mkfs.fat -F 32 -n EFI ${EFI_PARTITION}
 	fi
 	mkfs.ext4 -q -L cloudimg-rootfs ${LINUX_PARTITION} <<- EOF
-	y
+		y
 	EOF
 	# TODO rootfs filesystem type should be an input parameter
 }
@@ -322,12 +324,12 @@ partitions_formating() {
 partitions_mounting() {
 	log_debug "-> ${FUNCNAME[0]} $*"
 
-	if [ -e ${rootfs} ] ; then
+	if [ -e ${rootfs} ]; then
 		rm -rf ${rootfs}
 	fi
 	mkdir ${rootfs}
 	mount ${LINUX_PARTITION} ${rootfs}
-	if [ "${BOOT_MODE}" == "uefi" ] ; then
+	if [ "${BOOT_MODE}" == "uefi" ]; then
 		mkdir -p ${rootfs}/boot/efi
 		mount ${EFI_PARTITION} ${rootfs}/boot/efi
 	fi
@@ -348,22 +350,22 @@ linux_rootfs_installation() {
 
 	wget --quiet -O ${linux_image} ${LINUX_ROOTFS_URL}
 
-	if [ -e ${linux_image_dir} ] ; then
+	if [ -e ${linux_image_dir} ]; then
 		rm -rf ${linux_image_dir}
 	fi
 
 	mkdir ${linux_image_dir}
 
-	if [ -n "$(file ${linux_image} | grep XZ)" ] ; then
+	if [ -n "$(file ${linux_image} | grep XZ)" ]; then
 		archiveTar_installation "xfJ"
-	elif [ -n "$(file ${linux_image} | grep gzip)" ] ; then
+	elif [ -n "$(file ${linux_image} | grep gzip)" ]; then
 		archiveTar_installation "xzf"
-	elif [ -n "$(file ${linux_image} | grep Squashfs)" ] ; then
+	elif [ -n "$(file ${linux_image} | grep Squashfs)" ]; then
 		rm -rf ${linux_image_dir}
 		squashfs_installation
-	elif [ -n "$(file ${linux_image} | grep QCOW)" ] ; then
+	elif [ -n "$(file ${linux_image} | grep QCOW)" ]; then
 		qcow2_installation
-	elif [ -n "$(file ${linux_image} | grep ISO)" ] ; then
+	elif [ -n "$(file ${linux_image} | grep ISO)" ]; then
 		: #TODO : call functioninstallation for iso root fs
 	fi
 }
@@ -371,11 +373,14 @@ linux_rootfs_installation() {
 archiveTar_installation() {
 	log_debug "-> ${FUNCNAME[0]} $*"
 
-	(cd  ${linux_image_dir} ; tar ${1} ${linux_image})
+	(
+		cd ${linux_image_dir}
+		tar ${1} ${linux_image}
+	)
 	cp -rp ${linux_image_dir}/* ${rootfs}
 }
 
-squashfs_installation(){
+squashfs_installation() {
 	log_debug "-> ${FUNCNAME[0]} $*"
 
 	unsquashfs -d ${linux_image_dir} ${linux_image}
@@ -396,9 +401,9 @@ qcow2_installation() {
 bootloader_installation() {
 	log_debug "-> ${FUNCNAME[0]} $*"
 
-	if [ "${BOOT_MODE}" == "uefi" ] ; then
+	if [ "${BOOT_MODE}" == "uefi" ]; then
 		bootloader_installation_uefi
-	elif [ "${BOOT_MODE}" == "legacy" ] ; then
+	elif [ "${BOOT_MODE}" == "legacy" ]; then
 		grub-install --root-directory=${rootfs} ${BLOCK_DEVICE}
 	fi
 }
@@ -406,9 +411,9 @@ bootloader_installation() {
 bootloader_installation_uefi() {
 	log_debug "-> ${FUNCNAME[0]} $*"
 	local bootloader_name=ubuntu # bootloader_name is used to name the bootloader folder
-								 # in the EFI partition. For now, it have to be 'ubuntu' and
-								 # can't be changed as long we rely on Grub EFI comming from
-								 # Cannonical because some paths are harcoded into binaries.
+	# in the EFI partition. For now, it have to be 'ubuntu' and
+	# can't be changed as long we rely on Grub EFI comming from
+	# Cannonical because some paths are harcoded into binaries.
 
 	local bootloader_dir=${rootfs}/boot/efi/EFI/${bootloader_name}
 	local bootloader_archive_file=/tmp/efi.tar.gz
@@ -417,9 +422,9 @@ bootloader_installation_uefi() {
 	tar xvzf ${bootloader_archive_file} -C ${rootfs}/boot/efi
 	rm -f ${bootloader_archive_file}
 	cat <<- 'EOF' > ${bootloader_dir}/grub.cfg
-	search --label cloudimg-rootfs --set
-	set prefix=($root)'/boot/grub2'
-	configfile $prefix/grub.cfg
+		search --label cloudimg-rootfs --set
+		set prefix=($root)'/boot/grub2'
+		configfile $prefix/grub.cfg
 	EOF
 
 	efibootmgr -c -d ${BLOCK_DEVICE} -p 1 -L "${EFI_ENTRY_LABEL}" -l "\EFI\\${bootloader_name}\shimx64.efi"
@@ -432,10 +437,9 @@ bootloader_installation_uefi() {
 efi_entry_cleanup() {
 	log_debug "-> ${FUNCNAME[0]} $*"
 
-	num=$(efibootmgr -v | grep  "File" | cut -d ' ' -f 1 | grep "0" | cut -d 't' -f 2 | cut -d '*' -f 1)
+	num=$(efibootmgr -v | grep "File" | cut -d ' ' -f 1 | grep "0" | cut -d 't' -f 2 | cut -d '*' -f 1)
 	N=$(echo $num | wc -w)
-	for i in $(seq 1 $N)
-	do
+	for i in $(seq 1 $N); do
 		entry=$(echo $num | cut -d ' ' -f $i)
 		efibootmgr -b $entry -B
 	done
@@ -486,17 +490,17 @@ create_user() {
 	echo -e 'linux\nlinux' | chroot_exec passwd linux
 
 	# FIXME : Hardcode my SSH key for test purpose because
-	# password authentication is disabled in Ubuntu 18.04 image 
+	# password authentication is disabled in Ubuntu 18.04 image
 	#TODO :put it in parameter
 	mkdir -p ${rootfs}/home/linux/.ssh/
 	echo 'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDdXnRJVWf7OvFa0UZPkvDBave2BWhr29HFlO/bI/98rmPc0zn24a8Wplo/Sts4SrL3xZNATH5tWwNpPulBThPqnjdMU4Rw2Jf/mjlQXiT7+w3w60/HrMd62J/d/dyYrIuvuog3OAEi1vsiKCRm/9ptpbNA4E34ZUBSOpT3bx0b4NszYB2g7VdcmgHHXSY16AVCv3I3ZN0UmWphw1hpjpxfHTinE2pR5L0HVMikxqaxjCZI7DSpi8f4gQJn7gjLTh905o751Z3s7Y4L/v9NTEXmCPF425krwxDD4EMSMJ6BXgAExvPolWV0/W9HUtKX7XtEJUKWLUlikb7qTRWR1sld ubuntu@dev-01' > ${rootfs}/home/linux/.ssh/authorized_keys
 	chroot_exec chown -R linux: /home/linux/.ssh
-	
-	if [ ${bootMode} == "legacy" ] ; then
+
+	if [ ${bootMode} == "legacy" ]; then
 		# Workaround for some hardware running with legacy boot that have problem with the two following modules
 		cat <<- EOF >> ${rootfs}/etc/modprobe.d/blacklist.conf
-		blacklist me
-		blacklist mei_me
+			blacklist me
+			blacklist mei_me
 		EOF
 	fi
 }
@@ -505,22 +509,22 @@ configure_fstab() {
 	log_debug "-> ${FUNCNAME[0]} $*"
 
 	cat <<- EOF > ${rootfs}/etc/fstab
-	LABEL=cloudimg-rootfs /                       ext4     defaults        0 0
+		LABEL=cloudimg-rootfs /                       ext4     defaults        0 0
 	EOF
 
-	if [ "${BOOT_MODE}" == "uefi" ] ; then
-	cat <<- EOF >> ${rootfs}/etc/fstab
-	LABEL=EFI             /boot/efi               vfat     defaults        0 0
-	EOF
+	if [ "${BOOT_MODE}" == "uefi" ]; then
+		cat <<- EOF >> ${rootfs}/etc/fstab
+			LABEL=EFI             /boot/efi               vfat     defaults        0 0
+		EOF
 	fi
 }
 
 remove_cloudinit() {
 	log_debug "-> ${FUNCNAME[0]} $*"
 
-	if [ -d ${rootfs}/etc/yum ] ; then
+	if [ -d ${rootfs}/etc/yum ]; then
 		chroot_exec yum -y erase cloud-init
-	elif [ -d ${rootfs}/etc/apt ] ; then
+	elif [ -d ${rootfs}/etc/apt ]; then
 		chroot_exec apt-get -y purge cloud-init
 		chroot_exec dpkg-reconfigure openssh-server
 	fi
@@ -529,36 +533,36 @@ remove_cloudinit() {
 configure_networking() {
 	log_debug "-> ${FUNCNAME[0]} $*"
 
-	if [ -d ${rootfs}/etc/netplan ] ; then
+	if [ -d ${rootfs}/etc/netplan ]; then
 		log "Configuring Linux | Configure network interface | Netplan configuration detected"
 		cat <<- EOF > ${rootfs}/etc/netplan/network.yaml
-		network:
-			version: 2
-			ethernets:
-				${PUBLIC_IFACE_NAME}:
-					dhcp4: true
-					dhcp6: false
+			network:
+			  version: 2
+			  ethernets:
+			    ${PUBLIC_IFACE_NAME}:
+			      dhcp4: true
+			      dhcp6: false
 		EOF
-	elif [ -e ${rootfs}/etc/network/interfaces ] ; then
+	elif [ -e ${rootfs}/etc/network/interfaces ]; then
 		log "Configuring Linux | Configure network interface | /etc/network/interfaces configuration detected"
 		cat <<- EOF > ${rootfs}/etc/network/interfaces
-		auto lo
-		iface lo inet loopback
+			auto lo
+			iface lo inet loopback
 
-		auto ${PUBLIC_IFACE_NAME}
-		iface ${PUBLIC_IFACE_NAME} inet dhcp
+			auto ${PUBLIC_IFACE_NAME}
+			iface ${PUBLIC_IFACE_NAME} inet dhcp
 		EOF
-	elif [ -d ${rootfs}/etc/sysconfig/network-scripts ] ; then
+	elif [ -d ${rootfs}/etc/sysconfig/network-scripts ]; then
 		log "Configuring Linux | Configure network interface | SysConfig configuration detected"
 		cat <<- EOF > ${rootfs}/etc/sysconfig/network-scripts/ifcfg-${PUBLIC_IFACE_NAME}
-		DEVICE="${PUBLIC_IFACE_NAME}"
-		BOOTPROTO="dhcp"
-		ONBOOT="yes"
-		TYPE="Ethernet"
-		USERCTL="yes"
-		PEERDNS="yes"
-		IPV6INIT="no"
-		PERSISTENT_DHCLIENT="1"
+			DEVICE="${PUBLIC_IFACE_NAME}"
+			BOOTPROTO="dhcp"
+			ONBOOT="yes"
+			TYPE="Ethernet"
+			USERCTL="yes"
+			PEERDNS="yes"
+			IPV6INIT="no"
+			PERSISTENT_DHCLIENT="1"
 		EOF
 	else
 		log_warning "Configuring Linux | Configure network interface | No configuration detected"
@@ -607,13 +611,13 @@ rootfs_bootloader_configuration() {
 	local grubFile=${rootfs}/boot/grub2/grub.cfg
 	local legacyGrubFile=${rootfs}/boot/grub/grub.cfg
 
-	if [ -e ${grubFile} ] ; then
+	if [ -e ${grubFile} ]; then
 		cp ${grubFile} ${grubFile}.bak
 		if [ ${BOOT_MODE} == "legacy" ] && [ ! -e ${legacyGrubFile} ]; then
 			(cd ${rootfs}/boot/grub2 && ln -s ./../grub2/grub.cfg ./../grub/grub.cfg)
 		fi
 	else
-		if [ ! -e ${legacyGrubFile} ] ; then
+		if [ ! -e ${legacyGrubFile} ]; then
 			exit_on_error "Unable to locate GRUB config file"
 		fi
 		mkdir -p ${rootfs}/boot/grub2/
@@ -622,28 +626,28 @@ rootfs_bootloader_configuration() {
 		(cd ${rootfs}/boot/grub && ln -s ../grub2/grub.cfg .)
 	fi
 
-	local kernel=$(grep -o -m 1 -e  'linux\(16\)*\s*[^/]*/boot/[^ ]*' ${grubFile} | sed -e's#.*\(/boot/.*\)#\1#')
+	local kernel=$(grep -o -m 1 -e 'linux\(16\)*\s*[^/]*/boot/[^ ]*' ${grubFile} | sed -e's#.*\(/boot/.*\)#\1#')
 	local initrd=$(grep -o -m 1 -e 'initrd\(16\)*\s*[^/]*/boot/[^ ]*' ${grubFile} | sed -e's#.*\(/boot/.*\)#\1#')
 
-	if [[ -z "${kernel}" || -z ${initrd} ]] ; then
+	if [[ -z "${kernel}" || -z ${initrd} ]]; then
 		# TODO Handle files in /mnt/boot/loader/entries/ for Fedora
 		# e.g. /mnt/boot/loader/entries/f241772f3e32496c92975269b5794615-5.0.9-301.fc30.x86_64.conf
 		:
-		if [[ -z "${kernel}" || -z ${initrd} ]] ; then
+		if [[ -z "${kernel}" || -z ${initrd} ]]; then
 			exit_on_error "Can't find kernel or initrd file path"
 		fi
 	fi
 
 	cat <<- EOF > ${grubFile}
-	default=0
-	timeout=5
-	
-	menuentry 'Linux' {
-		insmod gzio
-		search --label cloudimg-rootfs --set
-		linux  ${kernel} root=LABEL=cloudimg-rootfs ro console=${SERIAL_TTY},${BAUD_RATE}
-		initrd ${initrd}
-	}
+		default=0
+		timeout=5
+
+		menuentry 'Linux' {
+			insmod gzio
+			search --label cloudimg-rootfs --set
+			linux  ${kernel} root=LABEL=cloudimg-rootfs ro console=${SERIAL_TTY},${BAUD_RATE}
+			initrd ${initrd}
+		}
 	EOF
 }
 
@@ -657,7 +661,7 @@ rootfs_bootloader_configuration() {
 # At the first reboot, the presence of .autorelabel launch the relabelling of all files.
 # Then the system reboot and you're able to login.
 #
-SElinux_configuration(){
+SElinux_configuration() {
 	log_debug "-> ${FUNCNAME[0]} $*"
 
 	local config_file=${rootfs}/etc/selinux/config
@@ -681,14 +685,14 @@ notify_pxepilot_and_reboot() {
 	log_debug "-> ${FUNCNAME[0]} $*"
 
 	macA=$(ip address | grep -A 1 "${PUBLIC_IFACE_NAME}" | grep "link/ether" | cut -d ' ' -f 6)
-	if [ "${PXE_PILOT_ENABLED}" == "true" ] ; then
-	   curl -i -X PUT "${PXE_PILOT_BASEURL}/v1/configurations/${PXE_PILOT_CFG}/deploy" -d '{"hosts":[{"macAddress":"'"$macA"'"}]}'
+	if [ "${PXE_PILOT_ENABLED}" == "true" ]; then
+		curl -i -X PUT "${PXE_PILOT_BASEURL}/v1/configurations/${PXE_PILOT_CFG}/deploy" -d '{"hosts":[{"macAddress":"'"$macA"'"}]}'
 	fi
 
 	# Marker to indicate installation is successful
 	touch /var/run/sheep.success
 
-	if [ "${REBOOT_WHEN_DONE}" == "true" ] ; then
+	if [ "${REBOOT_WHEN_DONE}" == "true" ]; then
 		reboot
 	fi
 }
@@ -701,7 +705,7 @@ main() {
 	rootfs=/mnt/rootfs
 
 	log "Preparing tools required for installation"
-		prepare_env
+	prepare_env
 
 	log "Download configuration file"
 	load_config
@@ -710,9 +714,9 @@ main() {
 	config_variable
 
 	log "Cleaning local boot EFI entries from the EFI Boot Manager"
-	if [ "${BOOT_MODE}" == "uefi" ] ; then
-			efi_entry_cleanup
-		fi
+	if [ "${BOOT_MODE}" == "uefi" ]; then
+		efi_entry_cleanup
+	fi
 
 	log "Erasing drive an creating the partition table"
 	system_partitionning
@@ -742,7 +746,7 @@ main() {
 	notify_pxepilot_and_reboot
 }
 
-if [ "$(basename $0)" = "os-install.sh" ] ; then
+if [ "$(basename $0)" = "os-install.sh" ]; then
 	set -x
 	main 2>&1 | tee /var/log/os-install.log
 fi

@@ -1,10 +1,11 @@
-image: sesame-ubuntu-14.04:1.10
+image: sesame-ubuntu-14.04:1.11
 
 variables:
   OS_DEPLOY_CI_RUNNER_IP: '17.18.99.1'
 
 stages:
   - test-unit
+  - code-style
   - test-integ
 
 unit-test:
@@ -12,6 +13,14 @@ unit-test:
   script:
     - cd ${CI_PROJECT_DIR}
     - tests/unit_tests/run
+  tags:
+    - unit-tests
+
+code-formatting:
+  stage: code-style
+  script:
+    - cd ${CI_PROJECT_DIR}
+    - shfmt -sr -i 0 -d os-install.sh tests/unit_tests/run tests/integration_test/run
   tags:
     - unit-tests
 
