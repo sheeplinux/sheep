@@ -51,9 +51,9 @@ keywords `then` or `do`. We use semicolon instead.
 For instance, we write
 
 ```
-if [ condition1 ] ; then
+if [ condition1 ]; then
     cmd1
-elif [ condition2 ] ; then
+elif [ condition2 ]; then
     cmd2
 else
     cmd3
@@ -83,8 +83,7 @@ Every time it's possible we prefer to use dash flags from the `test` command rat
 
 ## Code indentation
 
-Indentation is done using 4 spaces (no `tab` character). In some cases, bash syntax relies on `tab`.
-We use `tab` characters in those specific cases only.
+Indentation is done using `Tab`.
 
 ## Misc
 
