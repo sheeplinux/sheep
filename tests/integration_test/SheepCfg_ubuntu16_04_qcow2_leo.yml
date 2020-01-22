@@ -7,6 +7,8 @@ linux:
   image: http://17.18.99.1/xenial-server-cloudimg-amd64-disk1.img
   label: ubuntu-16.04
   device: /dev/sda
+  rootfsType: ext4
+  rootfsLabel: Ubuntu-fs
   selinux: disable
 
 network:

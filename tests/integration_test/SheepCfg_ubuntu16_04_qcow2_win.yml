@@ -7,6 +7,8 @@ linux:
   image: http://17.18.99.1/xenial-server-cloudimg-amd64-disk1.img
   label: ubuntu_16_09
   device: /dev/sda
+  rootfsType: ext4
+  rootfsLabel: Ubuntu-fs
   selinux: disable
   blacklist_module:
     - mei

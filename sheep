@@ -264,6 +264,9 @@ config_variable() {
 	CODE_PARTITIONNING=8300
 	KERNEL_PARAMETER=$(search_mandatory_value ".bootloader.kernel_parameter")
 	SELINUX=$(search_value ".linux.selinux" "disable")
+	ROOTFS_LABEL=$(search_value ".linux.rootfsLabel" "rootfs")
+	check_filesystem_label ${ROOTFS_LABEL}
+	ROOTFS_TYPE=$(search_value ".linux.rootfsType" "ext4")
 	if [ "${BOOT_MODE}" == "legacy" ]; then
 		CODE_PARTITIONNING_BOOT=ef02
 		BOOT_PARTITION_SIZE=2M
@@ -274,6 +277,26 @@ config_variable() {
 		exit_on_error "Boot mode '${BOOT_MODE}' is not supported"
 	fi
 	REBOOT_WHEN_DONE=$(search_value ".sheep.reboot" "true")
+}
+
+#
+# Check if the config file match the following requirements :
+#   * Less than 12 characters
+#   * Characters allowed [0-9],[a-z],'-','_'
+#
+# $1 - Root filesystem label
+#
+check_filesystem_label() {
+	local size=${#1}
+	local count=0
+	if [ ${size} -gt 12 ]; then
+		exit_on_error "Number of caracter exceed maximal sie : 12 caracters max"
+	fi
+	if [[ "$1" =~ ([0-9A-Za-z_-]{$size}) ]]; then
+		:
+	else
+		exit_on_error "Invalid caracter used in the name given to filesystem : caracters must be a number, a letter '_' or '-'"
+	fi
 }
 
 #
@@ -311,10 +334,16 @@ partitions_formating() {
 	if [ "${BOOT_MODE}" == "uefi" ]; then
 		mkfs.fat -F 32 -n EFI ${EFI_PARTITION}
 	fi
-	mkfs.ext4 -q -L cloudimg-rootfs ${LINUX_PARTITION} <<- EOF
-		y
-	EOF
-	# TODO rootfs filesystem type should be an input parameter
+
+	if [ "${ROOTFS_TYPE}" == "ext4" ]; then
+		mkfs.ext4 -q -L ${ROOTFS_LABEL} ${LINUX_PARTITION} <<- EOF
+			y
+		EOF
+	elif [ "${ROOTFS_TYPE}" == "btrfs" ]; then
+		mkfs.btrfs -f -q -L ${ROOTFS_LABEL} ${LINUX_PARTITION}
+	else
+		exit_on_error "Filesystem type '${FILE_SYSTEM_TYPE}' unknown or not supported"
+	fi
 }
 
 #
@@ -393,6 +422,7 @@ qcow2_installation() {
 	log_debug "-> ${FUNCNAME[0]} $*"
 
 	DEBIAN_FRONTEND=noninteractive apt install -y libguestfs-tools
+
 	guestmount -a ${linux_image} -m /dev/sda1 ${linux_image_dir}
 
 	cp -rp ${linux_image_dir}/* ${rootfs}
@@ -423,10 +453,10 @@ bootloader_installation_uefi() {
 	wget --quiet -O ${bootloader_archive_file} ${EFI_ARCHIVE_URL}
 	tar xvzf ${bootloader_archive_file} -C ${rootfs}/boot/efi
 	rm -f ${bootloader_archive_file}
-	cat <<- 'EOF' > ${bootloader_dir}/grub.cfg
-		search --label cloudimg-rootfs --set
-		set prefix=($root)'/boot/grub2'
-		configfile $prefix/grub.cfg
+	cat <<- EOF > ${bootloader_dir}/grub.cfg
+		search --label ${ROOTFS_LABEL} --set
+		set prefix=(\$root)'/boot/grub2'
+		configfile \$prefix/grub.cfg
 	EOF
 
 	efibootmgr -c -d ${BLOCK_DEVICE} -p 1 -L "${EFI_ENTRY_LABEL}" -l "\EFI\\${bootloader_name}\shimx64.efi"
@@ -504,7 +534,7 @@ configure_fstab() {
 	log_debug "-> ${FUNCNAME[0]} $*"
 
 	cat <<- EOF > ${rootfs}/etc/fstab
-		LABEL=cloudimg-rootfs /                       ext4     defaults        0 0
+		LABEL=${ROOTFS_LABEL} /                       ${ROOTFS_TYPE}     defaults        0 0
 	EOF
 
 	if [ "${BOOT_MODE}" == "uefi" ]; then
@@ -654,8 +684,8 @@ rootfs_bootloader_configuration() {
 
 		menuentry 'Linux' {
 			insmod gzio
-			search --label cloudimg-rootfs --set
-			linux  ${kernel} root=LABEL=cloudimg-rootfs ro ${KERNEL_PARAMETER}
+			search --label ${ROOTFS_LABEL} --set
+			linux  ${kernel} root=LABEL=${ROOTFS_LABEL} ro ${KERNEL_PARAMETER}
 			initrd ${initrd}
 		}
 	EOF

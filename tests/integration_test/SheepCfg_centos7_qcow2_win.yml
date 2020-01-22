@@ -7,6 +7,8 @@ linux:
   image: http://17.18.99.1/CentOS-7-x86_64-GenericCloud-1907.qcow2
   label: centOS_7
   device: /dev/sda
+  rootfsType: ext4
+  rootfsLabel: centos-fs
   selinux: disable
   blacklist_module:
     - mei
