@@ -1,1 +1,2 @@
 tests/unit_tests/*.log
+.vscode/
