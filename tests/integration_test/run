@@ -294,37 +294,58 @@ get_mac_address() {
 }
 
 #
+# Print current date and time in format "dd/mm/yyyy hh:mm:ss"
+#
+#
+current_datetime() {
+	date "+%d/%m/%Y %H:%M:%S"
+}
+
+#
 # Delete configurations created by the the test
 #
 cleanup() {
 	log "Cleanup environment"
 	sudo rm -f /var/tftp/pxelinux.cfg/conf/${CONFIG_NAME}
 	sudo rm -f /var/www/html/os-deploy/${CONFIG_NAME}
+
+	touch ${SHEEP_RESULTS_FILE}
+	if [ $(cat ${SHEEP_RESULTS_FILE} | wc -l) -eq 0 ]; then
+		echo "Pipeline ID,Job ID,Commit ID,Start date,End date,DUT,Sheep config,Final Step" > ${SHEEP_RESULTS_FILE}
+	fi
+	echo "${CI_PIPELINE_ID},${CI_JOB_ID},${CI_COMMIT_SHORT_SHA},${TEST_START_DATE},$(current_datetime),${DUT_NAME},${CONFIG_FILE_NAME},${current_step}" >> ${SHEEP_RESULTS_FILE}
 }
 
 #
 # Run the overall testing scenario
 #
 main() {
+	TEST_START_DATE=$(current_datetime)
+	current_step=begin
+
 	local dut_status="$(status_dut ${DUT_NAME})"
 
 	log "Machine '${DUT_NAME}' power status is ${dut_status}"
 
 	if [ ${dut_status} == 'on' ]; then
 		log "Stopping machine '${DUT_NAME}'"
+		current_step=stop_dut
 		stop_dut ${DUT_NAME}
 	fi
 
 	log "Generate and deploy netboot configuration..."
+	current_step=deploy_boot_config
 	deploy_boot_config
 
 	mac=$(get_mac_address ${DUT_NAME})
 	log "MAC address for host '${DUT_NAME}' is ${mac}"
 
 	log "Deleting ARP entry for MAC ${mac}"
+	current_step=delete_arp_entry
 	delete_arp_entry ${mac}
 
 	log "Starting test on machine '${DUT_NAME}'"
+	current_step=start_dut
 	start_dut ${DUT_NAME}
 
 	wait_for_ip ${mac} 450
@@ -335,17 +356,22 @@ main() {
 	fi
 
 	log "Waiting for GRML to boot..."
+	current_step=wait_for_ssh_grml
 	wait_for_ssh ${ip} root grml 600
 
 	log "Waiting for the installation process to complete..."
+	current_step=wait_for_installation_complete
 	wait_for_installation_complete ${ip} root grml 600
 
 	log "Rebooting the machine..."
+	current_step=reboot
 	pxe-pilot host reboot ${DUT_NAME}
 
 	log "Waiting for newly installed Linux to boot..."
+	current_step=wait_for_ssh_linux
 	wait_for_ssh ${ip} linux linux 600
 
+	current_step=check_compliance
 	if [ -n "${EXPECTED_UNAME}" ]; then
 		log "Checking machine '${DUT_NAME}' is running the expected operating system..."
 		local uname_output=$(ssh_cmd ${ip} linux linux uname -a)
@@ -356,6 +382,7 @@ main() {
 		log "Operating system : ${uname_output}"
 	fi
 
+	current_step=power_off
 	log "Power off server ${DUT_NAME}"
 	# Sending a poweroff command through ssh lead to close SSH connection and return a non-zero
 	# exit code. Disabling -e flag to ignore this error
@@ -363,10 +390,12 @@ main() {
 	ssh_cmd ${ip} linux linux sudo poweroff
 	set -e
 
+	current_step=success
 	log "Success :)"
 }
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" > /dev/null 2>&1 && pwd)"
+SHEEP_RESULTS_FILE=$HOME/sheep_integration_tests.csv
 OS_DEPLOY_SCRIPT_SOURCE=$SCRIPT_DIR/../../os-install.sh
 OS_DEPLOY_CONFIG_SOURCE=$SCRIPT_DIR/${CONFIG_FILE_NAME}
 DUT_NAME=${CI_RUNNER_DESCRIPTION}
@@ -391,6 +420,8 @@ if [ -z "${CONFIG_FILE_NAME}" ]; then
 	log "ERROR : Variable 'CONFIG_FILE_NAME' is not defined..."
 	exit 1
 fi
+
+current_step=init
 
 trap cleanup EXIT
 
