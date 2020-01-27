@@ -311,9 +311,9 @@ cleanup() {
 
 	touch ${SHEEP_RESULTS_FILE}
 	if [ $(cat ${SHEEP_RESULTS_FILE} | wc -l) -eq 0 ]; then
-		echo "Pipeline ID,Job ID,Commit ID,Start date,End date,DUT,Sheep config,Final Step" > ${SHEEP_RESULTS_FILE}
+		echo "Pipeline ID,Job ID,Commit ID,Start date,End date,DUT,Sheep config,Final Step,Git ref" > ${SHEEP_RESULTS_FILE}
 	fi
-	echo "${CI_PIPELINE_ID},${CI_JOB_ID},${CI_COMMIT_SHORT_SHA},${TEST_START_DATE},$(current_datetime),${DUT_NAME},${CONFIG_FILE_NAME},${current_step}" >> ${SHEEP_RESULTS_FILE}
+	echo "${CI_PIPELINE_ID},${CI_JOB_ID},${CI_COMMIT_SHORT_SHA},${TEST_START_DATE},$(current_datetime),${DUT_NAME},${CONFIG_FILE_NAME},${current_step},${CI_COMMIT_REF_NAME}" >> ${SHEEP_RESULTS_FILE}
 }
 
 #
