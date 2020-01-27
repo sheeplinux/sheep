@@ -259,8 +259,7 @@ config_variable() {
 	EFI_PARTITION="${BLOCK_DEVICE}1"
 	LINUX_PARTITION="${BLOCK_DEVICE}2"
 	CODE_PARTITIONNING=8300
-	SERIAL_TTY=$(search_value ".bootloader.kernel_parameter.console.serial" "ttyS1")
-	BAUD_RATE=$(search_value ".bootloader.kernel_parameter.console.baudRate" "57600n8")
+	KERNEL_PARAMETER=$(search_mandatory_value ".bootloader.kernel_parameter")
 	SELINUX=$(search_value ".linux.selinux" "disable")
 	if [ "${BOOT_MODE}" == "legacy" ]; then
 		CODE_PARTITIONNING_BOOT=ef02
@@ -496,13 +495,6 @@ create_user() {
 	echo 'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDdXnRJVWf7OvFa0UZPkvDBave2BWhr29HFlO/bI/98rmPc0zn24a8Wplo/Sts4SrL3xZNATH5tWwNpPulBThPqnjdMU4Rw2Jf/mjlQXiT7+w3w60/HrMd62J/d/dyYrIuvuog3OAEi1vsiKCRm/9ptpbNA4E34ZUBSOpT3bx0b4NszYB2g7VdcmgHHXSY16AVCv3I3ZN0UmWphw1hpjpxfHTinE2pR5L0HVMikxqaxjCZI7DSpi8f4gQJn7gjLTh905o751Z3s7Y4L/v9NTEXmCPF425krwxDD4EMSMJ6BXgAExvPolWV0/W9HUtKX7XtEJUKWLUlikb7qTRWR1sld ubuntu@dev-01' > ${rootfs}/home/linux/.ssh/authorized_keys
 	chroot_exec chown -R linux: /home/linux/.ssh
 
-	if [ ${bootMode} == "legacy" ]; then
-		# Workaround for some hardware running with legacy boot that have problem with the two following modules
-		cat <<- EOF >> ${rootfs}/etc/modprobe.d/blacklist.conf
-			blacklist me
-			blacklist mei_me
-		EOF
-	fi
 }
 
 configure_fstab() {
@@ -528,6 +520,18 @@ remove_cloudinit() {
 		chroot_exec apt-get -y purge cloud-init
 		chroot_exec dpkg-reconfigure openssh-server
 	fi
+}
+
+blacklist_module() {
+	log_debug "-> ${FUNCNAME[0]} $*"
+
+	local i=0
+	local mod=$(yq -r .linux.blacklist_module[$i] ${CONFIG_FILE})
+	while [ "${mod}" != "null" ]; do
+		echo "blacklist ${mod}" >> ${rootfs}/etc/modprobe.d/blacklist.conf
+		i=$(($i + 1))
+		mod=$(yq -r .linux.blacklist_module[$i] ${CONFIG_FILE})
+	done
 }
 
 configure_networking() {
@@ -593,6 +597,9 @@ linux_rootfs_configuration() {
 	log "Configuring Linux | Remove cloud-init if present"
 	remove_cloudinit
 
+	log "Configuring Linux | Blacklist modules"
+	blacklist_module
+
 	log "Configuring Linux | Configure network interface"
 	configure_networking
 
@@ -645,7 +652,7 @@ rootfs_bootloader_configuration() {
 		menuentry 'Linux' {
 			insmod gzio
 			search --label cloudimg-rootfs --set
-			linux  ${kernel} root=LABEL=cloudimg-rootfs ro console=${SERIAL_TTY},${BAUD_RATE}
+			linux  ${kernel} root=LABEL=cloudimg-rootfs ro ${KERNEL_PARAMETER}
 			initrd ${initrd}
 		}
 	EOF

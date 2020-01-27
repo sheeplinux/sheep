@@ -1,16 +1,16 @@
 bootloader:
   mode: legacy
   image: https://github.com/ggiamarchi/sandbox/raw/os-deploy/grub.tar.gz
-  kernel_parameter:
-    console:
-      serial: ttyS1
-      baudRate: 115200n8
+  kernel_parameter: "console=ttyS1,115200n8"
 
 linux:
   image: https://cdimage.debian.org/cdimage/openstack/archive/9.11.2-20190926/debian-9.11.2-20190926-openstack-amd64.qcow2
   label: Debian_9
   device: /dev/sda
   selinux: disable
+  blacklist_module:
+    - mei
+    - mei_me
 
 network:
   interface: enp12s0
