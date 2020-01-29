@@ -28,7 +28,7 @@ ubuntu16.04-qcow2-uefi_boot:
   stage: test-integ
   variables:
     CONFIG_FILE_NAME: SheepCfg_ubuntu16_04_qcow2_leo.yml
-    EXPECTED_UNAME: 'Linux ubuntu 4.4.0-171-generic'
+    EXPECTED_UNAME: 'Linux ubuntu 4.4.0-173-generic'
     EXTRA_KERNEL_CMDLINE: console=ttyS1,57600n8
   script:
     - cd ${CI_PROJECT_DIR}
@@ -76,7 +76,7 @@ ubuntu16.04-qcow2-legacy_boot:
   stage: test-integ
   variables:
     CONFIG_FILE_NAME: SheepCfg_ubuntu16_04_qcow2_win.yml
-    EXPECTED_UNAME: 'Linux ubuntu 4.4.0-171-generic'
+    EXPECTED_UNAME: 'Linux ubuntu 4.4.0-173-generic'
     EXTRA_KERNEL_CMDLINE: console=ttyS1,115200n8 iomem=relaxed ethdevice=enp12s0 module_blacklist=mei,mei_me
   script:
     - cd ${CI_PROJECT_DIR}
