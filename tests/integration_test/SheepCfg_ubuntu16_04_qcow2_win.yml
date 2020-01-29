@@ -1,16 +1,16 @@
 bootloader:
   mode: legacy
   image: https://github.com/ggiamarchi/sandbox/raw/os-deploy/grub.tar.gz
-  kernel_parameter:
-    console:
-      serial: ttyS4
-      baudRate: 115200n8
+  kernel_parameter: "console=ttyS4,115200n8"
 
 linux:
   image: https://cloud-images.ubuntu.com/xenial/current/xenial-server-cloudimg-amd64-disk1.img
   label: ubuntu_16_09
   device: /dev/sda
   selinux: disable
+  blacklist_module:
+    - mei
+    - mei_me
 
 network:
   interface: enp12s0
