@@ -133,7 +133,7 @@ print_sheep_log() {
 	log ""
 	log "!!! See Sheep log below !!!"
 	log ""
-	ssh_cmd ${1} ${2} ${3} 'cat /var/log/os-install.log'
+	ssh_cmd ${1} ${2} ${3} 'cat /var/log/sheep.log'
 	log ""
 	log "!!! End of Sheep log !!!"
 	log ""
@@ -181,15 +181,15 @@ deploy_boot_config() {
 		default grml
 		label grml
 		kernel /grml/vmlinuz
-		append boot=live fetch=${OS_DEPLOY_SQUASHFS} initrd=/grml/initrd.img ssh=grml ${EXTRA_KERNEL_CMDLINE} startup=/usr/bin/os-deploy deployScript=${OS_DEPLOY_SCRIPT} deployConfig=${OS_DEPLOY_CONFIG}
+		append boot=live fetch=${SHEEP_SQUASHFS} initrd=/grml/initrd.img ssh=grml ${EXTRA_KERNEL_CMDLINE} startup=/usr/bin/sheep sheep.script=${SHEEP_SCRIPT} sheep.config=${SHEEP_CONFIG}
 	EOF
 
-	sudo mkdir -p /var/www/html/os-deploy
+	sudo mkdir -p /var/www/html/sheep
 
-	sudo rm -f /var/www/html/os-deploy/${CONFIG_NAME} /var/tftp/pxelinux.cfg/conf/${CONFIG_NAME} /var/www/html/os-deploy/${CONFIG_NAME}.yml
-	sudo cp ${OS_DEPLOY_SCRIPT_SOURCE} /var/www/html/os-deploy/${CONFIG_NAME}
+	sudo rm -f /var/www/html/sheep/${CONFIG_NAME} /var/tftp/pxelinux.cfg/conf/${CONFIG_NAME} /var/www/html/sheep/${CONFIG_NAME}.yml
+	sudo cp ${SHEEP_SCRIPT_SOURCE} /var/www/html/sheep/${CONFIG_NAME}
 	sudo cp ${WORKDIR}/netboot /var/tftp/pxelinux.cfg/conf/${CONFIG_NAME}
-	sudo cp ${OS_DEPLOY_CONFIG_SOURCE} /var/www/html/os-deploy/${CONFIG_NAME}.yml
+	sudo cp ${SHEEP_CONFIG_SOURCE} /var/www/html/sheep/${CONFIG_NAME}.yml
 
 	log "Set PXE Pilot configuration '${CONFIG_NAME}' for machine '${DUT_NAME}'"
 	pxe-pilot config deploy ${CONFIG_NAME} ${DUT_NAME} > /dev/null 2>&1
@@ -351,7 +351,7 @@ cleanup() {
 
 	log "Cleanup environment"
 	sudo rm -f /var/tftp/pxelinux.cfg/conf/${CONFIG_NAME}
-	sudo rm -f /var/www/html/os-deploy/${CONFIG_NAME}
+	sudo rm -f /var/www/html/sheep/${CONFIG_NAME}
 
 	touch ${SHEEP_RESULTS_FILE}
 	if [ $(cat ${SHEEP_RESULTS_FILE} | wc -l) -eq 0 ]; then
@@ -453,14 +453,14 @@ main() {
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" > /dev/null 2>&1 && pwd)"
 SHEEP_RESULTS_FILE=$HOME/sheep_integration_tests.csv
-OS_DEPLOY_SCRIPT_SOURCE=$SCRIPT_DIR/../../os-install.sh
-OS_DEPLOY_CONFIG_SOURCE=$SCRIPT_DIR/${CONFIG_FILE_NAME}
+SHEEP_SCRIPT_SOURCE=$SCRIPT_DIR/../../sheep
+SHEEP_CONFIG_SOURCE=$SCRIPT_DIR/${CONFIG_FILE_NAME}
 DUT_NAME=${CI_RUNNER_DESCRIPTION}
 CONFIG_NAME=${CI_RUNNER_DESCRIPTION}_${CI_COMMIT_SHORT_SHA}_${CI_PIPELINE_ID}_${CI_JOB_ID}
-OS_DEPLOY_SQUASHFS=http://${OS_DEPLOY_CI_RUNNER_IP}/os-deploy.squashfs
-OS_DEPLOY_SCRIPT=http://${OS_DEPLOY_CI_RUNNER_IP}/os-deploy/${CONFIG_NAME}
-OS_DEPLOY_CONFIG=http://${OS_DEPLOY_CI_RUNNER_IP}/os-deploy/${CONFIG_NAME}.yml
-PXE_PILOT_API=http://${OS_DEPLOY_CI_RUNNER_IP}:3478
+SHEEP_SQUASHFS=http://${SHEEP_CI_RUNNER_IP}/sheep.squashfs
+SHEEP_SCRIPT=http://${SHEEP_CI_RUNNER_IP}/sheep/${CONFIG_NAME}
+SHEEP_CONFIG=http://${SHEEP_CI_RUNNER_IP}/sheep/${CONFIG_NAME}.yml
+PXE_PILOT_API=http://${SHEEP_CI_RUNNER_IP}:3478
 ASCIINEMA_FILE=${HOME}/job-cast/${CONFIG_NAME}.cast
 WORKDIR=$(mktemp -d)
 
@@ -469,8 +469,8 @@ if [ -z "${CI_RUNNER_DESCRIPTION}" ]; then
 	exit 1
 fi
 
-if [ -z "${OS_DEPLOY_CI_RUNNER_IP}" ]; then
-	log "ERROR : Variable 'OS_DEPLOY_CI_RUNNER_IP' is not defined..."
+if [ -z "${SHEEP_CI_RUNNER_IP}" ]; then
+	log "ERROR : Variable 'SHEEP_CI_RUNNER_IP' is not defined..."
 	exit 1
 fi
 

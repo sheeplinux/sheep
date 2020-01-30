@@ -3,7 +3,7 @@
 load test_helper
 
 @test "search_mandatory_value with existing values" {
-    source ${BATS_TEST_DIRNAME}/../../os-install.sh
+    source ${BATS_TEST_DIRNAME}/../../sheep
 
     export CONFIG_FILE=${BATS_TEST_DIRNAME}/sheepCfgTestSearch_m_v1.yml
     
@@ -25,7 +25,7 @@ load test_helper
 }
 
 @test "search_mandatory_value with no values" {
-    source ${BATS_TEST_DIRNAME}/../../os-install.sh
+    source ${BATS_TEST_DIRNAME}/../../sheep
 
     export CONFIG_FILE=${BATS_TEST_DIRNAME}/sheepCfgTestSearch_m_v2.yml
 
@@ -44,7 +44,7 @@ load test_helper
 }
 
 @test "search_mandatory_value with not existing param and an error message" {
-    source ${BATS_TEST_DIRNAME}/../../os-install.sh
+    source ${BATS_TEST_DIRNAME}/../../sheep
 
     export CONFIG_FILE=${BATS_TEST_DIRNAME}/sheepCfgTestSearch_m_v3.yml
 
