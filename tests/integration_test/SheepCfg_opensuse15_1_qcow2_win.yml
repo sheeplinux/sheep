@@ -1,10 +1,10 @@
 bootloader:
   mode: legacy
-  image: https://github.com/ggiamarchi/sandbox/raw/os-deploy/grub.tar.gz
+  image: http://17.18.99.1/grub.tar.gz
   kernel_parameter: "console=ttyS4,115200n8"
 
 linux:
-  image: https://download.opensuse.org/repositories/Cloud:/Images:/Leap_15.1/images/openSUSE-Leap-15.1-OpenStack.x86_64.qcow2
+  image: http://17.18.99.1/openSUSE-Leap-15.1-OpenStack.x86_64.qcow2
   label: openSUSE_15_1
   device: /dev/sda
   selinux: disable
