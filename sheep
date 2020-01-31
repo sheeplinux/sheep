@@ -13,7 +13,7 @@ log() {
 
 #
 # Log text in file specified by the environment variable
-# OS_INSTALL_LOG_FILE when log level level is ERROR or INFO
+# SHEEP_LOG_FILE when log level level is ERROR or INFO
 #
 # $* - Text to log
 #
@@ -23,7 +23,7 @@ log_info() {
 
 #
 # Log text in file specified by the environment variable
-# OS_INSTALL_LOG_FILE when log level level is ERROR or INFO
+# SHEEP_LOG_FILE when log level level is ERROR or INFO
 #
 # $* - Text to log
 #
@@ -33,7 +33,7 @@ log_warning() {
 
 #
 # Log text in file specified by the environment variable
-# OS_INSTALL_LOG_FILE (always)
+# SHEEP_LOG_FILE (always)
 #
 # $* - Text to log
 #
@@ -43,7 +43,7 @@ log_error() {
 
 #
 # Log text in file specified by the environment variable
-# OS_INSTALL_LOG_FILE when log level level is DEBUG
+# SHEEP_LOG_FILE when log level level is DEBUG
 #
 # $* - Text to log
 #
@@ -61,16 +61,16 @@ _log() {
 	#
 	# Log file to log into
 	#
-	if [ -z "${OS_INSTALL_LOG_FILE}" ]; then
-		OS_INSTALL_LOG_FILE="/tmp/os-install-$(date +%s).log"
+	if [ -z "${SHEEP_LOG_FILE}" ]; then
+		SHEEP_LOG_FILE="/tmp/sheep-$(date +%s).log"
 	fi
-	touch ${OS_INSTALL_LOG_FILE}
+	touch ${SHEEP_LOG_FILE}
 
 	#
 	# Authorized log level are ERROR, WARNING, INFO and DEBUG
 	#
-	if [ -z "${OS_INSTALL_LOG_LEVEL}" ]; then
-		OS_INSTALL_LOG_LEVEL=INFO
+	if [ -z "${SHEEP_LOG_LEVEL}" ]; then
+		SHEEP_LOG_LEVEL=INFO
 	fi
 
 	local severity="${1}"
@@ -78,11 +78,11 @@ _log() {
 	if [ "${severity}" = 'ERROR' ]; then
 		:
 	elif [ "${severity}" = 'WARNING' ]; then
-		if [[ "${OS_INSTALL_LOG_LEVEL}" = "ERROR" ]]; then
+		if [[ "${SHEEP_LOG_LEVEL}" = "ERROR" ]]; then
 			return
 		fi
 	elif [ "${severity}" = 'DEBUG' ]; then
-		if [ "${OS_INSTALL_LOG_LEVEL}" != "DEBUG" ]; then
+		if [ "${SHEEP_LOG_LEVEL}" != "DEBUG" ]; then
 			return
 		fi
 	else
@@ -91,7 +91,7 @@ _log() {
 		# so we force this value. It is equivalent to have a fallback value to INFO when the value is unknown
 		#
 		severity=INFO
-		if [[ "${OS_INSTALL_LOG_LEVEL}" = "ERROR" || "${OS_INSTALL_LOG_LEVEL}" = "WARNING" ]]; then
+		if [[ "${SHEEP_LOG_LEVEL}" = "ERROR" || "${SHEEP_LOG_LEVEL}" = "WARNING" ]]; then
 			return
 		fi
 	fi
@@ -100,7 +100,7 @@ _log() {
 		printf "$(date '+[%D %T %z]') %-7s | " ${severity}
 		shift
 		echo "$*"
-	} >> $OS_INSTALL_LOG_FILE
+	} >> $SHEEP_LOG_FILE
 }
 
 #
@@ -129,7 +129,7 @@ declare -A configMap
 #
 # By default, parameters are retrieved from the kernel command line
 # reading /proc/cmdline content. This can be overriden by setting up
-# the OS_DEPLOY_PARAMETERS environment variable with the exact same
+# the SHEEP_PARAMETERS environment variable with the exact same
 # syntax.
 #
 # $1 - Parameter identifier
@@ -148,7 +148,7 @@ search_value() {
 			configMap[${key}]=${value}
 		done
 	fi
-	if [ "${1}" == "deployConfig" ] || [ "${1}" == "deployOS" ]; then
+	if [ "${1}" == "sheep.config" ]; then
 		local value=${configMap[${1}]}
 	else
 		local value=$(yq -r $1 ${CONFIG_FILE})
@@ -205,7 +205,7 @@ prepare_env() {
 load_config() {
 	log_debug "-> ${FUNCNAME[0]} $*"
 
-	local CONFIG_FILE_PATH=$(search_value deployConfig)
+	local CONFIG_FILE_PATH=$(search_value sheep.config)
 	if [ -z ${CONFIG_FILE_PATH} ]; then
 		exit_on_error "Configuration file is missing"
 	fi
@@ -753,7 +753,7 @@ main() {
 	notify_pxepilot_and_reboot
 }
 
-if [ "$(basename $0)" = "os-install.sh" ]; then
+if [ "$(basename $0)" = "sheep" ]; then
 	set -x
-	main 2>&1 | tee /var/log/os-install.log
+	main 2>&1 | tee /var/log/sheep.log
 fi

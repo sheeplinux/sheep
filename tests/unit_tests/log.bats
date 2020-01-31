@@ -3,9 +3,9 @@
 load test_helper
 
 init_log_test() {
-    export OS_INSTALL_LOG_FILE=$(mktemp)
-    export OS_INSTALL_LOG_LEVEL=$1
-    source ${BATS_TEST_DIRNAME}/../../os-install.sh
+    export SHEEP_LOG_FILE=$(mktemp)
+    export SHEEP_LOG_LEVEL=$1
+    source ${BATS_TEST_DIRNAME}/../../sheep
 }
 
 check_log_error_present() {
@@ -14,8 +14,8 @@ check_log_error_present() {
     run log_error "This is an error message"
 
     [ "${status}" -eq 0 ]
-    [ $(cat ${OS_INSTALL_LOG_FILE} | wc -l) -eq 1 ]
-    [[ "$(cat ${OS_INSTALL_LOG_FILE})" =~ 'ERROR   | This is an error message' ]]
+    [ $(cat ${SHEEP_LOG_FILE} | wc -l) -eq 1 ]
+    [[ "$(cat ${SHEEP_LOG_FILE})" =~ 'ERROR   | This is an error message' ]]
 }
 
 @test "log_error present when log level is ERROR" {
@@ -39,8 +39,8 @@ check_log_warning_present() {
 
     run log_warning "This is an warning message"
     [ "${status}" -eq 0 ]
-    [ $(cat ${OS_INSTALL_LOG_FILE} | wc -l) -eq 1 ]
-    [[ "$(cat ${OS_INSTALL_LOG_FILE})" =~ 'WARNING | This is an warning message' ]]
+    [ $(cat ${SHEEP_LOG_FILE} | wc -l) -eq 1 ]
+    [[ "$(cat ${SHEEP_LOG_FILE})" =~ 'WARNING | This is an warning message' ]]
 }
 
 check_log_warning_absent() {
@@ -48,7 +48,7 @@ check_log_warning_absent() {
 
     run log_warning "This is an warning message"
     [ "${status}" -eq 0 ]
-    [ $(cat ${OS_INSTALL_LOG_FILE} | wc -l) -eq 0 ]
+    [ $(cat ${SHEEP_LOG_FILE} | wc -l) -eq 0 ]
 }
 
 @test "log_warning absent when log level is ERROR" {
@@ -72,8 +72,8 @@ check_log_info_present() {
 
     run log_info "This is an info message"
     [ "${status}" -eq 0 ]
-    [ $(cat ${OS_INSTALL_LOG_FILE} | wc -l) -eq 1 ]
-    [[ "$(cat ${OS_INSTALL_LOG_FILE})" =~ 'INFO    | This is an info message' ]]
+    [ $(cat ${SHEEP_LOG_FILE} | wc -l) -eq 1 ]
+    [[ "$(cat ${SHEEP_LOG_FILE})" =~ 'INFO    | This is an info message' ]]
 }
 
 check_log_info_absent() {
@@ -81,7 +81,7 @@ check_log_info_absent() {
 
     run log_info "This is an info message"
     [ "${status}" -eq 0 ]
-    [ $(cat ${OS_INSTALL_LOG_FILE} | wc -l) -eq 0 ]
+    [ $(cat ${SHEEP_LOG_FILE} | wc -l) -eq 0 ]
 }
 
 @test "log_info absent when log level is ERROR" {
@@ -105,8 +105,8 @@ check_log_present() {
 
     run log "This is an info message"
     [ "${status}" -eq 0 ]
-    [ $(cat ${OS_INSTALL_LOG_FILE} | wc -l) -eq 1 ]
-    [[ "$(cat ${OS_INSTALL_LOG_FILE})" =~ 'INFO    | This is an info message' ]]
+    [ $(cat ${SHEEP_LOG_FILE} | wc -l) -eq 1 ]
+    [[ "$(cat ${SHEEP_LOG_FILE})" =~ 'INFO    | This is an info message' ]]
 }
 
 check_log_absent() {
@@ -114,7 +114,7 @@ check_log_absent() {
 
     run log "This is an info message"
     [ "${status}" -eq 0 ]
-    [ $(cat ${OS_INSTALL_LOG_FILE} | wc -l) -eq 0 ]
+    [ $(cat ${SHEEP_LOG_FILE} | wc -l) -eq 0 ]
 }
 
 @test "log absent when log level is ERROR" {
@@ -138,8 +138,8 @@ check_log_debug_present() {
 
     run log_debug "This is a debug message"
     [ "${status}" -eq 0 ]
-    [ $(cat ${OS_INSTALL_LOG_FILE} | wc -l) -eq 1 ]
-    [[ "$(cat ${OS_INSTALL_LOG_FILE})" =~ 'DEBUG   | This is a debug message' ]]
+    [ $(cat ${SHEEP_LOG_FILE} | wc -l) -eq 1 ]
+    [[ "$(cat ${SHEEP_LOG_FILE})" =~ 'DEBUG   | This is a debug message' ]]
 }
 
 check_log_debug_absent() {
@@ -147,7 +147,7 @@ check_log_debug_absent() {
 
     run log_debug "This is a debug message"
     [ "${status}" -eq 0 ]
-    [ $(cat ${OS_INSTALL_LOG_FILE} | wc -l) -eq 0 ]
+    [ $(cat ${SHEEP_LOG_FILE} | wc -l) -eq 0 ]
 }
 
 @test "log_debug absent when log level is ERROR" {

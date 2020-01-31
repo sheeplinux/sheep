@@ -3,7 +3,7 @@
 load test_helper
 
 @test "search_value with existing values" {
-    source ${BATS_TEST_DIRNAME}/../../os-install.sh
+    source ${BATS_TEST_DIRNAME}/../../sheep
 
     export CONFIG_FILE=${BATS_TEST_DIRNAME}/sheepCfgTestSearch_m_v1.yml
 
@@ -25,7 +25,7 @@ load test_helper
 }
 
 @test "search_value with existing values with a default value" {
-    source ${BATS_TEST_DIRNAME}/../../os-install.sh
+    source ${BATS_TEST_DIRNAME}/../../sheep
 
     export CONFIG_FILE=${BATS_TEST_DIRNAME}/sheepCfgTestSearch_m_v1.yml
 
@@ -47,7 +47,7 @@ load test_helper
 }
 
 @test "search_value with not existing param and no default value" {
-    source ${BATS_TEST_DIRNAME}/../../os-install.sh
+    source ${BATS_TEST_DIRNAME}/../../sheep
 
     export CONFIG_FILE=${BATS_TEST_DIRNAME}/sheepCfgTestSearch_m_v3.yml 
 
@@ -57,7 +57,7 @@ load test_helper
 }
 
 @test "search_value with not existing param and a default value" {
-    source ${BATS_TEST_DIRNAME}/../../os-install.sh
+    source ${BATS_TEST_DIRNAME}/../../sheep
 
     export CONFIG_FILE=${BATS_TEST_DIRNAME}/sheepCfgTestSearch_m_v3.yml
 
