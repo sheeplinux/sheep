@@ -682,7 +682,7 @@ rootfs_bootloader_configuration() {
 		default=0
 		timeout=5
 
-		menuentry 'Linux' {
+		menuentry '${OS_NAME}' {
 			insmod gzio
 			search --label ${ROOTFS_LABEL} --set
 			linux  ${kernel} root=LABEL=${ROOTFS_LABEL} ro ${KERNEL_PARAMETER}
