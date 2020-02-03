@@ -13,12 +13,10 @@ linux:
 
 network:
   interface: ens1
-  ipAdr_serverPxe: 17.18.99.1
 
 pxePilot:
   enable: true
-  url: http://17.18.99.1
-  port: 3478
+  url: http://17.18.99.1:3478
   config_after_reboot: local
 
 sheep:

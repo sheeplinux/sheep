@@ -1,10 +1,7 @@
 bootloader:
-  mode:
+  mode: uefi
   image: http://172.19.118.1/qcow2/os-deploy-bootloader.tar.gz
   kernel_parameter:
-    console:
-      serial:
-      baudRate:
 
 linux:
   image: http://172.19.118.1/squashfs/disco.squashfs
@@ -14,10 +11,8 @@ linux:
 
 network:
   interface: ens1
-  ipAdr_serverPxe: 172.19.118.1
 
 pxePilot:
-  enable:
-  url:
-  port:
+  enable: true
+  url: http://172.19.118.1:3478
   config_after_reboot:
