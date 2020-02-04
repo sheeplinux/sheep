@@ -1,11 +1,9 @@
 bootloader:
-  mode: legacy
-  image: http://17.18.99.1/grub.tar.gz
   kernel_parameter: "console=ttyS1,115200n8"
 
 linux:
   image: http://17.18.99.1/debian-9.11.2-20190926-openstack-amd64.qcow2
-  label: Debian_9
+  label: Debian 9
   device: /dev/sda
   rootfsType: ext4
   rootfsLabel: debian9-fs

@@ -1,5 +1,4 @@
 bootloader:
-  mode: uefi
   image: http://172.19.118.1/qcow2/os-deploy-bootloader.tar.gz
   kernel_parameter: "console=ttyS1,57600n8"
 

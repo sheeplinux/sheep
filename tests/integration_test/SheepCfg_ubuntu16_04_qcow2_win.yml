@@ -1,11 +1,9 @@
 bootloader:
-  mode: legacy
-  image: http://17.18.99.1/grub.tar.gz
   kernel_parameter: "console=ttyS4,115200n8"
 
 linux:
   image: http://17.18.99.1/xenial-server-cloudimg-amd64-disk1.img
-  label: ubuntu_16_09
+  label: Ubuntu 16.04 LTS
   device: /dev/sda
   rootfsType: ext4
   rootfsLabel: Ubuntu-fs

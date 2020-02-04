@@ -229,9 +229,6 @@ config_variable() {
 	if [ ${ret} -ne 0 ]; then
 		exit ${ret}
 	fi
-<<<<<<< HEAD
-	BOOT_MODE=$(search_value ".bootloader.mode" "uefi")
-=======
 	BOOT_MODE=$([ -d /sys/firmware/efi ] && echo uefi || echo legacy)
 	if [ "${BOOT_MODE}" == "legacy" ]; then
 		CODE_PARTITIONNING_BOOT=ef02
@@ -246,12 +243,7 @@ config_variable() {
 		BOOT_PARTITION_SIZE=500M
 	else
 		exit_on_error "Boot mode '${BOOT_MODE}' is not supported"
-		local ret=$?
-		if [ ${ret} -ne 0 ]; then
-			exit ${ret}
-		fi
 	fi
->>>>>>> faad6d4...  pxe encore
 	PXE_PILOT_ENABLED=$(search_value ".pxePilot.enable" "false")
 	if [ "${PXE_PILOT_ENABLED}" == "true" ]; then
 		PXE_PILOT_BASEURL="$(search_mandatory_value .pxePilot.url \"'.pxePilot.url' parameter must be provided\")"
@@ -266,11 +258,6 @@ config_variable() {
 	if [ ${ret} -ne 0 ]; then
 		exit ${ret}
 	fi
-	EFI_ARCHIVE_URL=$(search_mandatory_value .bootloader.image "'.bootloader.image' parameter must be provided")
-	local ret=$?
-	if [ ${ret} -ne 0 ]; then
-		exit ${ret}
-	fi
 	EFI_ENTRY_LABEL="${OS_NAME}"
 	BLOCK_DEVICE=$(search_value ".linux.device" $(ls /dev/[hs]d[a-z] | head -1))
 	EFI_PARTITION="${BLOCK_DEVICE}1"
@@ -281,19 +268,6 @@ config_variable() {
 	ROOTFS_LABEL=$(search_value ".linux.rootfsLabel" "rootfs")
 	check_filesystem_label ${ROOTFS_LABEL}
 	ROOTFS_TYPE=$(search_value ".linux.rootfsType" "ext4")
-	if [ "${BOOT_MODE}" == "legacy" ]; then
-		CODE_PARTITIONNING_BOOT=ef02
-		BOOT_PARTITION_SIZE=2M
-	elif [ "${BOOT_MODE}" == "uefi" ]; then
-		CODE_PARTITIONNING_BOOT=ef00
-		BOOT_PARTITION_SIZE=500M
-	else
-		exit_on_error "Boot mode '${BOOT_MODE}' is not supported"
-	fi
-	local ret=$?
-	if [ ${ret} -ne 0 ]; then
-		exit ${ret}
-	fi
 	REBOOT_WHEN_DONE=$(search_value ".sheep.reboot" "true")
 }
 

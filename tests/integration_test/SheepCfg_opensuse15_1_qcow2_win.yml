@@ -1,11 +1,9 @@
 bootloader:
-  mode: legacy
-  image: http://17.18.99.1/grub.tar.gz
   kernel_parameter: "console=ttyS4,115200n8"
 
 linux:
   image: http://17.18.99.1/openSUSE-Leap-15.1-OpenStack.x86_64.qcow2
-  label: openSUSE_15_1
+  label: OpenSUSE 15.1
   device: /dev/sda
   rootfsType: btrfs
   rootfsLabel: openSUSE-fs
