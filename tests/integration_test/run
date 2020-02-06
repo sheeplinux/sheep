@@ -22,10 +22,10 @@ get_ip_from_mac() {
 # $1 - MAC address
 #
 delete_arp_entry() {
-	ip_to_delete=$(get_ip_from_mac $1)
-	if [ -n "${ip_to_delete}" ]; then
-		sudo arp -d ${ip_to_delete}
-	fi
+	while read ip; do
+		log "Deleting ARP entry for IP address '${ip}'"
+		sudo arp -d ${ip}
+	done < <(get_ip_from_mac ${1})
 }
 
 #
