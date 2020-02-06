@@ -1,26 +1,25 @@
 bootloader:
-  mode: uefi
   image: http://172.19.118.1/qcow2/os-deploy-bootloader.tar.gz
   kernel_parameter: "console=ttyS1,57600n8"
 
 linux:
-  image: http://172.19.118.1/squashfs/disco.squashfs
-  label: ubuntu-19.10
+  image: https://cloud-images.ubuntu.com/xenial/current/xenial-server-cloudimg-amd64-disk1.img
+  label: ubuntu_16_09
   device: /dev/sda
+  rootfsType: ext4
+  rootfsLabel: cloudimg-rootfs
   selinux: disable
   blacklist_module:
     - mei
     - mei_me
 
 network:
-  interface: ens1
-  ipAdr_serverPxe: 172.19.118.1
+  interface: ens9
 
 pxePilot:
   enable: true
-  url: http://172.19.118.1
-  port: 3478
+  url: http://172.19.118.1:3478
   config_after_reboot: local
 
 sheep:
-  reboot: true
+  reboot: false

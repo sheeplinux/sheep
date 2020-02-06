@@ -1,22 +1,21 @@
 bootloader:
-  mode: uefi
   image: http://17.18.99.1/grub.tar.gz
   kernel_parameter: "console=ttyS1,57600n8"
 
 linux:
   image: http://17.18.99.1/debian-9.11.2-20190926-openstack-amd64.qcow2
-  label: Debian_9
+  label: Debian 9
   device: /dev/sda
+  rootfsType: ext4
+  rootfsLabel: debian9-fs
   selinux: disable
 
 network:
   interface: ens1
-  ipAdr_serverPxe: 17.18.99.1
 
 pxePilot:
   enable: true
-  url: http://17.18.99.1
-  port: 3478
+  url: http://17.18.99.1:3478
   config_after_reboot: local
 
 sheep:

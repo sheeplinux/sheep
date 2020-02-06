@@ -1,23 +1,17 @@
 bootloader:
-  mode:
-  image: http://172.19.118.1/qcow2/os-deploy-bootloader.tar.gz
-  kernel_parameter:
-    console:
-      serial:
-      baudRate:
+  image: http://172.19.118.1/rootfs.qcow2
+  kernel_parameter: "console=ttyS1,57600n8"
 
 linux:
-  image:
+  image: http://172.19.118.1/rootfs.qcow2
   label:
   device:
   selinux:
 
 network:
-  interface: ens1
-  ipAdr_serverPxe:
+  interface:
 
 pxePilot:
-  enable:
+  enable: false
   url:
-  port:
   config_after_reboot:

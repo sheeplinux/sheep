@@ -2,7 +2,7 @@
 
 load test_helper
 
-@test "config_variable with ipAdr given, pxePilotCfg given & pxePilotEnabled true" {
+@test "config_variable with .network.interface, .bootloader.mode, .linux.image, .bootloader.image and .pxePilot.enable=false" {
     source ${BATS_TEST_DIRNAME}/../../sheep
 
     export CONFIG_FILE=${BATS_TEST_DIRNAME}/sheepCfgConfigVariable1.yml
@@ -11,7 +11,7 @@ load test_helper
     [ "${status}" -eq 0 ]
 }
 
-@test "config_variable with ipAdr & efiRootfs & linuxRootfs & pxePilotCfg given, and pxePilot not given, so pxe-pilot must be disable by default" {
+@test "config_variable with .network.interface, .bootloader.mode, .linux.image, .bootloader.image ,.pxePilot.url given and .pxePilot.enable=true" {
     source ${BATS_TEST_DIRNAME}/../../sheep
  
     export CONFIG_FILE=${BATS_TEST_DIRNAME}/sheepCfgConfigVariable2.yml
@@ -21,26 +21,16 @@ load test_helper
 
 }
 
-
-@test "config_variable with no ipAdr , and pxePilotEnabled is true, efiRootfs & linuxRootfs given" {
+@test "config_variable with .pxePilot.url not given and .pxePilot.enable=true" {
     source ${BATS_TEST_DIRNAME}/../../sheep
 
     export CONFIG_FILE=${BATS_TEST_DIRNAME}/sheepCfgConfigVariable3.yml
-                         
+
     run config_variable
     [ "${status}" -eq 1 ]
 }
 
-@test "config_variable with no ip Adr and pxePilotEnabled false and efiRootfs & linuxRootfs given" {
-    source ${BATS_TEST_DIRNAME}/../../sheep
-
-    export CONFIG_FILE=${BATS_TEST_DIRNAME}/sheepCfgConfigVariable4.yml
-
-    run config_variable
-    [ "${status}" -eq 0 ]
-}
-
-@test "config_variable with ipAdr but  no intName" {
+@test "config_variable with all mandatory parameter given except .linux.image" {
     source ${BATS_TEST_DIRNAME}/../../sheep
 
     export CONFIG_FILE=${BATS_TEST_DIRNAME}/sheepCfgConfigVariable5.yml
@@ -49,29 +39,11 @@ load test_helper
     [ "${status}" -eq 1 ]
 }
 
-@test "config_variable with no ipAdr,  but no linuxRootfs , but efiRootfs given and intName too" {
+@test "config_variable with all mandatory parameter given except .network.interface" {
     source ${BATS_TEST_DIRNAME}/../../sheep
 
     export CONFIG_FILE=${BATS_TEST_DIRNAME}/sheepCfgConfigVariable6.yml
 
     run config_variable
     [ "${status}" -eq 1 ]
-}
-
-@test "config_variable with no ipAdr,  but no efiRootfs , but linuxRootfs given and intName too" {
-    source ${BATS_TEST_DIRNAME}/../../sheep
-
-    export CONFIG_FILE=${BATS_TEST_DIRNAME}/sheepCfgConfigVariable7.yml    
-
-    run config_variable
-    [ "${status}" -eq 1 ]
-}
-
-@test "config_variable with minimal configuration to work : ipAdr and intName given" {
-    source ${BATS_TEST_DIRNAME}/../../sheep
-
-    export CONFIG_FILE=${BATS_TEST_DIRNAME}/sheepCfgConfigVariable8.yml
-
-    run config_variable
-    [ "${status}" -eq 0 ]
 }
