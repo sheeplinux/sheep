@@ -1,8 +1,5 @@
 image: sesame-ubuntu-14.04:1.11
 
-variables:
-  SHEEP_CI_RUNNER_IP: '17.18.99.1'
-
 stages:
   - test-unit
   - code-style
