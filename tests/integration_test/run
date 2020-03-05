@@ -189,7 +189,11 @@ deploy_boot_config() {
 	sudo rm -f /var/www/html/sheep/${CONFIG_NAME} /var/tftp/pxelinux.cfg/conf/${CONFIG_NAME} /var/www/html/sheep/${CONFIG_NAME}.yml
 	sudo cp ${SHEEP_SCRIPT_SOURCE} /var/www/html/sheep/${CONFIG_NAME}
 	sudo cp ${WORKDIR}/netboot /var/tftp/pxelinux.cfg/conf/${CONFIG_NAME}
-	sudo cp ${SHEEP_CONFIG_SOURCE} /var/www/html/sheep/${CONFIG_NAME}.yml
+
+	local tmp_config=$(mktemp)
+	chmod +r ${tmp_config}
+	sed "s/@@SHEEP_CI_RUNNER_IP@@/${SHEEP_CI_RUNNER_IP}/g" ${SHEEP_CONFIG_SOURCE} > ${tmp_config}
+	sudo cp ${tmp_config} /var/www/html/sheep/${CONFIG_NAME}.yml
 
 	log "Set PXE Pilot configuration '${CONFIG_NAME}' for machine '${DUT_NAME}'"
 	pxe-pilot config deploy ${CONFIG_NAME} ${DUT_NAME} > /dev/null 2>&1
