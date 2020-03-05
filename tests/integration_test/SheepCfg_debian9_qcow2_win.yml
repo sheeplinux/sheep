@@ -2,7 +2,7 @@ bootloader:
   kernel_parameter: "console=ttyS1,115200n8"
 
 linux:
-  image: http://17.18.99.1/debian-9.11.2-20190926-openstack-amd64.qcow2
+  image: http://@@SHEEP_CI_RUNNER_IP@@/debian-9.11.2-20190926-openstack-amd64.qcow2
   label: Debian 9
   device: /dev/sda
   rootfsType: ext4
@@ -17,7 +17,7 @@ network:
 
 pxePilot:
   enable: true
-  url: http://17.18.99.1:3478
+  url: http://@@SHEEP_CI_RUNNER_IP@@:3478
   config_after_reboot: local
 
 sheep:
