@@ -1,0 +1,16 @@
+site_name: Sheep
+site_author: Guillaume Giamarchi, Mathilde Hermet
+theme: readthedocs
+
+nav:
+  - Home: index.md
+  - Quickstart: quickstart.md
+  - Configuration:
+    - Sheep reference configuration: config.md
+    - Using Cloud-Init: cloud-init.md
+  - Bootloader: bootloader.md
+  - Internals: internals.md
+  - pxe-pilot.md
+
+markdown_extensions:
+  - admonition
