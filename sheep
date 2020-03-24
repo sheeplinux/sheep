@@ -229,6 +229,12 @@ config_variable() {
 	if [ ${ret} -ne 0 ]; then
 		exit ${ret}
 	fi
+	CLOUD_INIT_ENABLED=$(search_value ".cloudInit.enable" "false")
+	BLOCK_DEVICE=$(search_value ".linux.device" $(ls /dev/[hs]d[a-z] | head -1))
+	EFI_PARTITION="${BLOCK_DEVICE}1"
+	CIDATA_PARTITION="${BLOCK_DEVICE}2"
+	CIDATA_PARTITION_SIZE=100M
+	LINUX_PARTITION="${BLOCK_DEVICE}3"
 	BOOT_MODE=$([ -d /sys/firmware/efi ] && echo uefi || echo legacy)
 	if [ "${BOOT_MODE}" == "legacy" ]; then
 		CODE_PARTITIONNING_BOOT=ef02
@@ -259,9 +265,6 @@ config_variable() {
 		exit ${ret}
 	fi
 	EFI_ENTRY_LABEL="${OS_NAME}"
-	BLOCK_DEVICE=$(search_value ".linux.device" $(ls /dev/[hs]d[a-z] | head -1))
-	EFI_PARTITION="${BLOCK_DEVICE}1"
-	LINUX_PARTITION="${BLOCK_DEVICE}2"
 	CODE_PARTITIONNING=8300
 	KERNEL_PARAMETER=$(search_value ".bootloader.kernel_parameter")
 	SELINUX=$(search_value ".linux.selinux" "disable")
@@ -302,6 +305,7 @@ system_partitionning() {
 	echo ' '
 	echo 'Partitioning'
 	echo ' '
+
 	gdisk ${BLOCK_DEVICE} <<- EOF
 		o
 		Y
@@ -310,11 +314,17 @@ system_partitionning() {
 
 		+${BOOT_PARTITION_SIZE}
 		${CODE_PARTITIONNING_BOOT}
+		yes
 		n
 		2
 
+		+${CIDATA_PARTITION_SIZE}
+		${CODE_PARTITIONNING}
+		n
+		3
 
-		${CODE_PARTITIONNING_FS}
+
+		${CODE_PARTITIONNING}
 		wq
 		yes
 	EOF
@@ -327,6 +337,8 @@ partitions_formating() {
 		mkfs.fat -F 32 -n EFI ${EFI_PARTITION}
 	fi
 
+	mkfs.fat -F 32 -n cidata ${CIDATA_PARTITION}
+
 	if [ "${ROOTFS_TYPE}" == "ext4" ]; then
 		mkfs.ext4 -q -L ${ROOTFS_LABEL} ${LINUX_PARTITION} <<- EOF
 			y
@@ -336,6 +348,19 @@ partitions_formating() {
 	else
 		exit_on_error "Filesystem type '${FILE_SYSTEM_TYPE}' unknown or not supported"
 	fi
+}
+
+#
+# This function check whether a string value
+# reprensents a `true` boolean value or not
+#
+# $1 - string value representing a boolean
+#
+isTrue() {
+	if [ "${1,,}" = 'true' ]; then
+		return 0
+	fi
+	return 1
 }
 
 #
@@ -356,6 +381,9 @@ partitions_mounting() {
 		mkdir -p ${rootfs}/boot/efi
 		mount ${EFI_PARTITION} ${rootfs}/boot/efi
 	fi
+	mkdir -p ${cloudfs}
+	rm -rf ${cloudfs}/*
+	mount ${CIDATA_PARTITION} ${cloudfs}
 }
 
 #
@@ -469,59 +497,6 @@ efi_entry_cleanup() {
 	done
 }
 
-#
-# Exec a command in the chroot context
-#
-# $@ - command to execute
-#
-chroot_exec() {
-	log_debug "-> ${FUNCNAME[0]} $*"
-
-	LANG=C chroot ${rootfs} $@
-}
-
-#
-# Prepare chroot environement
-#
-# Copy the resolv.conf file of the live OS of grml live session to having DNS service
-# As it, allow command with apt install in this chroot environment
-#
-prepare_chroot() {
-	log_debug "-> ${FUNCNAME[0]} $*"
-
-	mkdir -p ${rootfs}/proc
-	mkdir -p ${rootfs}/sys
-	mkdir -p ${rootfs}/dev
-	mkdir -p ${rootfs}/dev/pts
-
-	mount -t proc none ${rootfs}/proc
-	mount -t sysfs none ${rootfs}/sys
-	mount -o bind /dev ${rootfs}/dev
-	mount -o bind /dev/pts ${rootfs}/dev/pts
-
-	rm -f ${rootfs}/etc/resolv.conf
-	cp /etc/resolv.conf ${rootfs}/etc/
-}
-
-# Create linux user and his directory, add it to the sudoers.
-# /!\ Configure the /mnt/rootfs/etc/sudoers.d/linux as sudoer password not requested /!\
-# Configure ssh
-create_user() {
-	log_debug "-> ${FUNCNAME[0]} $*"
-
-	chroot_exec useradd --shell /bin/bash -m -d /home/linux linux
-	echo "linux ALL=(ALL:ALL) NOPASSWD: ALL" > ${rootfs}/etc/sudoers.d/linux
-	echo -e 'linux\nlinux' | chroot_exec passwd linux
-
-	# FIXME : Hardcode my SSH key for test purpose because
-	# password authentication is disabled in Ubuntu 18.04 image
-	#TODO :put it in parameter
-	mkdir -p ${rootfs}/home/linux/.ssh/
-	echo 'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDdXnRJVWf7OvFa0UZPkvDBave2BWhr29HFlO/bI/98rmPc0zn24a8Wplo/Sts4SrL3xZNATH5tWwNpPulBThPqnjdMU4Rw2Jf/mjlQXiT7+w3w60/HrMd62J/d/dyYrIuvuog3OAEi1vsiKCRm/9ptpbNA4E34ZUBSOpT3bx0b4NszYB2g7VdcmgHHXSY16AVCv3I3ZN0UmWphw1hpjpxfHTinE2pR5L0HVMikxqaxjCZI7DSpi8f4gQJn7gjLTh905o751Z3s7Y4L/v9NTEXmCPF425krwxDD4EMSMJ6BXgAExvPolWV0/W9HUtKX7XtEJUKWLUlikb7qTRWR1sld ubuntu@dev-01' > ${rootfs}/home/linux/.ssh/authorized_keys
-	chroot_exec chown -R linux: /home/linux/.ssh
-
-}
-
 configure_fstab() {
 	log_debug "-> ${FUNCNAME[0]} $*"
 
@@ -534,16 +509,113 @@ configure_fstab() {
 			LABEL=EFI             /boot/efi               vfat     defaults        0 0
 		EOF
 	fi
+	cat <<- EOF >> ${rootfs}/etc/fstab
+		LABEL=cidata                           vfat     defaults        0 0
+	EOF
 }
 
-remove_cloudinit() {
+config_metadata_ci_disable() {
 	log_debug "-> ${FUNCNAME[0]} $*"
 
-	if [ -d ${rootfs}/etc/yum ]; then
-		chroot_exec yum -y erase cloud-init
-	elif [ -d ${rootfs}/etc/apt ]; then
-		chroot_exec apt-get -y purge cloud-init
-		chroot_exec dpkg-reconfigure openssh-server
+	local instanceId=$(search_value ".cloudInit.instance_id")
+	local localHostname=$(search_value ".environment.local_hostname")
+	local networkProtocol=$(search_value ".network.mode" "dhcp")
+
+	cat <<- EOF > ${cloudfs}/meta-data
+		instance-id: ${instanceId}
+		local-hostname: ${localHostname}
+		network:
+		  version: 2
+		  ethernets:
+		    ${PUBLIC_IFACE_NAME}:
+	EOF
+	if [ ${networkProtocol} == "dhcp" ]; then
+		cat <<- EOF >> ${cloudfs}/meta-data
+			      dhcp4: true
+		EOF
+	elif [ ${networkProtocol} == "static" ]; then
+		local address=$(search_value ".network.adress")
+		local gateway=$(search_value ".network.gateway")
+		cat <<- EOF >> ${cloudfs}/meta-data
+			      adresses:
+			        - ${address}
+			      gateway4: ${gateway}
+		EOF
+	fi
+}
+
+config_userdata_ci_disable() {
+	log_debug "-> ${FUNCNAME[0]} $*"
+
+	local c=0
+	local user=$(yq -r .environment.users[$c] ${CONFIG_FILE})
+	local name=$(search_value ".environment.users[$c].name")
+	local sudoer=$(search_value ".environment.users[$c].sudoer")
+	local ssh=$(search_value ".environment.users[$c].ssh_authorized_key")
+
+	cat <<- EOF > ${cloudfs}/user-data
+		#cloud-config
+		users:
+	EOF
+	while [ "${user}" != "null" ]; do
+		name=$(search_value ".environment.users[$c].name")
+		sudoer=$(search_value ".environment.users[$c].sudoer")
+		ssh=$(search_value ".environment.users[$c].ssh_authorized_key")
+		cat <<- EOF >> ${cloudfs}/user-data
+			  - name: ${name}
+			    lock_passwd: false
+		EOF
+		echo "    ssh_authorized_keys: ${ssh}" >> ${cloudfs}/user-data
+		if [ ${sudoer} == "true" ]; then
+			echo "    sudo: ALL=(ALL) NOPASSWD:ALL" >> ${cloudfs}/user-data
+		fi
+		c=$(($c + 1))
+		user=$(yq -r .environment.users[$c] ${CONFIG_FILE})
+	done
+	cat <<- EOF >> ${cloudfs}/user-data
+		chpasswd:
+		  expire: false
+		  list : |
+	EOF
+	N=$(($c - 1))
+	for i in $(seq 0 $N); do
+		local name=$(search_value ".environment.users[$i].name")
+		local password=$(search_value ".environment.users[$i].password")
+		echo "    ${name}:${password}" >> ${cloudfs}/user-data
+	done
+	cat <<- EOF >> ${cloudfs}/user-data
+		ssh_pwauth: true
+	EOF
+}
+
+config_metadata_ci_enable() {
+	log_debug "-> ${FUNCNAME[0]} $*"
+
+	head -$(grep -n "userData:" ${CONFIG_FILE} | cut -d ':' -f 1) ${CONFIG_FILE} | tail -$(($(head -$(grep -n "userData:" ${CONFIG_FILE} | cut -d ':' -f 1) ${CONFIG_FILE} | wc -l) - $(grep -n "metaData:" ${CONFIG_FILE} | cut -d ':' -f 1))) | grep -v "userData" | sed -e "s/^    //g" >> ${cloudfs}/meta-data
+}
+
+config_userdata_ci_enable() {
+	log_debug "-> ${FUNCNAME[0]} $*"
+
+	echo "#cloud-config" > ${cloudfs}/user-data
+	head -$(($(grep -n ^"sheep" ${CONFIG_FILE} | cut -d ':' -f 1) - 2)) ${CONFIG_FILE} | tail -$(($(($(grep -n ^"sheep" ${CONFIG_FILE} | cut -d ':' -f 1) - 2)) - $(grep -n userData ${CONFIG_FILE} | cut -d ':' -f 1))) | sed -e "s/^    //g" >> ${cloudfs}/user-data
+}
+
+configure_environment() {
+	log_debug "-> ${FUNCNAME[0]} $*"
+
+	if isTrue "${CLOUD_INIT_ENABLED}"; then
+		log " cloud-init config | Configure meta-data file"
+		config_metadata_ci_enable
+
+		log " cloud-init config | Configure user-data file"
+		config_userdata_ci_enable
+	else
+		log " cloud-init config | Configure meta-data file"
+		config_metadata_ci_disable
+
+		log " cloud-init config | Configure user-data file"
+		config_userdata_ci_disable
 	fi
 }
 
@@ -559,77 +631,20 @@ blacklist_module() {
 	done
 }
 
-configure_networking() {
-	log_debug "-> ${FUNCNAME[0]} $*"
-
-	if [ -d ${rootfs}/etc/netplan ]; then
-		log "Configuring Linux | Configure network interface | Netplan configuration detected"
-		cat <<- EOF > ${rootfs}/etc/netplan/network.yaml
-			network:
-			  version: 2
-			  ethernets:
-			    ${PUBLIC_IFACE_NAME}:
-			      dhcp4: true
-			      dhcp6: false
-		EOF
-	elif [ -e ${rootfs}/etc/network/interfaces ]; then
-		log "Configuring Linux | Configure network interface | /etc/network/interfaces configuration detected"
-		cat <<- EOF > ${rootfs}/etc/network/interfaces
-			auto lo
-			iface lo inet loopback
-
-			auto ${PUBLIC_IFACE_NAME}
-			iface ${PUBLIC_IFACE_NAME} inet dhcp
-		EOF
-	elif [ -d ${rootfs}/etc/sysconfig/network-scripts ]; then
-		log "Configuring Linux | Configure network interface | SysConfig configuration detected"
-		cat <<- EOF > ${rootfs}/etc/sysconfig/network-scripts/ifcfg-${PUBLIC_IFACE_NAME}
-			DEVICE="${PUBLIC_IFACE_NAME}"
-			BOOTPROTO="dhcp"
-			ONBOOT="yes"
-			TYPE="Ethernet"
-			USERCTL="yes"
-			PEERDNS="yes"
-			IPV6INIT="no"
-			PERSISTENT_DHCLIENT="1"
-		EOF
-	else
-		log_warning "Configuring Linux | Configure network interface | No configuration detected"
-	fi
-}
-
-cleanup_rootfs() {
-	log_debug "-> ${FUNCNAME[0]} $*"
-
-	rm -f ${rootfs}/etc/resolv.conf
-}
-
 linux_rootfs_configuration() {
 	log_debug "-> ${FUNCNAME[0]} $*"
-
-	log "Configuring Linux | Prepare chroot environment"
-	prepare_chroot
 
 	log "Configuring Linux | Configure partitions mount in /etc/fstab"
 	configure_fstab
 
-	log "Configuring Linux | Create a sudoer user"
-	create_user
-
 	log "Configuring Linux | Configure GRUB bootloader"
 	rootfs_bootloader_configuration
 
-	log "Configuring Linux | Remove cloud-init if present"
-	remove_cloudinit
+	log "Configuring Linux | Configure Cloud-init"
+	configure_environment
 
 	log "Configuring Linux | Blacklist modules"
 	blacklist_module
-
-	log "Configuring Linux | Configure network interface"
-	configure_networking
-
-	log "Configuring Linux | Cleanup the root filesystem"
-	cleanup_rootfs
 }
 
 #
@@ -677,7 +692,7 @@ rootfs_bootloader_configuration() {
 		menuentry '${OS_NAME}' {
 			insmod gzio
 			search --label ${ROOTFS_LABEL} --set
-			linux  ${kernel} root=LABEL=${ROOTFS_LABEL} ro ${KERNEL_PARAMETER}
+			linux  ${kernel} root=LABEL=${ROOTFS_LABEL} ro ${KERNEL_PARAMETER} ds=nocloud
 			initrd ${initrd}
 		}
 	EOF
@@ -711,6 +726,7 @@ partitions_unmounting() {
 
 	cd /
 	umount -R ${rootfs}
+	umount ${cloudfs}
 }
 
 notify_pxepilot_and_reboot() {
@@ -735,6 +751,7 @@ main() {
 	log "Starting installation process"
 
 	rootfs=/mnt/rootfs
+	cloudfs=/mnt/cloudfs
 
 	log "Preparing tools required for installation"
 	prepare_env
