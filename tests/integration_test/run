@@ -192,7 +192,9 @@ deploy_boot_config() {
 
 	local tmp_config=$(mktemp)
 	chmod +r ${tmp_config}
-	sed "s/@@SHEEP_CI_RUNNER_IP@@/${SHEEP_CI_RUNNER_IP}/g" ${SHEEP_CONFIG_SOURCE} > ${tmp_config}
+
+	sed "s#@@SHEEP_CI_RUNNER_IP@@#${SHEEP_CI_RUNNER_IP}#g" ${SHEEP_CONFIG_SOURCE} | sed "s#@@SHEEP_CI_SSH_PUB_KEY@@#$(cat ${HOME}/.ssh/id_rsa.pub)#g" > ${tmp_config}
+
 	sudo cp ${tmp_config} /var/www/html/sheep/${CONFIG_NAME}.yml
 
 	log "Set PXE Pilot configuration '${CONFIG_NAME}' for machine '${DUT_NAME}'"
