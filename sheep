@@ -552,6 +552,7 @@ config_userdata_ci_disable() {
 	local name=$(search_value ".environment.users[$c].name")
 	local sudoer=$(search_value ".environment.users[$c].sudoer")
 	local ssh=$(search_value ".environment.users[$c].ssh_authorized_key")
+	local shell=$(search_value ".environment.users[$c].shell")
 
 	cat <<- EOF > ${cloudfs}/user-data
 		#cloud-config
@@ -561,6 +562,7 @@ config_userdata_ci_disable() {
 		name=$(search_value ".environment.users[$c].name")
 		sudoer=$(search_value ".environment.users[$c].sudoer")
 		ssh=$(search_value ".environment.users[$c].ssh_authorized_key")
+		shell=$(search_value ".environment.users[$c].shell")
 		cat <<- EOF >> ${cloudfs}/user-data
 			  - name: ${name}
 			    lock_passwd: false
@@ -568,6 +570,9 @@ config_userdata_ci_disable() {
 		echo "    ssh_authorized_keys: ${ssh}" >> ${cloudfs}/user-data
 		if [ ${sudoer} == "true" ]; then
 			echo "    sudo: ALL=(ALL) NOPASSWD:ALL" >> ${cloudfs}/user-data
+		fi
+		if [ "${shell}" != "null" ]; then
+			echo "    shell: ${shell}" >> ${cloudfs}/user-data
 		fi
 		c=$(($c + 1))
 		user=$(yq -r .environment.users[$c] ${CONFIG_FILE})

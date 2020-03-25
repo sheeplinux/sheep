@@ -30,7 +30,8 @@ environment:
     - name: linux
       sudoer: true
       password: linux
-      ssh_authorized_key:
+      ssh_authorized_key: ssh-rsa iijijijj user@user
+      shell: bash
   local_hostname: sheep
 
 package:
