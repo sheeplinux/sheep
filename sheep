@@ -177,7 +177,7 @@ search_mandatory_value() {
 }
 
 #
-# This function prepare the environment by downloading tools required by the code for installation, parser yaml for variables implementation
+# This function prepare the environment by downloading tools required by the yaml parser for variables implementation
 #
 prepare_env() {
 	log_debug "-> ${FUNCNAME[0]} $*"
@@ -185,24 +185,36 @@ prepare_env() {
 	### Workaround for Debian repos issue when runnning GRML
 	###     E: The repository 'http://security.debian.org testing/updates Release' does not have a Release file.
 	### We don't need this package repository so we delete it
-	cat <<- 'EOF' > /etc/apt/sources.list.d/debian.list
-		deb     http://snapshot.debian.org/archive/debian/20181230/ testing main contrib non-free
-		deb-src http://snapshot.debian.org/archive/debian/20181230/ testing main contrib non-free
-	EOF
+	# This line is required only if the version of grml isn't the sheep-live one
+	if [ $(cat /etc/grml_version | grep "^grml64-full 2018.12") -lt 1 ]; then
+		cat <<- 'EOF' > /etc/apt/sources.list.d/debian.list
+			deb     http://snapshot.debian.org/archive/debian/20181230/ testing main contrib non-free
+			deb-src http://snapshot.debian.org/archive/debian/20181230/ testing main contrib non-free
+		EOF
+	fi
 
-	# Downloading of paquet needed to parse YAML configuration file
-	apt update
-	log_debug "apt-update return : $?"
-	apt install -y python-pip
-	log_debug "apt install python-pip return : $?"
-	apt install -y python-setuptools
-	log_debug "apt install python-setuptools return : $?"
-	pip install wheel
-	log_debug "apt install wheel return : $?"
-	apt install -y jq
-	log_debug "apt install jq return : $?"
-	pip install yq
-	log_debug "apt install yq return : $?"
+	# Downloading of packet needed to parse YAML configuration file
+	if command_exists yq; then
+		log_debug "The parser is already installed"
+	else
+		if command_exists apt; then
+			apt update
+			log_debug "apt-update return : $?"
+			apt install -y python-pip
+			log_debug "apt install python-pip return : $?"
+			apt install -y python-setuptools
+			log_debug "apt install python-setuptools return : $?"
+			pip install wheel
+			log_debug "apt install wheel return : $?"
+			apt install -y jq
+			log_debug "apt install jq return : $?"
+			pip install yq
+			log_debug "apt install yq return : $?"
+		else
+			exit_on_error "Neither yq nor apt available on this live distribution"
+		fi
+	fi
+
 }
 
 load_config() {
@@ -272,6 +284,31 @@ config_variable() {
 	check_filesystem_label ${ROOTFS_LABEL}
 	ROOTFS_TYPE=$(search_value ".linux.rootfsType" "ext4")
 	REBOOT_WHEN_DONE=$(search_value ".sheep.reboot" "true")
+}
+
+#
+# Download tools to install and set the OS
+#
+download_tools() {
+	log_debug "-> ${FUNCNAME[0]} $*"
+
+	if command_exists guestmount; then
+		log_debug "guestmount is already installed"
+	else
+		if command_exists apt; then
+			DEBIAN_FRONTEND=noninteractive apt install -y libguestfs-tools
+			log_debug "apt install -y libguestfs-tools return : $?"
+		else
+			exit_on_error "Neither apt nor guestmount available on the live distribution "
+		fi
+	fi
+}
+
+#
+# Check if the command exists
+#
+command_exists() {
+	command -v "$@" > /dev/null 2>&1
 }
 
 #
@@ -440,8 +477,6 @@ squashfs_installation() {
 
 qcow2_installation() {
 	log_debug "-> ${FUNCNAME[0]} $*"
-
-	DEBIAN_FRONTEND=noninteractive apt install -y libguestfs-tools
 
 	guestmount -a ${linux_image} -m /dev/sda1 ${linux_image_dir}
 
@@ -766,6 +801,9 @@ main() {
 
 	log "Reading input configuration"
 	config_variable
+
+	log "Downloading tools required by OS installtion"
+	download_tools
 
 	log "Cleaning local boot EFI entries from the EFI Boot Manager"
 	if [ "${BOOT_MODE}" == "uefi" ]; then
