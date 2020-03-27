@@ -65,3 +65,23 @@ load test_helper
     [ "${status}" -eq 0 ]
     [ "${output}" = "defaultForParam4" ]
 }
+
+@test "search_value with not existing param and no default value and optionyamlValue" {
+    source ${BATS_TEST_DIRNAME}/../../sheep
+
+    export CONFIG_FILE=${BATS_TEST_DIRNAME}/sheepCfgTestSearch_m_v4.yml
+
+    run search_value ".cloudInit.userData" "" "yaml"
+    [ "${status}" -eq 0 ]
+    [ "${output}" = "users:
+  - name: linux
+    lock_passwd: false
+    ssh_authorized_keys: ssh-rsa ojoihdahioahdjnfnainfioajefijaeoifhaoiehfioah apkpẑakdkzepojfijzeifjiozefiozejiofhozehfoheofheaoha
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    shell: /bin/bash
+chpasswd:
+  expire: false
+  list: |
+    linux:linux
+ssh_pwauth: true" ]
+}

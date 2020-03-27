@@ -1,0 +1,22 @@
+cloudInit:
+  enable: true
+  metaData:
+    instance-id: 001-local01
+    local-hostname: sheep
+    network:
+      version: 2
+      ethernets:
+        ens1:
+          dhcp4: true
+  userData:
+    users:
+      - name: linux
+        lock_passwd: false
+        ssh_authorized_keys: ssh-rsa ojoihdahioahdjnfnainfioajefijaeoifhaoiehfioah apkpẑakdkzepojfijzeifjiozefiozejiofhozehfoheofheaoha
+        sudo: ALL=(ALL) NOPASSWD:ALL
+        shell: /bin/bash
+    chpasswd:
+      expire: false
+      list: |
+        linux:linux
+    ssh_pwauth: true
