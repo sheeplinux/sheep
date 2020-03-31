@@ -34,6 +34,7 @@ cloudInit:
         lock_passwd: false
         ssh_authorized_keys: @@SHEEP_CI_SSH_PUB_KEY@@
         sudo: ALL=(ALL) NOPASSWD:ALL
+        shell: /bin/bash
     chpasswd:
       expire: false
       list: |

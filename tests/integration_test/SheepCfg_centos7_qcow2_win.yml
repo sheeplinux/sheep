@@ -27,6 +27,7 @@ environment:
       sudoer: true
       password: linux
       ssh_authorized_key: @@SHEEP_CI_SSH_PUB_KEY@@
+      shell: /bin/bash
   local_hostname: sheep
 
 cloudInit:

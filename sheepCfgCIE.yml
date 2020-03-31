@@ -1,6 +1,6 @@
 bootloader:
   image: http://172.19.118.1/qcow2/os-deploy-bootloader.tar.gz
-  kernel_parameter: "console=ttyS1,57600n8"
+  kernel_parameter: 'console=ttyS1,57600n8'
 
 linux:
   image: https://cloud-images.ubuntu.com/xenial/current/xenial-server-cloudimg-amd64-disk1.img
@@ -36,10 +36,12 @@ cloudInit:
       - name: user1
         lock_passwd: false
         sudo: ALL=(ALL) NOPASSWD:ALL
+        shell: /bin/bash
       - name: linux
         lock_passwd: false
         ssh_authorized_keys: ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDdXnRJVWf7OvFa0UZPkvDBave2BWhr29HFlO/bI/98rmPc0zn24a8Wplo/Sts4SrL3xZNATH5tWwNpPulBThPqnjdMU4Rw2Jf/mjlQXiT7+w3w60/HrMd62J/d/dyYrIuvuog3OAEi1vsiKCRm/9ptpbNA4E34ZUBSOpT3bx0b4NszYB2g7VdcmgHHXSY16AVCv3I3ZN0UmWphw1hpjpxfHTinE2pR5L0HVMikxqaxjCZI7DSpi8f4gQJn7gjLTh905o751Z3s7Y4L/v9NTEXmCPF425krwxDD4EMSMJ6BXgAExvPolWV0/W9HUtKX7XtEJUKWLUlikb7qTRWR1sld ubuntu@dev-01
         sudo: ALL=(ALL) NOPASSWD:ALL
+        shell: /bin/sh
     chpasswd:
       expire: false
       list: |
@@ -53,7 +55,7 @@ cloudInit:
     package_reboot_if_required: true
     power_state:
       mode: reboot
-      message: " ----------- REBOOT ------------ "
+      message: ' ----------- REBOOT ------------ '
 
 sheep:
   reboot: false

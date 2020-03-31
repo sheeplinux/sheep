@@ -30,6 +30,7 @@ ubuntu16.04-qcow2-uefi_boot:
     CONFIG_FILE_NAME: SheepCfg_ubuntu16_04_qcow2_leo.yml
     EXPECTED_UNAME: 'Linux sheep 4.4.0-173-generic'
     EXTRA_KERNEL_CMDLINE: console=ttyS1,57600n8
+    EXPECTED_SHELL: sh
   script:
     - cd ${CI_PROJECT_DIR}
     - tests/integration_test/run
@@ -46,6 +47,7 @@ centos7-qcow2-uefi_boot:
     CONFIG_FILE_NAME: SheepCfg_centos7_qcow2_leo.yml
     EXPECTED_UNAME: 'Linux sheep 3.10.0-957.27.2.el7.x86_64'
     EXTRA_KERNEL_CMDLINE: console=ttyS1,57600n8
+    EXPECTED_SHELL: bash
   script:
     - cd ${CI_PROJECT_DIR}
     - tests/integration_test/run
@@ -62,6 +64,7 @@ debian9-qcow2-uefi_boot:
     CONFIG_FILE_NAME: SheepCfg_debian9_qcow2_leo.yml
     EXPECTED_UNAME: 'Linux sheep 4.9.0-11-amd64'
     EXTRA_KERNEL_CMDLINE: console=ttyS1,57600n8
+    EXPECTED_SHELL: bash
   script:
     - cd ${CI_PROJECT_DIR}
     - tests/integration_test/run
@@ -78,6 +81,7 @@ opensuse15.1-qcow2-uefi_boot:
     CONFIG_FILE_NAME: SheepCfg_opensuse15_1_qcow2_leo.yml
     EXPECTED_UNAME: 'Linux sheep 4.12.14-lp151.28.36-default'
     EXTRA_KERNEL_CMDLINE: console=ttyS1,57600n8
+    EXPECTED_SHELL: bash
   script:
     - cd ${CI_PROJECT_DIR}
     - tests/integration_test/run
@@ -94,6 +98,7 @@ ubuntu16.04-qcow2-legacy_boot:
     CONFIG_FILE_NAME: SheepCfg_ubuntu16_04_qcow2_win.yml
     EXPECTED_UNAME: 'Linux sheep 4.4.0-173-generic'
     EXTRA_KERNEL_CMDLINE: console=ttyS1,115200n8 iomem=relaxed ethdevice=enp12s0 module_blacklist=mei,mei_me
+    EXPECTED_SHELL: bash
   script:
     - cd ${CI_PROJECT_DIR}
     - tests/integration_test/run
@@ -110,6 +115,7 @@ centos7-qcow2-legacy_boot:
     CONFIG_FILE_NAME: SheepCfg_centos7_qcow2_win.yml
     EXPECTED_UNAME: 'Linux sheep 3.10.0-957.27.2.el7.x86_64'
     EXTRA_KERNEL_CMDLINE: console=ttyS1,115200n8 iomem=relaxed ethdevice=enp12s0 module_blacklist=mei,mei_me
+    EXPECTED_SHELL: bash
   script:
     - cd ${CI_PROJECT_DIR}
     - tests/integration_test/run
@@ -126,6 +132,7 @@ debian9-qcow2-legacy_boot:
     CONFIG_FILE_NAME: SheepCfg_debian9_qcow2_win.yml
     EXPECTED_UNAME: 'Linux sheep 4.9.0-11-amd64'
     EXTRA_KERNEL_CMDLINE: console=ttyS1,115200n8 iomem=relaxed ethdevice=enp12s0 module_blacklist=mei,mei_me
+    EXPECTED_SHELL: bash
   script:
     - cd ${CI_PROJECT_DIR}
     - tests/integration_test/run
@@ -142,6 +149,7 @@ opensuse15.1-qcow2-legacy_boot:
     CONFIG_FILE_NAME: SheepCfg_opensuse15_1_qcow2_win.yml
     EXPECTED_UNAME: 'Linux sheep 4.12.14-lp151.28.36-default'
     EXTRA_KERNEL_CMDLINE: console=ttyS1,115200n8 iomem=relaxed ethdevice=enp12s0 module_blacklist=mei,mei_me
+    EXPECTED_SHELL: bash
   script:
     - cd ${CI_PROJECT_DIR}
     - tests/integration_test/run

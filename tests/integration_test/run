@@ -81,7 +81,7 @@ ssh_cmd() {
 			ssh -o StrictHostKeyChecking=no \
 			-o UserKnownHostsFile=/dev/null \
 			-o LogLevel=QUIET \
-			${username}@${ip} $*
+			${username}@${ip} "$*"
 		return $?
 	} < /dev/null
 }
@@ -443,6 +443,15 @@ main() {
 			exit 1
 		fi
 		log "Operating system : ${uname_output}"
+	fi
+	if [ -n "${EXPECTED_SHELL}" ]; then
+		log "Checking machine '${DUT_NAME}' has expected shell..."
+		local cmd_output=$(ssh_cmd ${ip} linux linux echo '$SHELL')
+		if [ "${cmd_output}" != "/bin/${EXPECTED_SHELL}" ]; then
+			log "ERROR - Shell detected : ${cmd_output}"
+			exit 1
+		fi
+		log "Shell : ${cmd_output}"
 	fi
 
 	current_step=power_off
