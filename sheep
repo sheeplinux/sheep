@@ -181,7 +181,7 @@ search_mandatory_value() {
 	local value=$(yq -r "${1}" "${CONFIG_FILE}")
 
 	[ "${value}" == "null" ] && exit_on_error "${2}"
-	log "Mandatory value for '${1}' found => '${value}'"
+	log_debug "Mandatory value for '${1}' found => '${value}'"
 	echo "${value}"
 }
 
