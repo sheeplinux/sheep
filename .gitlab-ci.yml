@@ -99,6 +99,8 @@ ubuntu16.04-qcow2-legacy_boot:
     EXPECTED_UNAME: 'Linux sheep 4.4.0-173-generic'
     EXTRA_KERNEL_CMDLINE: console=ttyS1,115200n8 iomem=relaxed ethdevice=enp12s0 module_blacklist=mei,mei_me sheep.log.level=DEBUG sheep.delay=10
     EXPECTED_SHELL: bash
+    EXPECTED_INT_MODE_1: 'iface enp12s0 inet dhcp,/etc/network/interfaces.d/50-cloud-init.cfg'
+    EXPECTED_INT_MODE_2: 'iface ens9 inet static,/etc/network/interfaces.d/50-cloud-init.cfg,172.19.17.111'
   script:
     - cd ${CI_PROJECT_DIR}
     - tests/integration_test/run
@@ -116,6 +118,8 @@ centos7-qcow2-legacy_boot:
     EXPECTED_UNAME: 'Linux sheep 3.10.0-957.27.2.el7.x86_64'
     EXTRA_KERNEL_CMDLINE: console=ttyS1,115200n8 iomem=relaxed ethdevice=enp12s0 module_blacklist=mei,mei_me
     EXPECTED_SHELL: bash
+    EXPECTED_INT_MODE_1: 'BOOTPROTO=dhcp,/etc/sysconfig/network-scripts/ifcfg-enp12s0'
+    EXPECTED_INT_MODE_2: 'BOOTPROTO=none,/etc/sysconfig/network-scripts/ifcfg-ens9,172.19.17.111'
   script:
     - cd ${CI_PROJECT_DIR}
     - tests/integration_test/run
@@ -133,6 +137,8 @@ debian9-qcow2-legacy_boot:
     EXPECTED_UNAME: 'Linux sheep 4.9.0-11-amd64'
     EXTRA_KERNEL_CMDLINE: console=ttyS1,115200n8 iomem=relaxed ethdevice=enp12s0 module_blacklist=mei,mei_me
     EXPECTED_SHELL: bash
+    EXPECTED_INT_MODE_1: 'iface enp12s0 inet dhcp,/etc/network/interfaces.d/50-cloud-init.cfg'
+    EXPECTED_INT_MODE_2: 'iface ens9 inet static,/etc/network/interfaces.d/50-cloud-init.cfg,172.19.17.111'
   script:
     - cd ${CI_PROJECT_DIR}
     - tests/integration_test/run
@@ -150,6 +156,82 @@ opensuse15.1-qcow2-legacy_boot:
     EXPECTED_UNAME: 'Linux sheep 4.12.14-lp151.28.36-default'
     EXTRA_KERNEL_CMDLINE: console=ttyS1,115200n8 iomem=relaxed ethdevice=enp12s0 module_blacklist=mei,mei_me
     EXPECTED_SHELL: bash
+    EXPECTED_INT_MODE_1: 'BOOTPROTO=dhcp,/etc/sysconfig/network/ifcfg-eth0'
+  script:
+    - cd ${CI_PROJECT_DIR}
+    - tests/integration_test/run
+  artifacts:
+    when: always
+    paths:
+      - '*.cast'
+  tags:
+    - integration-legacy
+
+ubuntu16.04-qcow2-legacy_boot_CIE:
+  stage: test-integ
+  variables:
+    CONFIG_FILE_NAME: SheepCfg_ubuntu16_04_legacy_cie.yml
+    EXPECTED_UNAME: 'Linux sheep 4.4.0-173-generic'
+    EXTRA_KERNEL_CMDLINE: console=ttyS1,115200n8 iomem=relaxed ethdevice=enp12s0 module_blacklist=mei,mei_me
+    EXPECTED_SHELL: bash
+    EXPECTED_INT_MODE_1: 'iface enp12s0 inet dhcp,/etc/network/interfaces.d/50-cloud-init.cfg'
+    EXPECTED_INT_MODE_2: 'iface ens9 inet static,/etc/network/interfaces.d/50-cloud-init.cfg,172.19.17.111'
+  script:
+    - cd ${CI_PROJECT_DIR}
+    - tests/integration_test/run
+  artifacts:
+    when: always
+    paths:
+      - '*.cast'
+  tags:
+    - integration-legacy
+
+centos7-qcow2-legacy_boot_CIE:
+  stage: test-integ
+  variables:
+    CONFIG_FILE_NAME: SheepCfg_centOS7_legacy_cie.yml
+    EXPECTED_UNAME: 'Linux sheep 3.10.0-957.27.2.el7.x86_64'
+    EXTRA_KERNEL_CMDLINE: console=ttyS1,115200n8 iomem=relaxed ethdevice=enp12s0 module_blacklist=mei,mei_me
+    EXPECTED_SHELL: bash
+    EXPECTED_INT_MODE_1: 'BOOTPROTO=dhcp,/etc/sysconfig/network-scripts/ifcfg-enp12s0'
+    EXPECTED_INT_MODE_2: 'BOOTPROTO=none,/etc/sysconfig/network-scripts/ifcfg-ens9,172.19.17.111'
+  script:
+    - cd ${CI_PROJECT_DIR}
+    - tests/integration_test/run
+  artifacts:
+    when: always
+    paths:
+      - '*.cast'
+  tags:
+    - integration-legacy
+
+debian9-qcow2-legacy_boot_CIE:
+  stage: test-integ
+  variables:
+    CONFIG_FILE_NAME: SheepCfg_debian9_legacy_cie.yml
+    EXPECTED_UNAME: 'Linux sheep 4.9.0-11-amd64'
+    EXTRA_KERNEL_CMDLINE: console=ttyS1,115200n8 iomem=relaxed ethdevice=enp12s0 module_blacklist=mei,mei_me
+    EXPECTED_SHELL: bash
+    EXPECTED_INT_MODE_1: 'iface enp12s0 inet dhcp,/etc/network/interfaces.d/50-cloud-init.cfg'
+    EXPECTED_INT_MODE_2: 'iface ens9 inet static,/etc/network/interfaces.d/50-cloud-init.cfg,172.19.17.111'
+  script:
+    - cd ${CI_PROJECT_DIR}
+    - tests/integration_test/run
+  artifacts:
+    when: always
+    paths:
+      - '*.cast'
+  tags:
+    - integration-legacy
+
+opensuse15.1-qcow2-legacy_boot_CIE:
+  stage: test-integ
+  variables:
+    CONFIG_FILE_NAME: SheepCfg_openSUSE15_1_legacy_cie.yml
+    EXPECTED_UNAME: 'Linux sheep 4.12.14-lp151.28.36-default'
+    EXTRA_KERNEL_CMDLINE: console=ttyS1,115200n8 iomem=relaxed ethdevice=enp12s0 module_blacklist=mei,mei_me
+    EXPECTED_SHELL: bash
+    EXPECTED_INT_MODE_1: 'BOOTPROTO=dhcp,/etc/sysconfig/network/ifcfg-eth0'
   script:
     - cd ${CI_PROJECT_DIR}
     - tests/integration_test/run

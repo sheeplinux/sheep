@@ -575,29 +575,57 @@ config_metadata_ci_disable() {
 
 	local instanceId=$(search_value ".cloudInit.instance_id")
 	local localHostname=$(search_value ".environment.local_hostname")
-	local networkProtocol=$(search_value ".network.mode" "dhcp")
 
 	cat <<- EOF > ${cloudfs}/meta-data
 		instance-id: ${instanceId}
 		local-hostname: ${localHostname}
-		network:
-		  version: 2
-		  ethernets:
-		    ${PUBLIC_IFACE_NAME}:
 	EOF
-	if [ ${networkProtocol} == "dhcp" ]; then
-		cat <<- EOF >> ${cloudfs}/meta-data
-			      dhcp4: true
+}
+
+config_network_config_ci_disable() {
+	local counter=0
+	local interface=$(search_value ".network.interfaces[$counter].id")
+	local type=$(search_value ".network.interfaces[$counter].type")
+
+	cat <<- EOF > ${cloudfs}/network-config
+		version: 1
+		config:
+	EOF
+	while ! [ -z "${interface}" ]; do
+		cat <<- EOF >> ${cloudfs}/network-config
+			  - name: ${interface}
+			    type: physical
+			    subnets:
 		EOF
-	elif [ ${networkProtocol} == "static" ]; then
-		local address=$(search_value ".network.adress")
-		local gateway=$(search_value ".network.gateway")
-		cat <<- EOF >> ${cloudfs}/meta-data
-			      adresses:
-			        - ${address}
-			      gateway4: ${gateway}
-		EOF
-	fi
+		if [ "${type}" == "dhcp" ]; then
+			cat <<- EOF >> ${cloudfs}/network-config
+				      - type: dhcp
+			EOF
+		elif [ "${type}" == "static" ]; then
+			local address=$(search_mandatory_value ".network.interfaces[$counter].address")
+			local ret=$?
+			if [ ${ret} -ne 0 ]; then
+				exit ${ret}
+			fi
+			local gateway=$(search_value ".network.interfaces[$counter].gateway")
+			cat <<- EOF >> ${cloudfs}/network-config
+				      - address: ${address}
+			EOF
+			if [ -n "${gateway}" ]; then
+				cat <<- EOF >> ${cloudfs}/network-config
+					        gateway: ${gateway}
+				EOF
+			fi
+			cat <<- EOF >> ${cloudfs}/network-config
+				        type: static
+			EOF
+		else
+			exit_on_error "Type of network configuration not configurable in cloud-init disable mode"
+		fi
+		counter=$(($counter + 1))
+		interface=$(search_value ".network.interfaces[$counter].id")
+		type=$(search_value ".network.interfaces[$counter].type")
+	done
 }
 
 config_userdata_ci_disable() {
@@ -655,6 +683,12 @@ config_metadata_ci_enable() {
 	search_value ".cloudInit.metaData" "" "yaml" >> ${cloudfs}/meta-data
 }
 
+config_network_config_ci_enable() {
+	log_debug "-> ${FUNCNAME[0]} $*"
+
+	search_value ".cloudInit.networkConfig" "" "yaml" >> ${cloudfs}/network-config
+}
+
 config_userdata_ci_enable() {
 	log_debug "-> ${FUNCNAME[0]} $*"
 
@@ -671,12 +705,18 @@ configure_environment() {
 
 		log " cloud-init config | Configure user-data file"
 		config_userdata_ci_enable
+
+		log " cloud-init config | Configure network-config file"
+		config_network_config_ci_enable
 	else
 		log " cloud-init config | Configure meta-data file"
 		config_metadata_ci_disable
 
 		log " cloud-init config | Configure user-data file"
 		config_userdata_ci_disable
+
+		log " cloud-init config | Configure network-config file"
+		config_network_config_ci_disable
 	fi
 }
 

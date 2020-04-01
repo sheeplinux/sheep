@@ -367,6 +367,35 @@ cleanup() {
 }
 
 #
+# Check if network mode is the one expected
+#
+# $1 - Linux IP address
+# $2 - Information to check : (boot mode,file configuration path,static ip address(optionnal))
+#
+check_network_config() {
+	local ip=$1
+	local mode=$(echo "$2" | cut -d ',' -f 1)
+	local file_path=$(echo "$2" | cut -d ',' -f 2)
+	local static_add=$(echo "$2" | cut -d ',' -f 3)
+	local cmd_output=$(ssh_cmd ${ip} linux linux "cat ${file_path}")
+	if [ $(echo "${cmd_output}" | grep "${mode}" | wc -l) -lt 1 ]; then
+		log "ERROR - Network configuration is like : ${cmd_output}"
+		return 1
+	elif [ $(echo "${cmd_output}" | grep "${mode}" | wc -l) -ge 1 ]; then
+		if [ -n "${static_add}" ]; then
+			local ip_add_output=$(ssh_cmd ${ip} linux linux "sudo ip add")
+			if [ $(echo "${ip_add_output}" | grep "${static_add}/" | wc -l) -lt 1 ]; then
+				log "ERROR - Network configuration is like : ${ip_add_output}"
+				return 1
+			fi
+		fi
+		log "Network config file : ${cmd_output}"
+		log "Network ip address: ${ip_add_output}"
+		return 0
+	fi
+}
+
+#
 # Run the overall testing scenario
 #
 main() {
@@ -453,7 +482,14 @@ main() {
 		fi
 		log "Shell : ${cmd_output}"
 	fi
-
+	if [ -n "${EXPECTED_INT_MODE_1}" ]; then
+		log "Checking machine '${DUT_NAME}' has expected network configuration on interface 1..."
+		check_network_config ${ip} "${EXPECTED_INT_MODE_1}"
+	fi
+	if [ -n "${EXPECTED_INT_MODE_2}" ]; then
+		log "Checking machine '${DUT_NAME}' has expected network configuration on interface 2..."
+		check_network_config ${ip} "${EXPECTED_INT_MODE_2}"
+	fi
 	current_step=power_off
 	log "Power off server ${DUT_NAME}"
 	# Sending a poweroff command through ssh lead to close SSH connection and return a non-zero

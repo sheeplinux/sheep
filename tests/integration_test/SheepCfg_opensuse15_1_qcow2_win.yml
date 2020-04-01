@@ -13,8 +13,13 @@ linux:
     - mei_me
 
 network:
-  interface: enp12s0
-  mode: dhcp
+  interfaces:
+    - id: eth0
+      type: dhcp
+    - id: eth1
+      type: static
+      address: 172.19.17.111
+      gateway: 172.19.17.1
 
 pxePilot:
   enable: true

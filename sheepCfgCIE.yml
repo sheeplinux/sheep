@@ -31,6 +31,15 @@ cloudInit:
       ethernets:
         ens9:
           dhcp4: true
+  networkConfig:
+    version: 2
+    ethernets:
+      enp12s0:
+        dhcp4: true
+      ens9:
+        addresses:
+          - 172.19.17.111/24
+        gateway4: 172.19.17.1
   userData:
     users:
       - name: user1

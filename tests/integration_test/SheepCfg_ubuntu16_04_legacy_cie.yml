@@ -1,19 +1,20 @@
 bootloader:
-  image: http://@@SHEEP_CI_RUNNER_IP@@/grub.tar.gz
-  kernel_parameter: 'console=ttyS1,57600n8'
+  kernel_parameter: 'console=ttyS4,115200n8'
 
 linux:
-  image: http://@@SHEEP_CI_RUNNER_IP@@/CentOS-7-x86_64-GenericCloud-1907.qcow2
-  label: CentOS 7
+  image: http://@@SHEEP_CI_RUNNER_IP@@/xenial-server-cloudimg-amd64-disk1.img
+  label: Ubuntu 16.04 LTS
   device: /dev/sda
   rootfsType: ext4
-  rootfsLabel: centos-fs
+  rootfsLabel: Ubuntu-fs
   selinux: disable
+  blacklist_module:
+    - mei
+    - mei_me
 
 network:
   interfaces:
-    - id: ens1
-      type: dhcp
+    - id: enp12s0
 
 pxePilot:
   enable: true
@@ -25,6 +26,15 @@ cloudInit:
   metaData:
     instance-id: 001-local01
     local-hostname: sheep
+  networkConfig:
+    version: 2
+    ethernets:
+      enp12s0:
+        dhcp4: true
+      ens9:
+        addresses:
+          - 172.19.17.111/24
+        gateway4: 172.19.17.1
   userData:
     users:
       - name: linux
@@ -37,6 +47,5 @@ cloudInit:
       list: |
         linux:linux
     ssh_pwauth: true
-
 sheep:
   reboot: false

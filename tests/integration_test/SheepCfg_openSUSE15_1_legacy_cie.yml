@@ -1,18 +1,20 @@
 bootloader:
-  image: http://@@SHEEP_CI_RUNNER_IP@@/grub.tar.gz
-  kernel_parameter: 'console=ttyS1,57600n8'
+  kernel_parameter: 'console=ttyS4,115200n8'
 
 linux:
-  image: http://@@SHEEP_CI_RUNNER_IP@@/CentOS-7-x86_64-GenericCloud-1907.qcow2
-  label: CentOS 7
+  image: http://@@SHEEP_CI_RUNNER_IP@@/openSUSE-Leap-15.1-OpenStack.x86_64.qcow2
+  label: OpenSUSE 15.1
   device: /dev/sda
-  rootfsType: ext4
-  rootfsLabel: centos-fs
+  rootfsType: btrfs
+  rootfsLabel: openSUSE-fs
   selinux: disable
+  blacklist_module:
+    - mei
+    - mei_me
 
 network:
   interfaces:
-    - id: ens1
+    - id: enp12s0
       type: dhcp
 
 pxePilot:
@@ -25,6 +27,15 @@ cloudInit:
   metaData:
     instance-id: 001-local01
     local-hostname: sheep
+  networkConfig:
+    version: 2
+    ethernets:
+      eth0:
+        dhcp4: true
+      eth1:
+        addresses:
+          - 172.19.17.111/24
+        gateway4: 172.19.17.1
   userData:
     users:
       - name: linux
@@ -37,6 +48,5 @@ cloudInit:
       list: |
         linux:linux
     ssh_pwauth: true
-
 sheep:
   reboot: false

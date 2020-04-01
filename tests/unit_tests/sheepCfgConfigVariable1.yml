@@ -9,7 +9,8 @@ linux:
   selinux:
 
 network:
-  interface: ens1
+  interfaces:
+    - id: ens1
 
 pxePilot:
   enable: false
