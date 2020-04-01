@@ -118,32 +118,20 @@ exit_on_error() {
 #
 # Configuration map populated when search_value is called the first time.
 #
-declare -A configMap
+declare -A kernelParametersMap
 
 #
-# search_value returns the value matching a given parameter identifier.
-# if the parameter is not defined or if its value is blank, it returns
-# a default value if provided.
+# When the function is called the first time it populates parses the commande line parameter
+# to populate the `kernelParametersMap` variable.
 #
-# When the function is called the first time it populate the `configMap``
-# variable parsing the commande line parameter.
+# By default, parameters are retrieved from the kernel command line reading /proc/cmdline
+# content. This can be overriden by setting up the SHEEP_PARAMETERS environment variable
+# with the exact same syntax.
 #
-# By default, parameters are retrieved from the kernel command line
-# reading /proc/cmdline content. This can be overriden by setting up
-# the SHEEP_PARAMETERS environment variable with the exact same
-# syntax.
-#
-# The function call parser yq with -w 10000 parameters to parse correctly long sized value
-# With -Y to parse correctly when the key have subkeys
-#
-# $1 - Parameter identifier
-# $2 - Default value
-# $3 - parsing option (possible values are 'string' or 'yaml'. Default is 'string')
-#
-search_value() {
+load_kernel_parameters() {
 	log_debug "-> ${FUNCNAME[0]} $*"
 
-	if [ ${#configMap[@]} -eq 0 ]; then
+	if [ ${#kernelParametersMap[@]} -eq 0 ]; then
 		local cmd=${SHEEP_PARAMETERS}
 		if [ -z "${cmd}" ]; then
 			cmd=$(cat /proc/cmdline)
@@ -153,24 +141,50 @@ search_value() {
 		for param in ${array[@]}; do
 			local key=$(echo "${param}" | cut -d '=' -f 1)
 			local value=$(echo "${param}" | cut -d '=' -f 2-)
-			configMap[${key}]=${value}
+			kernelParametersMap[${key}]=${value}
 		done
 	fi
-	if [ "${1}" == "sheep.config" ]; then
-		local value=${configMap[${1}]}
-		echo ${value:-${2}}
-	else
-		if [ -z "${3}" ] || [ "${3}" == "string" ]; then
-			local value=$(yq -r "${1}" "${CONFIG_FILE}")
-			if [ "${value}" == "null" ]; then
-				value="${2}"
-			fi
-			echo "${value}"
-		elif [ "${3}" == "yaml" ]; then
-			yq -r -Y -w 100000 "${1}" "${CONFIG_FILE}"
+}
+
+#
+# search_kernel_parameter returns the value matching a given kernel parameter identifier.
+# if the parameter is not defined or if its value is blank, it returns a default value if
+# provided. if a kernerl parameter key appears several times on the command line, only the
+# last one is taken into account.
+#
+# $1 - Parameter identifier
+# $2 - Default value
+#
+search_kernel_parameter() {
+	log_debug "-> ${FUNCNAME[0]} $*"
+	load_kernel_parameters
+	echo "${kernelParametersMap[${1}]:-${2}}"
+}
+
+#
+# search_value returns a piece of configuration from the Sheep YAML configuration file.
+#
+# The function call parser yq with -w 10000 parameters to parse correctly long sized value
+# With -Y to parse correctly when the key have subkeys.
+#
+# $1 - Parameter identifier
+# $2 - Default value
+# $3 - parsing option (possible values are 'string' or 'yaml'. Default is 'string')
+#
+search_value() {
+	log_debug "-> ${FUNCNAME[0]} $*"
+
+	if [ -z "${3}" ] || [ "${3}" == "string" ]; then
+		local value=$(yq -r "${1}" "${CONFIG_FILE}")
+		if [ "${value}" == "null" ]; then
+			value="${2}"
 		fi
+		echo "${value}"
+	elif [ "${3}" == "yaml" ]; then
+		yq -r -Y -w 100000 "${1}" "${CONFIG_FILE}"
 	fi
 }
+
 #
 # $1 - key
 # $2 - error message if the value is not found
@@ -229,7 +243,7 @@ prepare_env() {
 load_config() {
 	log_debug "-> ${FUNCNAME[0]} $*"
 
-	local CONFIG_FILE_PATH=$(search_value sheep.config)
+	local CONFIG_FILE_PATH=$(search_kernel_parameter sheep.config)
 	if [ -z ${CONFIG_FILE_PATH} ]; then
 		exit_on_error "Configuration file is missing"
 	fi
