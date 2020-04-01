@@ -362,10 +362,6 @@ check_filesystem_label() {
 system_partitionning() {
 	log_debug "-> ${FUNCNAME[0]} $*"
 
-	echo ' '
-	echo 'Partitioning'
-	echo ' '
-
 	gdisk ${BLOCK_DEVICE} <<- EOF
 		o
 		Y
