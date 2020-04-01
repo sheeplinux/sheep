@@ -3,6 +3,28 @@
 set -e
 
 #
+# Initialize logger. To configure the logger, environment variables SHEEP_LOG_FILE and
+# SHEEP_LOG_LEVEL can be set prior calling this function. Authorized log level are
+# ERROR, WARNING, INFO and DEBUG. Log level can also be configured using kernel parameter
+# `sheep.log.level`.
+#
+init_logger() {
+	if [ -z "${SHEEP_LOG_FILE}" ]; then
+		SHEEP_LOG_FILE="/tmp/sheep-$(date +%s).log"
+	fi
+	touch ${SHEEP_LOG_FILE}
+
+	if [ -z ${SHEEP_LOG_LEVEL} ]; then
+		SHEEP_LOG_LEVEL=$(search_kernel_parameter "sheep.log.level" "INFO")
+	else
+		SHEEP_LOG_LEVEL=${SHEEP_LOG_LEVEL^^}
+		if [ "${SHEEP_LOG_LEVEL}" != "ERROR" ] && [ "${SHEEP_LOG_LEVEL}" != "WARNING" ] && [ "${SHEEP_LOG_LEVEL}" != "INFO" ] && [ "${SHEEP_LOG_LEVEL}" != "DEBUG" ]; then
+			SHEEP_LOG_LEVEL=INFO
+		fi
+	fi
+}
+
+#
 # Shortcut for log_info function
 #
 # $* - Text to log
@@ -59,21 +81,6 @@ log_debug() {
 # $* - Text to log
 #
 _log() {
-	#
-	# Log file to log into
-	#
-	if [ -z "${SHEEP_LOG_FILE}" ]; then
-		SHEEP_LOG_FILE="/tmp/sheep-$(date +%s).log"
-	fi
-	touch ${SHEEP_LOG_FILE}
-
-	#
-	# Authorized log level are ERROR, WARNING, INFO and DEBUG
-	#
-	if [ -z "${SHEEP_LOG_LEVEL}" ]; then
-		SHEEP_LOG_LEVEL=INFO
-	fi
-
 	local severity="${1}"
 
 	if [ "${severity}" = 'ERROR' ]; then
@@ -832,6 +839,8 @@ get_serial_device() {
 
 main() {
 	SHEEP_SERIAL=$(get_serial_device)
+
+	init_logger
 
 	log_debug "-> ${FUNCNAME[0]} $*"
 
