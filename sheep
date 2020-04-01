@@ -13,7 +13,8 @@ log() {
 
 #
 # Log text in file specified by the environment variable
-# SHEEP_LOG_FILE when log level level is ERROR or INFO
+# SHEEP_LOG_FILE when log level level is ERROR, WARNING
+# or INFO
 #
 # $* - Text to log
 #
@@ -23,7 +24,7 @@ log_info() {
 
 #
 # Log text in file specified by the environment variable
-# SHEEP_LOG_FILE when log level level is ERROR or INFO
+# SHEEP_LOG_FILE when log level level is ERROR or WARNING
 #
 # $* - Text to log
 #
