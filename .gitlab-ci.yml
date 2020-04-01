@@ -97,7 +97,7 @@ ubuntu16.04-qcow2-legacy_boot:
   variables:
     CONFIG_FILE_NAME: SheepCfg_ubuntu16_04_qcow2_win.yml
     EXPECTED_UNAME: 'Linux sheep 4.4.0-173-generic'
-    EXTRA_KERNEL_CMDLINE: console=ttyS1,115200n8 iomem=relaxed ethdevice=enp12s0 module_blacklist=mei,mei_me sheep.log.level=DEBUG
+    EXTRA_KERNEL_CMDLINE: console=ttyS1,115200n8 iomem=relaxed ethdevice=enp12s0 module_blacklist=mei,mei_me sheep.log.level=DEBUG sheep.delay=10
     EXPECTED_SHELL: bash
   script:
     - cd ${CI_PROJECT_DIR}

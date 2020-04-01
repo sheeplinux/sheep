@@ -844,6 +844,12 @@ main() {
 
 	log_debug "-> ${FUNCNAME[0]} $*"
 
+	SHEEP_DELAY=$(search_kernel_parameter "sheep.delay" "0")
+	if [ ${SHEEP_DELAY} -gt 0 ]; then
+		log "Linux installation will start in ${SHEEP_DELAY} second(s)..."
+		sleep ${SHEEP_DELAY}
+	fi
+
 	print_banner
 
 	log "Preparing tools required for installation"
