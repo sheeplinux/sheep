@@ -101,7 +101,7 @@ _log() {
 		printf "$(date '+[%D %T %z]') %-7s | " ${severity}
 		shift
 		echo "$*"
-	} >> $SHEEP_LOG_FILE
+	} | tee ${SHEEP_LOG_FILE} ${SHEEP_SERIAL} > /dev/null 2>&1
 }
 
 #
@@ -804,13 +804,38 @@ notify_pxepilot_and_reboot() {
 	fi
 }
 
+print_banner() {
+	if [ -z "${SHEEP_SERIAL}" ]; then
+		return
+	fi
+
+	{
+		clear
+		echo ''
+		echo '  ___    _  _    ___    ___    ___ '
+		echo ' / __|  | || |  | __|  | __|  | _ \'
+		echo ' \__ \  | __ |  | _|   | _|   |  _/'
+		echo ' |___/  |_||_|  |___|  |___|  |_|'
+		echo ''
+
+	} > ${SHEEP_SERIAL}
+}
+
+get_serial_device() {
+	local device=$(search_kernel_parameter console | grep -e '^ttyS' | sed 's/,/ /g' | awk '{ print $1 }')
+	if [ -z ${device} ]; then
+		# echo ""
+		return
+	fi
+	echo "/dev/${device}"
+}
+
 main() {
+	SHEEP_SERIAL=$(get_serial_device)
+
 	log_debug "-> ${FUNCNAME[0]} $*"
 
-	log "Starting installation process"
-
-	rootfs=/mnt/rootfs
-	cloudfs=/mnt/cloudfs
+	print_banner
 
 	log "Preparing tools required for installation"
 	prepare_env
@@ -823,6 +848,11 @@ main() {
 
 	log "Downloading tools required by OS installtion"
 	download_tools
+
+	log "Starting installation process"
+
+	rootfs=/mnt/rootfs
+	cloudfs=/mnt/cloudfs
 
 	log "Cleaning local boot EFI entries from the EFI Boot Manager"
 	if [ "${BOOT_MODE}" == "uefi" ]; then
@@ -859,5 +889,5 @@ main() {
 
 if [ "$(basename $0)" = "sheep" ]; then
 	set -x
-	main 2>&1 | tee /var/log/sheep.log
+	main >> /var/log/sheep.log 2>&1
 fi
