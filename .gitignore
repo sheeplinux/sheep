@@ -1,2 +1,4 @@
 tests/unit_tests/*.log
 .vscode/
+.vagrant/
+*.log
