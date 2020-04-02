@@ -1,4 +1,4 @@
-image: sesame-ubuntu-14.04:1.11
+image: sesame-ubuntu-16.04:1.0
 
 variables:
   SHEEP_CI_RUNNER_IP: '17.18.99.1'

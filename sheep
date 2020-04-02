@@ -109,7 +109,7 @@ _log() {
 exit_on_error() {
 	log_debug "-> ${FUNCNAME[0]} $*"
 
-	echo "ERROR : $1" >&2
+	echo "ERROR : ${1}" >&2
 	log "Exit with status code 1"
 	exit 1
 }
@@ -132,8 +132,12 @@ declare -A configMap
 # the SHEEP_PARAMETERS environment variable with the exact same
 # syntax.
 #
+# The function call parser yq with -w 10000 parameters to parse correctly long sized value
+# With -Y to parse correctly when the key have subkeys
+#
 # $1 - Parameter identifier
 # $2 - Default value
+# $3 - parsing option (possible values are 'string' or 'yaml'. Default is 'string')
 #
 search_value() {
 	log_debug "-> ${FUNCNAME[0]} $*"
@@ -153,15 +157,19 @@ search_value() {
 	fi
 	if [ "${1}" == "sheep.config" ]; then
 		local value=${configMap[${1}]}
+		echo ${value:-${2}}
 	else
-		local value=$(yq -r $1 ${CONFIG_FILE})
-		if [ ${value} == "null" ]; then
-			value=""
+		if [ -z "${3}" ] || [ "${3}" == "string" ]; then
+			local value=$(yq -r "${1}" "${CONFIG_FILE}")
+			if [ "${value}" == "null" ]; then
+				value="${2}"
+			fi
+			echo "${value}"
+		elif [ "${3}" == "yaml" ]; then
+			yq -r -Y -w 100000 "${1}" "${CONFIG_FILE}"
 		fi
 	fi
-	echo ${value:-${2}}
 }
-
 #
 # $1 - key
 # $2 - error message if the value is not found
@@ -169,10 +177,10 @@ search_value() {
 search_mandatory_value() {
 	log_debug "-> ${FUNCNAME[0]} $*"
 
-	local value=$(yq -r $1 ${CONFIG_FILE})
+	local value=$(yq -r "${1}" "${CONFIG_FILE}")
 
-	[ "${value}" == "null" ] && exit_on_error "$2"
-	log "Mandatory value for '$1' found => '${value}'"
+	[ "${value}" == "null" ] && exit_on_error "${2}"
+	log "Mandatory value for '${1}' found => '${value}'"
 	echo "${value}"
 }
 
@@ -324,7 +332,7 @@ check_filesystem_label() {
 	if [ ${size} -gt 12 ]; then
 		exit_on_error "Number of caracter exceed maximal sie : 12 caracters max"
 	fi
-	if [[ "$1" =~ ([0-9A-Za-z_-]{$size}) ]]; then
+	if [[ "${1}" =~ ([0-9A-Za-z_-]{$size}) ]]; then
 		:
 	else
 		exit_on_error "Invalid caracter used in the name given to filesystem : caracters must be a number, a letter '_' or '-'"
@@ -583,7 +591,7 @@ config_userdata_ci_disable() {
 	log_debug "-> ${FUNCNAME[0]} $*"
 
 	local c=0
-	local user=$(yq -r .environment.users[$c] ${CONFIG_FILE})
+	local user=$(search_value ".environment.users[$c]")
 	local name=$(search_value ".environment.users[$c].name")
 	local sudoer=$(search_value ".environment.users[$c].sudoer")
 	local ssh=$(search_value ".environment.users[$c].ssh_authorized_key")
@@ -593,7 +601,7 @@ config_userdata_ci_disable() {
 		#cloud-config
 		users:
 	EOF
-	while [ "${user}" != "null" ]; do
+	while ! [ -z "${user}" ]; do
 		name=$(search_value ".environment.users[$c].name")
 		sudoer=$(search_value ".environment.users[$c].sudoer")
 		ssh=$(search_value ".environment.users[$c].ssh_authorized_key")
@@ -603,14 +611,14 @@ config_userdata_ci_disable() {
 			    lock_passwd: false
 		EOF
 		echo "    ssh_authorized_keys: ${ssh}" >> ${cloudfs}/user-data
-		if [ ${sudoer} == "true" ]; then
+		if isTrue ${sudoer}; then
 			echo "    sudo: ALL=(ALL) NOPASSWD:ALL" >> ${cloudfs}/user-data
 		fi
-		if [ "${shell}" != "null" ]; then
+		if ! [ -z "${shell}" ]; then
 			echo "    shell: ${shell}" >> ${cloudfs}/user-data
 		fi
 		c=$(($c + 1))
-		user=$(yq -r .environment.users[$c] ${CONFIG_FILE})
+		user=$(search_value ".environment.users[$c]")
 	done
 	cat <<- EOF >> ${cloudfs}/user-data
 		chpasswd:
@@ -631,14 +639,14 @@ config_userdata_ci_disable() {
 config_metadata_ci_enable() {
 	log_debug "-> ${FUNCNAME[0]} $*"
 
-	head -$(grep -n "userData:" ${CONFIG_FILE} | cut -d ':' -f 1) ${CONFIG_FILE} | tail -$(($(head -$(grep -n "userData:" ${CONFIG_FILE} | cut -d ':' -f 1) ${CONFIG_FILE} | wc -l) - $(grep -n "metaData:" ${CONFIG_FILE} | cut -d ':' -f 1))) | grep -v "userData" | sed -e "s/^    //g" >> ${cloudfs}/meta-data
+	search_value ".cloudInit.metaData" "" "yaml" >> ${cloudfs}/meta-data
 }
 
 config_userdata_ci_enable() {
 	log_debug "-> ${FUNCNAME[0]} $*"
 
 	echo "#cloud-config" > ${cloudfs}/user-data
-	head -$(($(grep -n ^"sheep" ${CONFIG_FILE} | cut -d ':' -f 1) - 2)) ${CONFIG_FILE} | tail -$(($(($(grep -n ^"sheep" ${CONFIG_FILE} | cut -d ':' -f 1) - 2)) - $(grep -n userData ${CONFIG_FILE} | cut -d ':' -f 1))) | sed -e "s/^    //g" >> ${cloudfs}/user-data
+	search_value ".cloudInit.userData" "" "yaml" >> ${cloudfs}/user-data
 }
 
 configure_environment() {
@@ -663,11 +671,11 @@ blacklist_module() {
 	log_debug "-> ${FUNCNAME[0]} $*"
 
 	local i=0
-	local mod=$(yq -r .linux.blacklist_module[$i] ${CONFIG_FILE})
-	while [ "${mod}" != "null" ]; do
+	local mod=$(search_value ".linux.blacklist_module[$i]")
+	while ! [ -z "${mod}" ]; do
 		echo "blacklist ${mod}" >> ${rootfs}/etc/modprobe.d/blacklist.conf
 		i=$(($i + 1))
-		mod=$(yq -r .linux.blacklist_module[$i] ${CONFIG_FILE})
+		mod=$(search_value ".linux.blacklist_module[$i]")
 	done
 }
 
