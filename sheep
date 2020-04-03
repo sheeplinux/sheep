@@ -3,6 +3,28 @@
 set -e
 
 #
+# Initialize logger. To configure the logger, environment variables SHEEP_LOG_FILE and
+# SHEEP_LOG_LEVEL can be set prior calling this function. Authorized log level are
+# ERROR, WARNING, INFO and DEBUG. Log level can also be configured using kernel parameter
+# `sheep.log.level`.
+#
+init_logger() {
+	if [ -z "${SHEEP_LOG_FILE}" ]; then
+		SHEEP_LOG_FILE="/tmp/sheep-$(date +%s).log"
+	fi
+	touch ${SHEEP_LOG_FILE}
+
+	if [ -z ${SHEEP_LOG_LEVEL} ]; then
+		SHEEP_LOG_LEVEL=$(search_kernel_parameter "sheep.log.level" "INFO")
+	else
+		SHEEP_LOG_LEVEL=${SHEEP_LOG_LEVEL^^}
+		if [ "${SHEEP_LOG_LEVEL}" != "ERROR" ] && [ "${SHEEP_LOG_LEVEL}" != "WARNING" ] && [ "${SHEEP_LOG_LEVEL}" != "INFO" ] && [ "${SHEEP_LOG_LEVEL}" != "DEBUG" ]; then
+			SHEEP_LOG_LEVEL=INFO
+		fi
+	fi
+}
+
+#
 # Shortcut for log_info function
 #
 # $* - Text to log
@@ -13,7 +35,8 @@ log() {
 
 #
 # Log text in file specified by the environment variable
-# SHEEP_LOG_FILE when log level level is ERROR or INFO
+# SHEEP_LOG_FILE when log level level is ERROR, WARNING
+# or INFO
 #
 # $* - Text to log
 #
@@ -23,7 +46,7 @@ log_info() {
 
 #
 # Log text in file specified by the environment variable
-# SHEEP_LOG_FILE when log level level is ERROR or INFO
+# SHEEP_LOG_FILE when log level level is ERROR or WARNING
 #
 # $* - Text to log
 #
@@ -58,21 +81,6 @@ log_debug() {
 # $* - Text to log
 #
 _log() {
-	#
-	# Log file to log into
-	#
-	if [ -z "${SHEEP_LOG_FILE}" ]; then
-		SHEEP_LOG_FILE="/tmp/sheep-$(date +%s).log"
-	fi
-	touch ${SHEEP_LOG_FILE}
-
-	#
-	# Authorized log level are ERROR, WARNING, INFO and DEBUG
-	#
-	if [ -z "${SHEEP_LOG_LEVEL}" ]; then
-		SHEEP_LOG_LEVEL=INFO
-	fi
-
 	local severity="${1}"
 
 	if [ "${severity}" = 'ERROR' ]; then
@@ -100,7 +108,7 @@ _log() {
 		printf "$(date '+[%D %T %z]') %-7s | " ${severity}
 		shift
 		echo "$*"
-	} >> $SHEEP_LOG_FILE
+	} | tee ${SHEEP_LOG_FILE} ${SHEEP_SERIAL} > /dev/null 2>&1
 }
 
 #
@@ -117,32 +125,20 @@ exit_on_error() {
 #
 # Configuration map populated when search_value is called the first time.
 #
-declare -A configMap
+declare -A kernelParametersMap
 
 #
-# search_value returns the value matching a given parameter identifier.
-# if the parameter is not defined or if its value is blank, it returns
-# a default value if provided.
+# When the function is called the first time it populates parses the commande line parameter
+# to populate the `kernelParametersMap` variable.
 #
-# When the function is called the first time it populate the `configMap``
-# variable parsing the commande line parameter.
+# By default, parameters are retrieved from the kernel command line reading /proc/cmdline
+# content. This can be overriden by setting up the SHEEP_PARAMETERS environment variable
+# with the exact same syntax.
 #
-# By default, parameters are retrieved from the kernel command line
-# reading /proc/cmdline content. This can be overriden by setting up
-# the SHEEP_PARAMETERS environment variable with the exact same
-# syntax.
-#
-# The function call parser yq with -w 10000 parameters to parse correctly long sized value
-# With -Y to parse correctly when the key have subkeys
-#
-# $1 - Parameter identifier
-# $2 - Default value
-# $3 - parsing option (possible values are 'string' or 'yaml'. Default is 'string')
-#
-search_value() {
+load_kernel_parameters() {
 	log_debug "-> ${FUNCNAME[0]} $*"
 
-	if [ ${#configMap[@]} -eq 0 ]; then
+	if [ ${#kernelParametersMap[@]} -eq 0 ]; then
 		local cmd=${SHEEP_PARAMETERS}
 		if [ -z "${cmd}" ]; then
 			cmd=$(cat /proc/cmdline)
@@ -152,24 +148,50 @@ search_value() {
 		for param in ${array[@]}; do
 			local key=$(echo "${param}" | cut -d '=' -f 1)
 			local value=$(echo "${param}" | cut -d '=' -f 2-)
-			configMap[${key}]=${value}
+			kernelParametersMap[${key}]=${value}
 		done
 	fi
-	if [ "${1}" == "sheep.config" ]; then
-		local value=${configMap[${1}]}
-		echo ${value:-${2}}
-	else
-		if [ -z "${3}" ] || [ "${3}" == "string" ]; then
-			local value=$(yq -r "${1}" "${CONFIG_FILE}")
-			if [ "${value}" == "null" ]; then
-				value="${2}"
-			fi
-			echo "${value}"
-		elif [ "${3}" == "yaml" ]; then
-			yq -r -Y -w 100000 "${1}" "${CONFIG_FILE}"
+}
+
+#
+# search_kernel_parameter returns the value matching a given kernel parameter identifier.
+# if the parameter is not defined or if its value is blank, it returns a default value if
+# provided. if a kernerl parameter key appears several times on the command line, only the
+# last one is taken into account.
+#
+# $1 - Parameter identifier
+# $2 - Default value
+#
+search_kernel_parameter() {
+	log_debug "-> ${FUNCNAME[0]} $*"
+	load_kernel_parameters
+	echo "${kernelParametersMap[${1}]:-${2}}"
+}
+
+#
+# search_value returns a piece of configuration from the Sheep YAML configuration file.
+#
+# The function call parser yq with -w 10000 parameters to parse correctly long sized value
+# With -Y to parse correctly when the key have subkeys.
+#
+# $1 - Parameter identifier
+# $2 - Default value
+# $3 - parsing option (possible values are 'string' or 'yaml'. Default is 'string')
+#
+search_value() {
+	log_debug "-> ${FUNCNAME[0]} $*"
+
+	if [ -z "${3}" ] || [ "${3}" == "string" ]; then
+		local value=$(yq -r "${1}" "${CONFIG_FILE}")
+		if [ "${value}" == "null" ]; then
+			value="${2}"
 		fi
+		echo "${value}"
+	elif [ "${3}" == "yaml" ]; then
+		yq -r -Y -w 100000 "${1}" "${CONFIG_FILE}"
 	fi
 }
+
 #
 # $1 - key
 # $2 - error message if the value is not found
@@ -180,7 +202,7 @@ search_mandatory_value() {
 	local value=$(yq -r "${1}" "${CONFIG_FILE}")
 
 	[ "${value}" == "null" ] && exit_on_error "${2}"
-	log "Mandatory value for '${1}' found => '${value}'"
+	log_debug "Mandatory value for '${1}' found => '${value}'"
 	echo "${value}"
 }
 
@@ -228,7 +250,7 @@ prepare_env() {
 load_config() {
 	log_debug "-> ${FUNCNAME[0]} $*"
 
-	local CONFIG_FILE_PATH=$(search_value sheep.config)
+	local CONFIG_FILE_PATH=$(search_kernel_parameter sheep.config)
 	if [ -z ${CONFIG_FILE_PATH} ]; then
 		exit_on_error "Configuration file is missing"
 	fi
@@ -346,10 +368,6 @@ check_filesystem_label() {
 #
 system_partitionning() {
 	log_debug "-> ${FUNCNAME[0]} $*"
-
-	echo ' '
-	echo 'Partitioning'
-	echo ' '
 
 	gdisk ${BLOCK_DEVICE} <<- EOF
 		o
@@ -793,13 +811,46 @@ notify_pxepilot_and_reboot() {
 	fi
 }
 
+print_banner() {
+	if [ -z "${SHEEP_SERIAL}" ]; then
+		return
+	fi
+
+	{
+		clear
+		echo ''
+		echo '  ___    _  _    ___    ___    ___ '
+		echo ' / __|  | || |  | __|  | __|  | _ \'
+		echo ' \__ \  | __ |  | _|   | _|   |  _/'
+		echo ' |___/  |_||_|  |___|  |___|  |_|'
+		echo ''
+
+	} > ${SHEEP_SERIAL}
+}
+
+get_serial_device() {
+	local device=$(search_kernel_parameter console | grep -e '^ttyS' | sed 's/,/ /g' | awk '{ print $1 }')
+	if [ -z ${device} ]; then
+		# echo ""
+		return
+	fi
+	echo "/dev/${device}"
+}
+
 main() {
+	SHEEP_SERIAL=$(get_serial_device)
+
+	init_logger
+
 	log_debug "-> ${FUNCNAME[0]} $*"
 
-	log "Starting installation process"
+	SHEEP_DELAY=$(search_kernel_parameter "sheep.delay" "0")
+	if [ ${SHEEP_DELAY} -gt 0 ]; then
+		log "Linux installation will start in ${SHEEP_DELAY} second(s)..."
+		sleep ${SHEEP_DELAY}
+	fi
 
-	rootfs=/mnt/rootfs
-	cloudfs=/mnt/cloudfs
+	print_banner
 
 	log "Preparing tools required for installation"
 	prepare_env
@@ -812,6 +863,11 @@ main() {
 
 	log "Downloading tools required by OS installtion"
 	download_tools
+
+	log "Starting installation process"
+
+	rootfs=/mnt/rootfs
+	cloudfs=/mnt/cloudfs
 
 	log "Cleaning local boot EFI entries from the EFI Boot Manager"
 	if [ "${BOOT_MODE}" == "uefi" ]; then
@@ -848,5 +904,5 @@ main() {
 
 if [ "$(basename $0)" = "sheep" ]; then
 	set -x
-	main 2>&1 | tee /var/log/sheep.log
+	main >> /var/log/sheep.log 2>&1
 fi
