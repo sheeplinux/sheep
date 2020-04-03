@@ -795,20 +795,11 @@ partitions_unmounting() {
 	umount ${cloudfs}
 }
 
-notify_pxepilot_and_reboot() {
+notify_pxepilot() {
 	log_debug "-> ${FUNCNAME[0]} $*"
 
 	macA=$(ip address | grep -A 1 "${PUBLIC_IFACE_NAME}" | grep "link/ether" | cut -d ' ' -f 6)
-	if [ "${PXE_PILOT_ENABLED}" == "true" ]; then
-		curl -i -X PUT "${PXE_PILOT_BASEURL}/v1/configurations/${PXE_PILOT_CFG}/deploy" -d '{"hosts":[{"macAddress":"'"$macA"'"}]}'
-	fi
-
-	# Marker to indicate installation is successful
-	touch /var/run/sheep.success
-
-	if [ "${REBOOT_WHEN_DONE}" == "true" ]; then
-		reboot
-	fi
+	curl -i -X PUT "${PXE_PILOT_BASEURL}/v1/configurations/${PXE_PILOT_CFG}/deploy" -d '{"hosts":[{"macAddress":"'"$macA"'"}]}'
 }
 
 print_banner() {
@@ -869,8 +860,8 @@ main() {
 	rootfs=/mnt/rootfs
 	cloudfs=/mnt/cloudfs
 
-	log "Cleaning local boot EFI entries from the EFI Boot Manager"
 	if [ "${BOOT_MODE}" == "uefi" ]; then
+		log "Cleaning local boot EFI entries from the EFI Boot Manager"
 		efi_entry_cleanup
 	fi
 
@@ -898,8 +889,20 @@ main() {
 	log "Unmounting partitions"
 	partitions_unmounting
 
-	log "Installation complete. Notify PXE Pilot and reboot system"
-	notify_pxepilot_and_reboot
+	if isTrue "${PXE_PILOT_ENABLED}"; then
+		log "Notifying PXE Pilot"
+		notify_pxepilot
+	fi
+
+	log "Installation complete"
+	touch /var/run/sheep.success # Marker to indicate installation is successful
+
+	if isTrue "${REBOOT_WHEN_DONE}"; then
+		log "Rebooting system..."
+		reboot
+	else
+		log_warning "System won't reboot by itself (disabled in Sheep configuration)"
+	fi
 }
 
 if [ "$(basename $0)" = "sheep" ]; then
