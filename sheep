@@ -817,7 +817,6 @@ print_banner() {
 	fi
 
 	{
-		clear
 		echo ''
 		echo '  ___    _  _    ___    ___    ___ '
 		echo ' / __|  | || |  | __|  | __|  | _ \'
