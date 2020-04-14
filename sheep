@@ -108,7 +108,7 @@ _log() {
 		printf "$(date '+[%D %T %z]') %-7s | " ${severity}
 		shift
 		echo "$*"
-	} | tee ${SHEEP_LOG_FILE} ${SHEEP_SERIAL} > /dev/null 2>&1
+	} | tee -a ${SHEEP_LOG_FILE} ${SHEEP_SERIAL} > /dev/null 2>&1
 }
 
 #
