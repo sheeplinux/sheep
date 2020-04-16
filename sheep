@@ -266,11 +266,6 @@ config_variable() {
 	log_debug "-> ${FUNCNAME[0]} $*"
 
 	OS_NAME=$(search_value ".linux.label" "linux")
-	PUBLIC_IFACE_NAME=$(search_mandatory_value ".network.interface" "'intName' parameter must be provided")
-	local ret=$?
-	if [ ${ret} -ne 0 ]; then
-		exit ${ret}
-	fi
 	CLOUD_INIT_ENABLED=$(search_value ".cloudInit.enable" "false")
 	BLOCK_DEVICE=$(search_value ".linux.device" $(ls /dev/[hs]d[a-z] | head -1))
 	EFI_PARTITION="${BLOCK_DEVICE}1"
@@ -580,29 +575,57 @@ config_metadata_ci_disable() {
 
 	local instanceId=$(search_value ".cloudInit.instance_id")
 	local localHostname=$(search_value ".environment.local_hostname")
-	local networkProtocol=$(search_value ".network.mode" "dhcp")
 
 	cat <<- EOF > ${cloudfs}/meta-data
 		instance-id: ${instanceId}
 		local-hostname: ${localHostname}
-		network:
-		  version: 2
-		  ethernets:
-		    ${PUBLIC_IFACE_NAME}:
 	EOF
-	if [ ${networkProtocol} == "dhcp" ]; then
-		cat <<- EOF >> ${cloudfs}/meta-data
-			      dhcp4: true
+}
+
+config_network_config_ci_disable() {
+	local counter=0
+	local interface=$(search_value ".network.interfaces[$counter].id")
+	local type=$(search_value ".network.interfaces[$counter].type")
+
+	cat <<- EOF > ${cloudfs}/network-config
+		version: 1
+		config:
+	EOF
+	while ! [ -z "${interface}" ]; do
+		cat <<- EOF >> ${cloudfs}/network-config
+			  - name: ${interface}
+			    type: physical
+			    subnets:
 		EOF
-	elif [ ${networkProtocol} == "static" ]; then
-		local address=$(search_value ".network.adress")
-		local gateway=$(search_value ".network.gateway")
-		cat <<- EOF >> ${cloudfs}/meta-data
-			      adresses:
-			        - ${address}
-			      gateway4: ${gateway}
-		EOF
-	fi
+		if [ "${type}" == "dhcp" ]; then
+			cat <<- EOF >> ${cloudfs}/network-config
+				      - type: dhcp
+			EOF
+		elif [ "${type}" == "static" ]; then
+			local address=$(search_mandatory_value ".network.interfaces[$counter].address")
+			local ret=$?
+			if [ ${ret} -ne 0 ]; then
+				exit ${ret}
+			fi
+			local gateway=$(search_value ".network.interfaces[$counter].gateway")
+			cat <<- EOF >> ${cloudfs}/network-config
+				      - address: ${address}
+			EOF
+			if [ -n "${gateway}" ]; then
+				cat <<- EOF >> ${cloudfs}/network-config
+					        gateway: ${gateway}
+				EOF
+			fi
+			cat <<- EOF >> ${cloudfs}/network-config
+				        type: static
+			EOF
+		else
+			exit_on_error "Type of network configuration not configurable in cloud-init disable mode"
+		fi
+		counter=$(($counter + 1))
+		interface=$(search_value ".network.interfaces[$counter].id")
+		type=$(search_value ".network.interfaces[$counter].type")
+	done
 }
 
 config_userdata_ci_disable() {
@@ -660,6 +683,12 @@ config_metadata_ci_enable() {
 	search_value ".cloudInit.metaData" "" "yaml" >> ${cloudfs}/meta-data
 }
 
+config_network_config_ci_enable() {
+	log_debug "-> ${FUNCNAME[0]} $*"
+
+	search_value ".cloudInit.networkConfig" "" "yaml" >> ${cloudfs}/network-config
+}
+
 config_userdata_ci_enable() {
 	log_debug "-> ${FUNCNAME[0]} $*"
 
@@ -676,12 +705,18 @@ configure_environment() {
 
 		log " cloud-init config | Configure user-data file"
 		config_userdata_ci_enable
+
+		log " cloud-init config | Configure network-config file"
+		config_network_config_ci_enable
 	else
 		log " cloud-init config | Configure meta-data file"
 		config_metadata_ci_disable
 
 		log " cloud-init config | Configure user-data file"
 		config_userdata_ci_disable
+
+		log " cloud-init config | Configure network-config file"
+		config_network_config_ci_disable
 	fi
 }
 
@@ -798,8 +833,25 @@ partitions_unmounting() {
 notify_pxepilot() {
 	log_debug "-> ${FUNCNAME[0]} $*"
 
-	macA=$(ip address | grep -A 1 "${PUBLIC_IFACE_NAME}" | grep "link/ether" | cut -d ' ' -f 6)
-	curl -i -X PUT "${PXE_PILOT_BASEURL}/v1/configurations/${PXE_PILOT_CFG}/deploy" -d '{"hosts":[{"macAddress":"'"$macA"'"}]}'
+	if isTrue ${PXE_PILOT_ENABLED}; then
+		local code=0
+		while read mac; do
+			code=$(curl -s -o /dev/null -w '%{http_code}' -i -X PUT "${PXE_PILOT_BASEURL}/v1/configurations/${PXE_PILOT_CFG}/deploy" -d '{"hosts":[{"macAddress":"'"$mac"'"}]}')
+			if [ "${code}" == "200" ]; then
+				break
+			fi
+		done < <(ip a | awk '/link\/ether /{ print $2 }' | sort -u)
+		if [ "${code}" != "200" ]; then
+			exit_on_error "PXE Pilot API call error"
+		fi
+	fi
+
+	# Marker to indicate installation is successful
+	touch /var/run/sheep.success
+
+	if [ "${REBOOT_WHEN_DONE}" == "true" ]; then
+		reboot
+	fi
 }
 
 print_banner() {

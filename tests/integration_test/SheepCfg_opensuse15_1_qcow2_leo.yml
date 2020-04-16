@@ -11,8 +11,9 @@ linux:
   selinux: disable
 
 network:
-  interface: ens1
-  mode: dhcp
+  interfaces:
+    - id: ens1
+      type: dhcp
 
 pxePilot:
   enable: true

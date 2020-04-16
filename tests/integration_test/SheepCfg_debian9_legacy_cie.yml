@@ -1,19 +1,20 @@
 bootloader:
-  image: http://@@SHEEP_CI_RUNNER_IP@@/grub.tar.gz
-  kernel_parameter: 'console=ttyS1,57600n8'
+  kernel_parameter: 'console=ttyS1,115200n8'
 
 linux:
-  image: http://@@SHEEP_CI_RUNNER_IP@@/CentOS-7-x86_64-GenericCloud-1907.qcow2
-  label: CentOS 7
+  image: http://@@SHEEP_CI_RUNNER_IP@@/debian-9.11.2-20190926-openstack-amd64.qcow2
+  label: Debian 9
   device: /dev/sda
   rootfsType: ext4
-  rootfsLabel: centos-fs
+  rootfsLabel: debian9-fs
   selinux: disable
+  blacklist_module:
+    - mei
+    - mei_me
 
 network:
   interfaces:
-    - id: ens1
-      type: dhcp
+    - id: enp12s0
 
 pxePilot:
   enable: true
@@ -25,6 +26,21 @@ cloudInit:
   metaData:
     instance-id: 001-local01
     local-hostname: sheep
+  networkConfig:
+    version: 1
+    config:
+      - id: enp12s0
+        type: physical
+        name: enp12s0
+        subnets:
+          - type: dhcp
+      - id: ens9
+        type: physical
+        name: ens9
+        subnets:
+          - address: 172.19.17.111/24
+            gateway: 172.19.17.1
+            type: static
   userData:
     users:
       - name: linux
@@ -37,6 +53,5 @@ cloudInit:
       list: |
         linux:linux
     ssh_pwauth: true
-
 sheep:
   reboot: false

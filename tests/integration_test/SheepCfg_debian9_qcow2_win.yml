@@ -13,35 +13,31 @@ linux:
     - mei_me
 
 network:
-  interface: enp12s0
+  interfaces:
+    - id: enp12s0
+      type: dhcp
+    - id: ens9
+      type: static
+      address: 172.19.17.111
+      gateway: 172.19.17.1
 
 pxePilot:
   enable: true
   url: http://@@SHEEP_CI_RUNNER_IP@@:3478
   config_after_reboot: local
 
+environment:
+  users:
+    - name: linux
+      sudoer: true
+      password: linux
+      ssh_authorized_key: @@SHEEP_CI_SSH_PUB_KEY@@
+      shell: /bin/bash
+  local_hostname: sheep
+
 cloudInit:
-  enable: true
-  metaData:
-    instance-id: 001-local01
-    local-hostname: sheep
-    network:
-      version: 2
-      ethernets:
-        enp12s0:
-          dhcp4: true
-  userData:
-    users:
-      - name: linux
-        lock_passwd: false
-        ssh_authorized_keys: @@SHEEP_CI_SSH_PUB_KEY@@
-        sudo: ALL=(ALL) NOPASSWD:ALL
-        shell: /bin/bash
-    chpasswd:
-      expire: false
-      list: |
-        linux:linux
-    ssh_pwauth: true
+  enable: false
+  instance_id: 001-local01
 
 sheep:
   reboot: false

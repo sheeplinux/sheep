@@ -38,12 +38,3 @@ load test_helper
     run config_variable
     [ "${status}" -eq 1 ]
 }
-
-@test "config_variable with all mandatory parameter given except .network.interface" {
-    source ${BATS_TEST_DIRNAME}/../../sheep
-
-    export CONFIG_FILE=${BATS_TEST_DIRNAME}/sheepCfgConfigVariable6.yml
-
-    run config_variable
-    [ "${status}" -eq 1 ]
-}
