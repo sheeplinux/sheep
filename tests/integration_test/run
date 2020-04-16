@@ -181,7 +181,7 @@ deploy_boot_config() {
 		default sheep
 		label sheep
 		kernel /sheep-live/vmlinuz
-		append boot=live fetch=${SHEEP_SQUASHFS} initrd=/sheep-live/initrd.img ssh=sheep ${EXTRA_KERNEL_CMDLINE} services=sheep sheep.script=${SHEEP_SCRIPT} sheep.config=${SHEEP_CONFIG} sheep.log.level=DEBUG
+		append boot=live fetch=${SHEEP_SQUASHFS} initrd=/sheep-live/initrd.img ssh=sheep ${EXTRA_KERNEL_CMDLINE} startup=/usr/bin/sheep-service sheep.script=${SHEEP_SCRIPT} sheep.config=${SHEEP_CONFIG} sheep.log.level=DEBUG
 	EOF
 
 	sudo mkdir -p /var/www/html/sheep
