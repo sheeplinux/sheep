@@ -4,16 +4,21 @@ site_author: Guillaume Giamarchi, Mathilde Hermet
 extra_css: [css/codehilite.css]
 
 theme:
-    name: readthedocs
-    highlightjs: false
+  name: readthedocs
+  highlightjs: false
 
 nav:
   - Home: index.md
   - Quickstart: quickstart.md
-  - Configuration:
-    - Sheep reference configuration: config.md
-    - Using Cloud-Init: cloud-init.md
   - Bootloader: bootloader.md
+  - Configuration:
+      - About configuration: config.md
+      - Linux installation configuration: config_lin.md
+      - Environment configuration: config_env.md
+      - Network configuration: config_net.md
+      - Sheep configuration file examples:
+          - Simplified: ex_simple_conf.md
+          - Cloud-init users oriented: ex_CIE_conf.md
   - Internals: internals.md
   - pxe-pilot.md
 
