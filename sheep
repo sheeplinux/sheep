@@ -35,7 +35,7 @@ log() {
 
 #
 # Log text in file specified by the environment variable
-# SHEEP_LOG_FILE when log level level is ERROR, WARNING
+# SHEEP_LOG_FILE when log level is ERROR, WARNING
 # or INFO
 #
 # $* - Text to log
@@ -46,7 +46,7 @@ log_info() {
 
 #
 # Log text in file specified by the environment variable
-# SHEEP_LOG_FILE when log level level is ERROR or WARNING
+# SHEEP_LOG_FILE when log level is ERROR or WARNING
 #
 # $* - Text to log
 #
@@ -66,7 +66,7 @@ log_error() {
 
 #
 # Log text in file specified by the environment variable
-# SHEEP_LOG_FILE when log level level is DEBUG
+# SHEEP_LOG_FILE when loglevel is DEBUG
 #
 # $* - Text to log
 #
@@ -86,7 +86,7 @@ _log() {
 	if [ "${severity}" = 'ERROR' ]; then
 		:
 	elif [ "${severity}" = 'WARNING' ]; then
-		if [[ "${SHEEP_LOG_LEVEL}" = "ERROR" ]]; then
+		if [ "${SHEEP_LOG_LEVEL}" = "ERROR" ]; then
 			return
 		fi
 	elif [ "${severity}" = 'DEBUG' ]; then
@@ -118,7 +118,7 @@ exit_on_error() {
 	log_debug "-> ${FUNCNAME[0]} $*"
 
 	echo "ERROR : ${1}" >&2
-	log "Exit with status code 1"
+	log_error "Exit with status code 1"
 	exit 1
 }
 
@@ -128,7 +128,7 @@ exit_on_error() {
 declare -A kernelParametersMap
 
 #
-# When the function is called the first time it populates parses the commande line parameter
+# When the function is called the first time it parses the command line parameter
 # to populate the `kernelParametersMap` variable.
 #
 # By default, parameters are retrieved from the kernel command line reading /proc/cmdline
@@ -148,18 +148,18 @@ load_kernel_parameters() {
 		for param in ${array[@]}; do
 			local key=$(echo "${param}" | cut -d '=' -f 1)
 			local value=$(echo "${param}" | cut -d '=' -f 2-)
-			kernelParametersMap[${key}]=${value}
+			kernelParametersMap[${key}]="${value}"
 		done
 	fi
 }
 
 #
-# search_kernel_parameter returns the value matching a given kernel parameter identifier.
-# if the parameter is not defined or if its value is blank, it returns a default value if
-# provided. if a kernerl parameter key appears several times on the command line, only the
+# search_kernel_parameter returns the value matching a given kernel parameter key.
+# if the parameter isn't defined or if its value is blank, it returns a default value if
+# provided. If a kernerl parameter key appears several times on the command line, only the
 # last one is taken into account.
 #
-# $1 - Parameter identifier
+# $1 - Kernel parameter key
 # $2 - Default value
 #
 search_kernel_parameter() {
@@ -176,7 +176,7 @@ search_kernel_parameter() {
 #
 # $1 - Parameter identifier
 # $2 - Default value
-# $3 - parsing option (possible values are 'string' or 'yaml'. Default is 'string')
+# $3 - Parsing option (possible values are 'string' or 'yaml'. Default is 'string')
 #
 search_value() {
 	log_debug "-> ${FUNCNAME[0]} $*"
@@ -213,9 +213,9 @@ prepare_env() {
 	log_debug "-> ${FUNCNAME[0]} $*"
 
 	### Workaround for Debian repos issue when runnning GRML
-	###     E: The repository 'http://security.debian.org testing/updates Release' does not have a Release file.
-	### We don't need this package repository so we delete it
-	# This line is required only if the version of grml isn't the sheep-live one
+	###     E: The repository 'http://security.debian.org testing/updates Release does not have a Release' file.
+	### We do not need this package repository so we delete it
+	# This line is required only if the version of grml is not sheep-live
 	if [ $(cat /etc/grml_version | grep "^grml64-full 2018.12") -lt 1 ]; then
 		cat <<- 'EOF' > /etc/apt/sources.list.d/debian.list
 			deb     http://snapshot.debian.org/archive/debian/20181230/ testing main contrib non-free
@@ -347,12 +347,12 @@ check_filesystem_label() {
 	local size=${#1}
 	local count=0
 	if [ ${size} -gt 12 ]; then
-		exit_on_error "Number of caracter exceed maximal sie : 12 caracters max"
+		exit_on_error "Number of character exceed maximal size : 12 characters max"
 	fi
 	if [[ "${1}" =~ ([0-9A-Za-z_-]{$size}) ]]; then
 		:
 	else
-		exit_on_error "Invalid caracter used in the name given to filesystem : caracters must be a number, a letter '_' or '-'"
+		exit_on_error "Invalid character used in the name given to filesystem : character must be a number, a letter '_' or '-'"
 	fi
 }
 
@@ -422,7 +422,7 @@ isTrue() {
 }
 
 #
-# Create a directory : rootfs
+# Create root directory rootfs
 # Mounts the root file system partition on this one
 # Create two directories in it : boot and inside efi
 # Mounts efi partition on efi directory
@@ -447,7 +447,7 @@ partitions_mounting() {
 #
 # Download the file containing the root file system in /tmp directory and named it as linux_rootfs.
 #
-# The type supported are archive compressed like .tar.gz and .tar.xz, squashfs, qcow2.
+# The type supported are compressed archive like .tar.gz and .tar.xz, squashfs, qcow2.
 #
 # Analyses the type of root file system file and call function for extracting and copying the file system depending on the type.
 #
@@ -474,8 +474,6 @@ linux_rootfs_installation() {
 		squashfs_installation
 	elif [ -n "$(file ${linux_image} | grep QCOW)" ]; then
 		qcow2_installation
-	elif [ -n "$(file ${linux_image} | grep ISO)" ]; then
-		: #TODO : call functioninstallation for iso root fs
 	fi
 }
 
@@ -519,9 +517,9 @@ bootloader_installation() {
 bootloader_installation_uefi() {
 	log_debug "-> ${FUNCNAME[0]} $*"
 	local bootloader_name=ubuntu # bootloader_name is used to name the bootloader folder
-	# in the EFI partition. For now, it have to be 'ubuntu' and
+	# in the EFI partition. For now, it has to be 'ubuntu' and
 	# can't be changed as long we rely on Grub EFI comming from
-	# Cannonical because some paths are harcoded into binaries.
+	# Cannonical because some paths are hardcoded into binaries.
 
 	local bootloader_dir=${rootfs}/boot/efi/EFI/${bootloader_name}
 	local bootloader_archive_file=/tmp/efi.tar.gz
@@ -541,7 +539,8 @@ bootloader_installation_uefi() {
 # This function is useful to erase unecessary efi boot entry
 #
 # - Unecessary boot entry are those which have been added with a path to the bootloader
-# - Permit to avoid bug after reboot
+# - Avoid having bug after reboot
+#
 efi_entry_cleanup() {
 	log_debug "-> ${FUNCNAME[0]} $*"
 
@@ -750,7 +749,7 @@ linux_rootfs_configuration() {
 
 #
 # Verification of grub.cfg file presence
-# Existing grub.cfg file is used to check the path to the kernel an initrd file
+# Existing grub.cfg file is used to check the path to the kernel an initrd files
 # These paths are used to recreate a new grub.cfg file
 #
 rootfs_bootloader_configuration() {
@@ -801,10 +800,12 @@ rootfs_bootloader_configuration() {
 
 #
 # This function disable the SElinux service in the configuration file by default
-# If selinux variable is set to enable, it create the file .autorelabel on root : selinux uses extended attributes
-# and by copying the rootfile system this way, it comes to a problem on it
+# If selinux variable is set to enable, it creates the file .autorelabel at the filesystem root
 #
-# So SElinux is locking everyfing. You can't log after reboot.
+# Indeed selinux uses extended attributes
+# and by copying the rootfile system as sheep does, it comes to a problem on it
+#
+# So SElinux is locking every access to the OS. You can't log after reboot.
 # Having the file .autorelabel after reboot involves two reboots before beeing able to login.
 # At the first reboot, the presence of .autorelabel launch the relabelling of all files.
 # Then the system reboot and you're able to login.
