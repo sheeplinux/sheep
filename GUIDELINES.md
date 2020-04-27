@@ -1,10 +1,10 @@
 # Coding guidelines
 
-Bash scripiting is very permissive, this guide is here to describe rules to follow by evryone
+Bash scripiting is very permissive, this guide is here to describe rules to follow by everyone
 during development. Some rules are here to prevent potential errors while some others are here
 to ensure code style consistency.
 
-Every single ontribution have to follow those rules in order to be accepted.
+Every single contribution has to follow these rules in order to be accepted.
 
 ## Variables
 
@@ -14,7 +14,7 @@ In code, a variable reference is done using the `${}` notation. For example, we 
 
 ### Variable into functions
 
-Everytime it is possible, a variable is declared locally when used only inside a function using the `local` keyword. We try to avoid global variable as much as we can.
+Everytime it is possible, a variable is declared locally when used inside a function using the `local` keyword. We try to avoid global variable as much as we can.
 
 ### Variable namming
 
@@ -28,13 +28,13 @@ Some rules to follow:
 ### Function documentation
 
 Function documentation is optionnal but strongly encouraged and should be present every time when we
-think it's necessary. A function documentation is located immediatelly before the function declaration
+think it is necessary. A function documentation is located immediately before the function declaration
 and respects the following format.
 
 ```
 #
-# This function is useful for bla bla
-# bla bla bla bla.
+# This function is useful for *** ***
+# *** *** *** *** **.
 #
 # $1 - Input parameter 1 description
 # $2 - Input parameter 2 description
@@ -45,18 +45,18 @@ and respects the following format.
 
 ## Control structures
 
-Control structures like, `if`, `for` and `while` are written avoiding using extra new lines before
+Control structures like `if`, `for` and `while` are written avoiding using extra new lines before
 keywords `then` or `do`. We use semicolon instead.
 
 For instance, we write
 
 ```
 if [ condition1 ]; then
-    cmd1
+	cmd1
 elif [ condition2 ]; then
-    cmd2
+	cmd2
 else
-    cmd3
+	cmd3
 fi
 ```
 
@@ -78,7 +78,7 @@ fi
 
 ### Prefer `test` flags
 
-Every time it's possible we prefer to use dash flags from the `test` command rather than merely compare using `=` operator. e.g. we write `[ -z "${my_var}" ]` instead of `[ "${my_var}" = "" ]`. And we write
+Every time it is possible we prefer to use dash flags from the `test` command rather than merely compare using `=` operator. e.g. we write `[ -z "${my_var}" ]` instead of `[ "${my_var}" = "" ]`. And we write
 `[ ${my_var} -ne 0 ]` instead of `[ ${my_var} != 0 ]`.
 
 ## Code indentation
