@@ -27,7 +27,7 @@ code-formatting:
 ubuntu16.04-qcow2-uefi_boot:
   stage: test-integ
   variables:
-    CONFIG_FILE_NAME: SheepCfg_ubuntu16_04_qcow2_leo.yml
+    CONFIG_FILE_NAME: ubuntu16_04_uefi_CID_leopard.yml
     EXPECTED_UNAME: 'Linux sheep 4.4.0-173-generic'
     EXTRA_KERNEL_CMDLINE: console=ttyS1,57600n8
     EXPECTED_SHELL: sh
@@ -44,7 +44,7 @@ ubuntu16.04-qcow2-uefi_boot:
 centos7-qcow2-uefi_boot:
   stage: test-integ
   variables:
-    CONFIG_FILE_NAME: SheepCfg_centos7_qcow2_leo.yml
+    CONFIG_FILE_NAME: centOS7_uefi_CID_leopard.yml
     EXPECTED_UNAME: 'Linux sheep 3.10.0-957.27.2.el7.x86_64'
     EXTRA_KERNEL_CMDLINE: console=ttyS1,57600n8
     EXPECTED_SHELL: bash
@@ -61,7 +61,7 @@ centos7-qcow2-uefi_boot:
 debian9-qcow2-uefi_boot:
   stage: test-integ
   variables:
-    CONFIG_FILE_NAME: SheepCfg_debian9_qcow2_leo.yml
+    CONFIG_FILE_NAME: debian9_legacy_CID_leopard.yml
     EXPECTED_UNAME: 'Linux sheep 4.9.0-11-amd64'
     EXTRA_KERNEL_CMDLINE: console=ttyS1,57600n8
     EXPECTED_SHELL: bash
@@ -78,7 +78,7 @@ debian9-qcow2-uefi_boot:
 opensuse15.1-qcow2-uefi_boot:
   stage: test-integ
   variables:
-    CONFIG_FILE_NAME: SheepCfg_opensuse15_1_qcow2_leo.yml
+    CONFIG_FILE_NAME: openSUSE15_1_uefi_CID_leopard.yml
     EXPECTED_UNAME: 'Linux sheep 4.12.14-lp151.28.36-default'
     EXTRA_KERNEL_CMDLINE: console=ttyS1,57600n8
     EXPECTED_SHELL: bash
@@ -95,7 +95,7 @@ opensuse15.1-qcow2-uefi_boot:
 ubuntu16.04-qcow2-legacy_boot:
   stage: test-integ
   variables:
-    CONFIG_FILE_NAME: SheepCfg_ubuntu16_04_qcow2_win.yml
+    CONFIG_FILE_NAME: ubuntu16_04_legacy_CID_winterfell.yml
     EXPECTED_UNAME: 'Linux sheep 4.4.0-173-generic'
     EXTRA_KERNEL_CMDLINE: console=ttyS1,115200n8 iomem=relaxed ethdevice=enp12s0 module_blacklist=mei,mei_me sheep.log.level=DEBUG sheep.delay=10
     EXPECTED_SHELL: bash
@@ -114,7 +114,7 @@ ubuntu16.04-qcow2-legacy_boot:
 centos7-qcow2-legacy_boot:
   stage: test-integ
   variables:
-    CONFIG_FILE_NAME: SheepCfg_centos7_qcow2_win.yml
+    CONFIG_FILE_NAME: centOS7_legacy_CID_winterfell.yml
     EXPECTED_UNAME: 'Linux sheep 3.10.0-957.27.2.el7.x86_64'
     EXTRA_KERNEL_CMDLINE: console=ttyS1,115200n8 iomem=relaxed ethdevice=enp12s0 module_blacklist=mei,mei_me
     EXPECTED_SHELL: bash
@@ -133,7 +133,7 @@ centos7-qcow2-legacy_boot:
 debian9-qcow2-legacy_boot:
   stage: test-integ
   variables:
-    CONFIG_FILE_NAME: SheepCfg_debian9_qcow2_win.yml
+    CONFIG_FILE_NAME: debian9_legacy_CID_winterfell.yml
     EXPECTED_UNAME: 'Linux sheep 4.9.0-11-amd64'
     EXTRA_KERNEL_CMDLINE: console=ttyS1,115200n8 iomem=relaxed ethdevice=enp12s0 module_blacklist=mei,mei_me
     EXPECTED_SHELL: bash
@@ -152,7 +152,7 @@ debian9-qcow2-legacy_boot:
 opensuse15.1-qcow2-legacy_boot:
   stage: test-integ
   variables:
-    CONFIG_FILE_NAME: SheepCfg_opensuse15_1_qcow2_win.yml
+    CONFIG_FILE_NAME: openSUSE15_1_legacy_CID_winterfell.yml
     EXPECTED_UNAME: 'Linux sheep 4.12.14-lp151.28.36-default'
     EXTRA_KERNEL_CMDLINE: console=ttyS1,115200n8 iomem=relaxed ethdevice=enp12s0 module_blacklist=mei,mei_me
     EXPECTED_SHELL: bash
@@ -170,7 +170,7 @@ opensuse15.1-qcow2-legacy_boot:
 ubuntu16.04-qcow2-legacy_boot_CIE:
   stage: test-integ
   variables:
-    CONFIG_FILE_NAME: SheepCfg_ubuntu16_04_legacy_cie.yml
+    CONFIG_FILE_NAME: ubuntu16_04_legacy_CIE_winterfell.yml
     EXPECTED_UNAME: 'Linux sheep 4.4.0-173-generic'
     EXTRA_KERNEL_CMDLINE: console=ttyS1,115200n8 iomem=relaxed ethdevice=enp12s0 module_blacklist=mei,mei_me
     EXPECTED_SHELL: bash
@@ -189,7 +189,7 @@ ubuntu16.04-qcow2-legacy_boot_CIE:
 centos7-qcow2-legacy_boot_CIE:
   stage: test-integ
   variables:
-    CONFIG_FILE_NAME: SheepCfg_centOS7_legacy_cie.yml
+    CONFIG_FILE_NAME: centOS7_legacy_CIE_winterfell.yml
     EXPECTED_UNAME: 'Linux sheep 3.10.0-957.27.2.el7.x86_64'
     EXTRA_KERNEL_CMDLINE: console=ttyS1,115200n8 iomem=relaxed ethdevice=enp12s0 module_blacklist=mei,mei_me
     EXPECTED_SHELL: bash
@@ -208,7 +208,7 @@ centos7-qcow2-legacy_boot_CIE:
 debian9-qcow2-legacy_boot_CIE:
   stage: test-integ
   variables:
-    CONFIG_FILE_NAME: SheepCfg_debian9_legacy_cie.yml
+    CONFIG_FILE_NAME: debian9_legacy_CIE_winterfell.yml
     EXPECTED_UNAME: 'Linux sheep 4.9.0-11-amd64'
     EXTRA_KERNEL_CMDLINE: console=ttyS1,115200n8 iomem=relaxed ethdevice=enp12s0 module_blacklist=mei,mei_me
     EXPECTED_SHELL: bash
@@ -227,7 +227,7 @@ debian9-qcow2-legacy_boot_CIE:
 opensuse15.1-qcow2-legacy_boot_CIE:
   stage: test-integ
   variables:
-    CONFIG_FILE_NAME: SheepCfg_openSUSE15_1_legacy_cie.yml
+    CONFIG_FILE_NAME: openSUSE15_1_legacy_CIE_winterfell.yml
     EXPECTED_UNAME: 'Linux sheep 4.12.14-lp151.28.36-default'
     EXTRA_KERNEL_CMDLINE: console=ttyS1,115200n8 iomem=relaxed ethdevice=enp12s0 module_blacklist=mei,mei_me
     EXPECTED_SHELL: bash
