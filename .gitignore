@@ -2,3 +2,4 @@ tests/unit_tests/*.log
 .vscode/
 .vagrant/
 *.log
+doc/site

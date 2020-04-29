@@ -1,6 +1,11 @@
 site_name: Sheep
 site_author: Guillaume Giamarchi, Mathilde Hermet
-theme: readthedocs
+
+extra_css: [css/codehilite.css]
+
+theme:
+    name: readthedocs
+    highlightjs: false
 
 nav:
   - Home: index.md
@@ -14,3 +19,4 @@ nav:
 
 markdown_extensions:
   - admonition
+  - codehilite
