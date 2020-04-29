@@ -20,8 +20,8 @@ Vagrant.configure(2) do |config|
         # Install yq
         #
         sudo apt update
-        sudo apt install -y python-pip jq
-        sudo pip install yq
+        sudo apt install -y python3-pip jq
+        sudo pip3 install yq
 
         #
         # Install bats
@@ -31,6 +31,12 @@ Vagrant.configure(2) do |config|
         sudo ./install.sh /usr/local
         cd ..
         rm -rf bats
+
+        #
+        # Install mkdocs
+        #
+        pip3 install mkdocs Pygments
     SHELL
 
+    config.vm.network "forwarded_port", guest: 8000, host: 9000
 end
