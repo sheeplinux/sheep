@@ -177,18 +177,32 @@ wait_for_installation_complete() {
 # Deploy TFTP and HTTP configuration file for network boot
 #
 deploy_boot_config() {
-	cat > ${WORKDIR}/netboot <<- EOF
-		default sheep
-		label sheep
-		kernel /sheep-live/vmlinuz
-		append boot=live fetch=${SHEEP_SQUASHFS} initrd=/sheep-live/initrd.img ssh=sheep ${EXTRA_KERNEL_CMDLINE} startup=/usr/bin/sheep-service sheep.script=${SHEEP_SCRIPT} sheep.config=${SHEEP_CONFIG} sheep.log.level=DEBUG
-	EOF
-
 	sudo mkdir -p /var/www/html/sheep
 
-	sudo rm -f /var/www/html/sheep/${CONFIG_NAME} /var/tftp/pxelinux.cfg/conf/${CONFIG_NAME} /var/www/html/sheep/${CONFIG_NAME}.yml
+	sudo rm -f /var/www/html/sheep/${CONFIG_NAME} /var/tftp/pxelinux.cfg/conf/*/${CONFIG_NAME} /var/www/html/sheep/${CONFIG_NAME}.yml
 	sudo cp ${SHEEP_SCRIPT_SOURCE} /var/www/html/sheep/${CONFIG_NAME}
-	sudo cp ${WORKDIR}/netboot /var/tftp/pxelinux.cfg/conf/${CONFIG_NAME}
+
+	if [ $(echo ${DUT_NAME} | grep '\-legacy' | wc -l) -eq 1 ]; then
+		# Legacy mode (using pxelinux)
+		sudo bash -c "cat > /var/tftp/pxelinux.cfg/conf/pxelinux/${CONFIG_NAME}" <<- EOF
+			default sheep
+			label sheep
+			kernel /sheep-live/vmlinuz
+			append boot=live fetch=${SHEEP_SQUASHFS} initrd=/sheep-live/initrd.img ssh=sheep ${EXTRA_KERNEL_CMDLINE} startup=/usr/bin/sheep-service sheep.script=${SHEEP_SCRIPT} sheep.config=${SHEEP_CONFIG} sheep.log.level=DEBUG
+		EOF
+	else
+		# UEFI mode (using GRUB)
+		sudo bash -c "cat > /var/tftp/pxelinux.cfg/conf/grub/${CONFIG_NAME}" <<- EOF
+			cat > ${WORKDIR}/netboot <<- EOF
+				set timeout=2
+				set default="0"
+
+				menuentry "Sheep" {
+				    linux /sheep-live/vmlinuz boot=live fetch=${SHEEP_SQUASHFS} ssh=sheep ${EXTRA_KERNEL_CMDLINE} startup=/usr/bin/sheep-service sheep.script=${SHEEP_SCRIPT} sheep.config=${SHEEP_CONFIG} sheep.log.level=DEBUG
+				    initrd /sheep-live/initrd.img
+				}
+		EOF
+	fi
 
 	local tmp_config=$(mktemp)
 	chmod +r ${tmp_config}
@@ -356,7 +370,7 @@ cleanup() {
 	stop_asciinema ${DUT_NAME}
 
 	log "Cleanup environment"
-	sudo rm -f /var/tftp/pxelinux.cfg/conf/${CONFIG_NAME}
+	sudo rm -f /var/tftp/pxelinux.cfg/conf/*/${CONFIG_NAME}
 	sudo rm -f /var/www/html/sheep/${CONFIG_NAME}
 
 	touch ${SHEEP_RESULTS_FILE}
