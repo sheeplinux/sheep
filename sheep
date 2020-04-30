@@ -834,24 +834,16 @@ partitions_unmounting() {
 notify_pxepilot() {
 	log_debug "-> ${FUNCNAME[0]} $*"
 
-	if isTrue ${PXE_PILOT_ENABLED}; then
-		local code=0
-		while read mac; do
-			code=$(curl -s -o /dev/null -w '%{http_code}' -i -X PUT "${PXE_PILOT_BASEURL}/v1/configurations/${PXE_PILOT_CFG}/deploy" -d '{"hosts":[{"macAddress":"'"$mac"'"}]}')
-			if [ "${code}" == "200" ]; then
-				break
-			fi
-		done < <(ip a | awk '/link\/ether /{ print $2 }' | sort -u)
-		if [ "${code}" != "200" ]; then
-			exit_on_error "PXE Pilot API call error"
+	local code=0
+	while read mac; do
+		code=$(curl -s -o /dev/null -w '%{http_code}' -i -X PUT "${PXE_PILOT_BASEURL}/v1/configurations/${PXE_PILOT_CFG}/deploy" -d '{"hosts":[{"macAddress":"'"${mac}"'"}]}')
+		if [ "${code}" == "200" ]; then
+			break
 		fi
-	fi
+	done < <(ip a | awk '/link\/ether /{ print $2 }' | sort -u)
 
-	# Marker to indicate installation is successful
-	touch /var/run/sheep.success
-
-	if [ "${REBOOT_WHEN_DONE}" == "true" ]; then
-		reboot
+	if [ "${code}" != "200" ]; then
+		exit_on_error "PXE Pilot API call error"
 	fi
 }
 
