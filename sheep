@@ -634,20 +634,17 @@ config_userdata_ci_disable() {
 
 	local c=0
 	local user=$(search_value ".environment.users[$c]")
-	local name=$(search_value ".environment.users[$c].name")
-	local sudoer=$(search_value ".environment.users[$c].sudoer")
-	local ssh=$(search_value ".environment.users[$c].ssh_authorized_key")
-	local shell=$(search_value ".environment.users[$c].shell")
 
 	cat <<- EOF > ${cloudfs}/user-data
 		#cloud-config
 		users:
 	EOF
+
 	while ! [ -z "${user}" ]; do
-		name=$(search_value ".environment.users[$c].name")
-		sudoer=$(search_value ".environment.users[$c].sudoer")
-		ssh=$(search_value ".environment.users[$c].ssh_authorized_key")
-		shell=$(search_value ".environment.users[$c].shell")
+		local name=$(search_value ".environment.users[$c].name")
+		local sudoer=$(search_value ".environment.users[$c].sudoer")
+		local ssh=$(search_value ".environment.users[$c].ssh_authorized_key")
+		local shell=$(search_value ".environment.users[$c].shell")
 		cat <<- EOF >> ${cloudfs}/user-data
 			  - name: ${name}
 			    lock_passwd: false
