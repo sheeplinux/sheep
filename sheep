@@ -4,7 +4,7 @@ set -e
 
 #
 # Initialize logger. To configure the logger, environment variables SHEEP_LOG_FILE and
-# SHEEP_LOG_LEVEL can be set prior calling this function. Authorized log level are
+# SHEEP_LOG_LEVEL can be set prior calling this function. Authorized log levels are
 # ERROR, WARNING, INFO and DEBUG. Log level can also be configured using kernel parameter
 # `sheep.log.level`.
 #
@@ -155,8 +155,8 @@ load_kernel_parameters() {
 
 #
 # search_kernel_parameter returns the value matching a given kernel parameter key.
-# if the parameter isn't defined or if its value is blank, it returns a default value if
-# provided. If a kernerl parameter key appears several times on the command line, only the
+# if the parameter is not defined or if its value is blank, it returns a default value if
+# provided. If a kernel parameter key appears several times on the command line, only the
 # last one is taken into account.
 #
 # $1 - Kernel parameter key
@@ -516,10 +516,12 @@ bootloader_installation() {
 
 bootloader_installation_uefi() {
 	log_debug "-> ${FUNCNAME[0]} $*"
-	local bootloader_name=ubuntu # bootloader_name is used to name the bootloader folder
+
+	# bootloader_name is used to name the bootloader folder
 	# in the EFI partition. For now, it has to be 'ubuntu' and
-	# can't be changed as long we rely on Grub EFI comming from
+	# cannot be changed as long we rely on Grub EFI comming from
 	# Cannonical because some paths are hardcoded into binaries.
+	local bootloader_name=ubuntu
 
 	local bootloader_dir=${rootfs}/boot/efi/EFI/${bootloader_name}
 	local bootloader_archive_file=/tmp/efi.tar.gz
@@ -781,7 +783,7 @@ rootfs_bootloader_configuration() {
 		# e.g. /mnt/boot/loader/entries/f241772f3e32496c92975269b5794615-5.0.9-301.fc30.x86_64.conf
 		:
 		if [[ -z "${kernel}" || -z ${initrd} ]]; then
-			exit_on_error "Can't find kernel or initrd file path"
+			exit_on_error "Cannot find kernel or initrd file path"
 		fi
 	fi
 
@@ -805,7 +807,7 @@ rootfs_bootloader_configuration() {
 # Indeed selinux uses extended attributes
 # and by copying the rootfile system as sheep does, it comes to a problem on it
 #
-# So SElinux is locking every access to the OS. You can't log after reboot.
+# So SElinux is locking every access to the OS. You cannot log after reboot.
 # Having the file .autorelabel after reboot involves two reboots before beeing able to login.
 # At the first reboot, the presence of .autorelabel launch the relabelling of all files.
 # Then the system reboot and you're able to login.
@@ -953,7 +955,7 @@ main() {
 		log "Rebooting system..."
 		reboot
 	else
-		log_warning "System won't reboot by itself (disabled in Sheep configuration)"
+		log_warning "System will not reboot by itself (disabled in Sheep configuration)"
 	fi
 }
 
