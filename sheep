@@ -265,7 +265,7 @@ load_config() {
 config_variable() {
 	log_debug "-> ${FUNCNAME[0]} $*"
 
-	OS_NAME=$(search_value ".linux.label" "linux")
+	OS_NAME=$(search_value ".linux.label" "Linux")
 	CLOUD_INIT_ENABLED=$(search_value ".cloudInit.enable" "false")
 	BLOCK_DEVICE=$(search_value ".linux.device" $(ls /dev/[hs]d[a-z] | head -1))
 	EFI_PARTITION="${BLOCK_DEVICE}1"
