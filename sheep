@@ -23,7 +23,7 @@ set -e
 
 #
 # Initialize logger. To configure the logger, environment variables SHEEP_LOG_FILE and
-# SHEEP_LOG_LEVEL can be set prior calling this function. Authorized log level are
+# SHEEP_LOG_LEVEL can be set prior calling this function. Authorized log levels are
 # ERROR, WARNING, INFO and DEBUG. Log level can also be configured using kernel parameter
 # `sheep.log.level`.
 #
@@ -174,8 +174,8 @@ load_kernel_parameters() {
 
 #
 # search_kernel_parameter returns the value matching a given kernel parameter key.
-# if the parameter isn't defined or if its value is blank, it returns a default value if
-# provided. If a kernerl parameter key appears several times on the command line, only the
+# if the parameter is not defined or if its value is blank, it returns a default value if
+# provided. If a kernel parameter key appears several times on the command line, only the
 # last one is taken into account.
 #
 # $1 - Kernel parameter key
@@ -284,7 +284,7 @@ load_config() {
 config_variable() {
 	log_debug "-> ${FUNCNAME[0]} $*"
 
-	OS_NAME=$(search_value ".linux.label" "linux")
+	OS_NAME=$(search_value ".linux.label" "Linux")
 	CLOUD_INIT_ENABLED=$(search_value ".cloudInit.enable" "false")
 	BLOCK_DEVICE=$(search_value ".linux.device" $(ls /dev/[hs]d[a-z] | head -1))
 	EFI_PARTITION="${BLOCK_DEVICE}1"
@@ -535,10 +535,12 @@ bootloader_installation() {
 
 bootloader_installation_uefi() {
 	log_debug "-> ${FUNCNAME[0]} $*"
-	local bootloader_name=ubuntu # bootloader_name is used to name the bootloader folder
+
+	# bootloader_name is used to name the bootloader folder
 	# in the EFI partition. For now, it has to be 'ubuntu' and
-	# can't be changed as long we rely on Grub EFI comming from
+	# cannot be changed as long we rely on Grub EFI comming from
 	# Cannonical because some paths are hardcoded into binaries.
+	local bootloader_name=ubuntu
 
 	local bootloader_dir=${rootfs}/boot/efi/EFI/${bootloader_name}
 	local bootloader_archive_file=/tmp/efi.tar.gz
@@ -555,6 +557,7 @@ bootloader_installation_uefi() {
 	efibootmgr -c -d ${BLOCK_DEVICE} -p 1 -L "${EFI_ENTRY_LABEL}" -l "\EFI\\${bootloader_name}\shimx64.efi"
 }
 
+#
 # This function is useful to erase unecessary efi boot entry
 #
 # - Unecessary boot entry are those which have been added with a path to the bootloader
@@ -564,10 +567,10 @@ efi_entry_cleanup() {
 	log_debug "-> ${FUNCNAME[0]} $*"
 
 	num=$(efibootmgr -v | grep "File" | cut -d ' ' -f 1 | grep "0" | cut -d 't' -f 2 | cut -d '*' -f 1)
-	N=$(echo $num | wc -w)
-	for i in $(seq 1 $N); do
-		entry=$(echo $num | cut -d ' ' -f $i)
-		efibootmgr -b $entry -B
+	N=$(echo ${num} | wc -w)
+	for i in $(seq 1 ${N}); do
+		entry=$(echo ${num} | cut -d ' ' -f ${i})
+		efibootmgr -b ${entry} -B
 	done
 }
 
@@ -601,9 +604,9 @@ config_metadata_ci_disable() {
 }
 
 config_network_config_ci_disable() {
-	local counter=0
-	local interface=$(search_value ".network.interfaces[$counter].id")
-	local type=$(search_value ".network.interfaces[$counter].type")
+	local c=0
+	local interface=$(search_value ".network.interfaces[${c}].id")
+	local type=$(search_value ".network.interfaces[${c}].type")
 
 	cat <<- EOF > ${cloudfs}/network-config
 		version: 1
@@ -620,12 +623,12 @@ config_network_config_ci_disable() {
 				      - type: dhcp
 			EOF
 		elif [ "${type}" == "static" ]; then
-			local address=$(search_mandatory_value ".network.interfaces[$counter].address")
+			local address=$(search_mandatory_value ".network.interfaces[${c}].address")
 			local ret=$?
 			if [ ${ret} -ne 0 ]; then
 				exit ${ret}
 			fi
-			local gateway=$(search_value ".network.interfaces[$counter].gateway")
+			local gateway=$(search_value ".network.interfaces[${c}].gateway")
 			cat <<- EOF >> ${cloudfs}/network-config
 				      - address: ${address}
 			EOF
@@ -640,9 +643,9 @@ config_network_config_ci_disable() {
 		else
 			exit_on_error "Type of network configuration not configurable in cloud-init disable mode"
 		fi
-		counter=$(($counter + 1))
-		interface=$(search_value ".network.interfaces[$counter].id")
-		type=$(search_value ".network.interfaces[$counter].type")
+		c=$((${c} + 1))
+		interface=$(search_value ".network.interfaces[${c}].id")
+		type=$(search_value ".network.interfaces[${c}].type")
 	done
 }
 
@@ -650,21 +653,18 @@ config_userdata_ci_disable() {
 	log_debug "-> ${FUNCNAME[0]} $*"
 
 	local c=0
-	local user=$(search_value ".environment.users[$c]")
-	local name=$(search_value ".environment.users[$c].name")
-	local sudoer=$(search_value ".environment.users[$c].sudoer")
-	local ssh=$(search_value ".environment.users[$c].ssh_authorized_key")
-	local shell=$(search_value ".environment.users[$c].shell")
+	local user=$(search_value ".environment.users[${c}]")
 
 	cat <<- EOF > ${cloudfs}/user-data
 		#cloud-config
 		users:
 	EOF
+
 	while ! [ -z "${user}" ]; do
-		name=$(search_value ".environment.users[$c].name")
-		sudoer=$(search_value ".environment.users[$c].sudoer")
-		ssh=$(search_value ".environment.users[$c].ssh_authorized_key")
-		shell=$(search_value ".environment.users[$c].shell")
+		local name=$(search_value ".environment.users[${c}].name")
+		local sudoer=$(search_value ".environment.users[${c}].sudoer")
+		local ssh=$(search_value ".environment.users[${c}].ssh_authorized_key")
+		local shell=$(search_value ".environment.users[${c}].shell")
 		cat <<- EOF >> ${cloudfs}/user-data
 			  - name: ${name}
 			    lock_passwd: false
@@ -676,18 +676,18 @@ config_userdata_ci_disable() {
 		if ! [ -z "${shell}" ]; then
 			echo "    shell: ${shell}" >> ${cloudfs}/user-data
 		fi
-		c=$(($c + 1))
-		user=$(search_value ".environment.users[$c]")
+		c=$((${c} + 1))
+		user=$(search_value ".environment.users[${c}]")
 	done
 	cat <<- EOF >> ${cloudfs}/user-data
 		chpasswd:
 		  expire: false
 		  list : |
 	EOF
-	N=$(($c - 1))
-	for i in $(seq 0 $N); do
-		local name=$(search_value ".environment.users[$i].name")
-		local password=$(search_value ".environment.users[$i].password")
+	N=$((${c} - 1))
+	for i in $(seq 0 ${N}); do
+		local name=$(search_value ".environment.users[${i}].name")
+		local password=$(search_value ".environment.users[${i}].password")
 		echo "    ${name}:${password}" >> ${cloudfs}/user-data
 	done
 	cat <<- EOF >> ${cloudfs}/user-data
@@ -742,11 +742,11 @@ blacklist_module() {
 	log_debug "-> ${FUNCNAME[0]} $*"
 
 	local i=0
-	local mod=$(search_value ".linux.blacklist_module[$i]")
+	local mod=$(search_value ".linux.blacklist_module[${i}]")
 	while ! [ -z "${mod}" ]; do
 		echo "blacklist ${mod}" >> ${rootfs}/etc/modprobe.d/blacklist.conf
-		i=$(($i + 1))
-		mod=$(search_value ".linux.blacklist_module[$i]")
+		i=$((${i} + 1))
+		mod=$(search_value ".linux.blacklist_module[${i}]")
 	done
 }
 
@@ -800,7 +800,7 @@ rootfs_bootloader_configuration() {
 		# e.g. /mnt/boot/loader/entries/f241772f3e32496c92975269b5794615-5.0.9-301.fc30.x86_64.conf
 		:
 		if [[ -z "${kernel}" || -z ${initrd} ]]; then
-			exit_on_error "Can't find kernel or initrd file path"
+			exit_on_error "Cannot find kernel or initrd file path"
 		fi
 	fi
 
@@ -824,7 +824,7 @@ rootfs_bootloader_configuration() {
 # Indeed selinux uses extended attributes
 # and by copying the rootfile system as sheep does, it comes to a problem on it
 #
-# So SElinux is locking every access to the OS. You can't log after reboot.
+# So SElinux is locking every access to the OS. You cannot log after reboot.
 # Having the file .autorelabel after reboot involves two reboots before beeing able to login.
 # At the first reboot, the presence of .autorelabel launch the relabelling of all files.
 # Then the system reboot and you're able to login.
@@ -853,24 +853,16 @@ partitions_unmounting() {
 notify_pxepilot() {
 	log_debug "-> ${FUNCNAME[0]} $*"
 
-	if isTrue ${PXE_PILOT_ENABLED}; then
-		local code=0
-		while read mac; do
-			code=$(curl -s -o /dev/null -w '%{http_code}' -i -X PUT "${PXE_PILOT_BASEURL}/v1/configurations/${PXE_PILOT_CFG}/deploy" -d '{"hosts":[{"macAddress":"'"$mac"'"}]}')
-			if [ "${code}" == "200" ]; then
-				break
-			fi
-		done < <(ip a | awk '/link\/ether /{ print $2 }' | sort -u)
-		if [ "${code}" != "200" ]; then
-			exit_on_error "PXE Pilot API call error"
+	local code=0
+	while read mac; do
+		code=$(curl -s -o /dev/null -w '%{http_code}' -i -X PUT "${PXE_PILOT_BASEURL}/v1/configurations/${PXE_PILOT_CFG}/deploy" -d '{"hosts":[{"macAddress":"'"${mac}"'"}]}')
+		if [ "${code}" == "200" ]; then
+			break
 		fi
-	fi
+	done < <(ip a | awk '/link\/ether /{ print $2 }' | sort -u)
 
-	# Marker to indicate installation is successful
-	touch /var/run/sheep.success
-
-	if [ "${REBOOT_WHEN_DONE}" == "true" ]; then
-		reboot
+	if [ "${code}" != "200" ]; then
+		exit_on_error "PXE Pilot API call error"
 	fi
 }
 
@@ -972,7 +964,7 @@ main() {
 		log "Rebooting system..."
 		reboot
 	else
-		log_warning "System won't reboot by itself (disabled in Sheep configuration)"
+		log_warning "System will not reboot by itself (disabled in Sheep configuration)"
 	fi
 }
 
