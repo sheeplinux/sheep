@@ -9,7 +9,7 @@ bootloader:
   kernel_parameter: 'console=ttyS1,115200n8'
 
 linux:
-  image: http://mirror_address/CentOS-7-x86_64-GenericCloud-1907.qcow2
+  image: https://cloud.centos.org/centos/7/images/CentOS-7-aarch64-GenericCloud-2003.qcow2
   label: CentOS 7
   device: /dev/sda
   rootfsType: ext4
@@ -30,7 +30,7 @@ network:
 
 pxePilot:
   enable: true
-  url: http://pxe-pilot_server_address
+  url: http://172.19.17.1:3478
   config_after_reboot: local
 
 environment:
@@ -38,7 +38,7 @@ environment:
     - name: linux
       sudoer: true
       password: linux
-      ssh_authorized_key: server_ssh_public_key
+      ssh_authorized_key: ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDdXnRJVWf7OvFa0UZPkvDBave2BWhr29HFlO/bI/98rmPc0zn24a8Wplo/Sts4SrL3xZNATH5tWwNpPulBThPqnjdMU4Rw2Jf/mjlQXiT7+w3w60/HrMd62J/d/dyYrIuvuog3OAEi1vsiKCRm/9ptpbNA4E34ZUBSOpT3bx0b4NszYB2g7VdcmgHHXSY16AVCv3I3ZN0UmWphw1hpjpxfHTinE2pR5L0HVMikxqaxjCZI7DSpi8f4gQJn7gjLTh905o751Z3s7Y4L/v9NTEXmCPF425krwxDD4EMSMJ6BXgAExvPolWV0/W9HUtKX7XtEJUKWLUlikb7qTRWR1sld ubuntu@dev-01
       shell: /bin/bash
   local_hostname: sheep
 
@@ -60,7 +60,7 @@ bootloader:
   kernel_parameter: 'console=ttyS1,115200n8'
 
 linux:
-  image: http://@@SHEEP_CI_RUNNER_IP@@/CentOS-7-x86_64-GenericCloud-1907.qcow2
+  image: https://cloud.centos.org/centos/7/images/CentOS-7-aarch64-GenericCloud-2003.qcow2
   label: CentOS 7
   device: /dev/sda
   rootfsType: ext4
@@ -72,7 +72,7 @@ linux:
 
 pxePilot:
   enable: true
-  url: http://@@SHEEP_CI_RUNNER_IP@@:3478
+  url: http://172.19.17.1:3478
   config_after_reboot: local
 
 cloudInit:
@@ -93,7 +93,7 @@ cloudInit:
     users:
       - name: linux
         lock_passwd: false
-        ssh_authorized_keys: @@SHEEP_CI_SSH_PUB_KEY@@
+        ssh_authorized_keys: ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDdXnRJVWf7OvFa0UZPkvDBave2BWhr29HFlO/bI/98rmPc0zn24a8Wplo/Sts4SrL3xZNATH5tWwNpPulBThPqnjdMU4Rw2Jf/mjlQXiT7+w3w60/HrMd62J/d/dyYrIuvuog3OAEi1vsiKCRm/9ptpbNA4E34ZUBSOpT3bx0b4NszYB2g7VdcmgHHXSY16AVCv3I3ZN0UmWphw1hpjpxfHTinE2pR5L0HVMikxqaxjCZI7DSpi8f4gQJn7gjLTh905o751Z3s7Y4L/v9NTEXmCPF425krwxDD4EMSMJ6BXgAExvPolWV0/W9HUtKX7XtEJUKWLUlikb7qTRWR1sld ubuntu@dev-01
         sudo: ALL=(ALL) NOPASSWD:ALL
         shell: /bin/bash
     chpasswd:
