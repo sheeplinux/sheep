@@ -41,12 +41,9 @@ linux:
 ```
 
 !!! Note
-    
+
     - SELINUX isn't used by every linux distribtuion. For example enabling it for ubuntu will have no effect
     - Permissive mode of Selinux not available for the moment with sheep
-
-
-
 
 ## Pxe-pilot
 
@@ -69,6 +66,7 @@ pxePilot:
 Configure machine reboot by the end of sheep execution.
 
 * `reboot`: **true** or **false**
+
 ```yaml
 sheep:
   reboot: false
