@@ -9,18 +9,17 @@ theme:
 
 nav:
   - Home: index.md
-  - Quickstart: quickstart.md
-  - Bootloader: bootloader.md
+  - quickstart.md
+  - bootloader.md
   - Configuration:
-      - About configuration: config.md
-      - Linux installation configuration: config_lin.md
-      - Environment configuration: config_env.md
-      - Network configuration: config_net.md
-      - Sheep configuration file examples:
-          - Simplified: ex_simple_conf.md
-          - Cloud-init users oriented: ex_CIE_conf.md
-  - Internals: internals.md
-  - pxe-pilot.md
+      - config.md
+      - config_lin.md
+      - config_env.md
+      - config_net.md
+      - config_example.md
+  - Miscellaneous: 
+      - internals.md
+      - pxe-pilot.md
 
 markdown_extensions:
   - admonition

@@ -1,3 +1,5 @@
+# Linux installation
+
 ## Bootloader
 
 Configure the bootloader of the future linux OS

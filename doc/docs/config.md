@@ -1,3 +1,5 @@
+# About
+
 ## Sheep Configuration File
 
 The configuration file is in yaml.   

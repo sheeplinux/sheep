@@ -1,3 +1,5 @@
+# Networking
+
 ## Basic network configuration
 
 Configure OS Network has to be done this way when cloud-init is `disable`. Otherwise this part won't be taken into account.   

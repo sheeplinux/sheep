@@ -1,3 +1,5 @@
+# Bootloaders
+
 ## Supported bootloaders
 
 GRUB is the only one supported bootloader at this time. THere is currently no plan to support

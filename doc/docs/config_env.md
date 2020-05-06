@@ -1,4 +1,6 @@
-## Configure environment in simplified mode
+# Environment
+
+## Simplified mode
 
 Configure your future OS environment.
 This has to be done this way when cloud-init is `disable`. Otherwise this part won't be taken into account.
@@ -32,7 +34,7 @@ environment:
     * User **linux** with password **linux** will be given.
     * Machine hostname will be **sheep**.
 
-## Advanced environment configuration using
+## Advanced mode (cloud-init)
 
 We can use more features enabled by cloud-init to set up the OS environment.
 Configuring the envrionment with cloud-init is done through meta-data and user-data files.
