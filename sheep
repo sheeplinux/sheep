@@ -630,6 +630,9 @@ config_network_config_ci_disable() {
 	local interface=$(search_value ".network.interfaces[${c}].id")
 	local mode=$(search_value ".network.interfaces[${c}].mode")
 
+	if [ -z "${interface}" ]; then
+		return
+	fi
 	cat <<- EOF > ${cloudfs}/network-config
 		version: 1
 		config:
@@ -642,40 +645,28 @@ config_network_config_ci_disable() {
 		EOF
 		if [ "${mode}" == "dhcp" ]; then
 			cat <<- EOF >> ${cloudfs}/network-config
-				  - name: ${interface}
-				    type: physical
-				    subnets:
+				      - type: dhcp
 			EOF
-			if [ "${mode}" == "dhcp" ]; then
+		elif [ "${mode}" == "static" ]; then
+			local address=$(search_mandatory_value ".network.interfaces[${c}].address")
+			local ret=$?
+			if [ ${ret} -ne 0 ]; then
+				exit ${ret}
+			fi
+			local gateway=$(search_value ".network.interfaces[${c}].gateway")
+			cat <<- EOF >> ${cloudfs}/network-config
+				      - address: ${address}
+			EOF
+			if [ -n "${gateway}" ]; then
 				cat <<- EOF >> ${cloudfs}/network-config
-					      - type: dhcp
+					        gateway: ${gateway}
 				EOF
-			elif [ "${mode}" == "static" ]; then
-				local address=$(search_mandatory_value ".network.interfaces[${c}].address")
-				local ret=$?
-				if [ ${ret} -ne 0 ]; then
-					exit ${ret}
-				fi
-				local gateway=$(search_value ".network.interfaces[${c}].gateway")
-				cat <<- EOF >> ${cloudfs}/network-config
-					      - address: ${address}
-				EOF
-				if [ -n "${gateway}" ]; then
-					cat <<- EOF >> ${cloudfs}/network-config
-						        gateway: ${gateway}
-					EOF
-				fi
-				cat <<- EOF >> ${cloudfs}/network-config
-					        type: static
-				EOF
-			else
-				exit_on_error "Network mode must be 'dhcp' or 'static' in cloud-init disable mode"
 			fi
 			cat <<- EOF >> ${cloudfs}/network-config
 				        type: static
 			EOF
 		else
-			exit_on_error "Type of network configuration not configurable in cloud-init disable mode"
+			exit_on_error "Network mode must be 'dhcp' or 'static' in cloud-init disable mode"
 		fi
 		c=$((${c} + 1))
 		interface=$(search_value ".network.interfaces[${c}].id")
