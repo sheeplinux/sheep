@@ -615,10 +615,13 @@ config_metadata_ci_disable() {
 	local instanceId=$(search_value ".cloudInit.instance_id")
 	local localHostname=$(search_value ".environment.local_hostname")
 
-	cat <<- EOF > ${cloudfs}/meta-data
-		instance-id: ${instanceId}
-		local-hostname: ${localHostname}
-	EOF
+	if [ -z "${instanceId}" ]; then
+		instanceId=$(date +%s)
+	fi
+	echo "instance-id: ${instanceId}" > ${cloudfs}/meta-data
+	if [ -n "${localHostname}" ]; then
+		echo "local-hostname: ${localHostname}" >> ${cloudfs}/meta-data
+	fi
 }
 
 #
