@@ -212,6 +212,9 @@ search_value() {
 }
 
 #
+# Return the value corresponding to the key if given in sheep config file
+# Create an error to stop sheep execution if value is empty for the key
+#
 # $1 - key
 # $2 - error message if the value is not found
 #
@@ -376,9 +379,11 @@ check_filesystem_label() {
 }
 
 #
-# Create two partitions on the drive. One system EFI partition to install
-# the bootloader nad on for the Linux root filesystem. If some partitions
-# previoulsly exist on the drive everything is wiped beforehand.
+# Create three partitions on the drive:
+#   - 1 Boot partition , EFI or MBR type
+#   - 1 CIDATA partition (cloud-init data partition)
+#   - 1 Linux system partition to contain Linux filesystem
+# Everything on the drive is wiped beforehand.
 #
 system_partitionning() {
 	log_debug "-> ${FUNCNAME[0]} $*"
@@ -407,6 +412,12 @@ system_partitionning() {
 	EOF
 }
 
+#
+# Format the 3 partitions:
+#   - 1st partition in FAT32 if EFI type / No formating if MBR type
+#   - 2nd partition in FAT 32 among cloud-init requirements
+#   - 3rd partition in ext4 or btrfs among user requirements
+#
 partitions_formating() {
 	log_debug "-> ${FUNCNAME[0]} $*"
 
@@ -574,6 +585,9 @@ efi_entry_cleanup() {
 	done
 }
 
+#
+# Write fstab file anew to match present drive configuration
+#
 configure_fstab() {
 	log_debug "-> ${FUNCNAME[0]} $*"
 
@@ -591,6 +605,10 @@ configure_fstab() {
 	EOF
 }
 
+#
+# Create file meta-data at root of cidata partition with values given in sheep config file
+# Thus instance-id and machine hostname
+#
 config_metadata_ci_disable() {
 	log_debug "-> ${FUNCNAME[0]} $*"
 
@@ -603,6 +621,10 @@ config_metadata_ci_disable() {
 	EOF
 }
 
+#
+# Create file network-config at root of cidata partition with values given in sheep config file
+# Thus network config version, interfaces id, and network config for these interfaces
+#
 config_network_config_ci_disable() {
 	local c=0
 	local interface=$(search_value ".network.interfaces[${c}].id")
@@ -649,6 +671,10 @@ config_network_config_ci_disable() {
 	done
 }
 
+#
+# Create file user-data at root of cidata partition with values given in sheep config file
+# Thus all informations relative to a linux user
+#
 config_userdata_ci_disable() {
 	log_debug "-> ${FUNCNAME[0]} $*"
 
@@ -695,18 +721,30 @@ config_userdata_ci_disable() {
 	EOF
 }
 
+#
+# Create file meta-data at root of cidata partition with values given in sheep config file
+# Thus instance-id and machine hostname
+#
 config_metadata_ci_enable() {
 	log_debug "-> ${FUNCNAME[0]} $*"
 
 	search_value ".cloudInit.metaData" "" "yaml" >> ${cloudfs}/meta-data
 }
 
+#
+# Create file network-config at root of cidata partition with values given in sheep config file
+# Thus network config version, interfaces id, and network config for these interfaces
+#
 config_network_config_ci_enable() {
 	log_debug "-> ${FUNCNAME[0]} $*"
 
 	search_value ".cloudInit.networkConfig" "" "yaml" >> ${cloudfs}/network-config
 }
 
+#
+# Create file user-data at root of cidata partition with values given in sheep config file
+# Thus all informations relative to a linux user
+#
 config_userdata_ci_enable() {
 	log_debug "-> ${FUNCNAME[0]} $*"
 
@@ -850,6 +888,10 @@ partitions_unmounting() {
 	umount ${cloudfs}
 }
 
+#
+# Server try to reach the pxe-pilot server on one of its interface to execute a curl command
+# and change the boot file after reboot
+#
 notify_pxepilot() {
 	log_debug "-> ${FUNCNAME[0]} $*"
 
@@ -882,10 +924,12 @@ print_banner() {
 	} > ${SHEEP_SERIAL}
 }
 
+#
+# Return which console serial device is used
+#
 get_serial_device() {
 	local device=$(search_kernel_parameter console | grep -e '^ttyS' | sed 's/,/ /g' | awk '{ print $1 }')
 	if [ -z ${device} ]; then
-		# echo ""
 		return
 	fi
 	echo "/dev/${device}"
