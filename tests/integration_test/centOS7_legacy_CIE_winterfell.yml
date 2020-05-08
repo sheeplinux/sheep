@@ -1,5 +1,5 @@
 bootloader:
-  kernel_parameter: 'console=ttyS1,115200n8'
+  kernel_parameter: "console=ttyS1,115200n8"
 
 linux:
   image: http://@@SHEEP_CI_RUNNER_IP@@/CentOS-7-x86_64-GenericCloud-1907.qcow2
@@ -11,10 +11,6 @@ linux:
   blacklist_module:
     - mei
     - mei_me
-
-network:
-  interfaces:
-    - id: enp12s0
 
 pxePilot:
   enable: true
