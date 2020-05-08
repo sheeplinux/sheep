@@ -698,39 +698,55 @@ config_userdata_ci_disable() {
 		users:
 	EOF
 
-	while ! [ -z "${user}" ]; do
-		local name=$(search_value ".environment.users[${c}].name")
-		local sudoer=$(search_value ".environment.users[${c}].sudoer")
-		local ssh=$(search_value ".environment.users[${c}].ssh_authorized_key")
-		local shell=$(search_value ".environment.users[${c}].shell")
+	if [ -n "${user}" ]; then
+		while ! [ -z "${user}" ]; do
+			local name=$(search_value ".environment.users[${c}].name")
+			local sudoer=$(search_value ".environment.users[${c}].sudoer")
+			local ssh=$(search_value ".environment.users[${c}].ssh_authorized_key")
+			local shell=$(search_value ".environment.users[${c}].shell")
+			cat <<- EOF >> ${cloudfs}/user-data
+				  - name: ${name}
+				    lock_passwd: false
+			EOF
+			echo "    ssh_authorized_keys: ${ssh}" >> ${cloudfs}/user-data
+			if isTrue ${sudoer}; then
+				echo "    sudo: ALL=(ALL) NOPASSWD:ALL" >> ${cloudfs}/user-data
+			fi
+			if ! [ -z "${shell}" ]; then
+				echo "    shell: ${shell}" >> ${cloudfs}/user-data
+			fi
+			c=$((${c} + 1))
+			user=$(search_value ".environment.users[${c}]")
+		done
+	else
+		local default_user=true
 		cat <<- EOF >> ${cloudfs}/user-data
-			  - name: ${name}
+			  - name: linux
 			    lock_passwd: false
+			    sudo: ALL=(ALL) NOPASSWD:ALL
+			    shell: /bin/bash
 		EOF
-		echo "    ssh_authorized_keys: ${ssh}" >> ${cloudfs}/user-data
-		if isTrue ${sudoer}; then
-			echo "    sudo: ALL=(ALL) NOPASSWD:ALL" >> ${cloudfs}/user-data
-		fi
-		if ! [ -z "${shell}" ]; then
-			echo "    shell: ${shell}" >> ${cloudfs}/user-data
-		fi
-		c=$((${c} + 1))
-		user=$(search_value ".environment.users[${c}]")
-	done
+	fi
 	cat <<- EOF >> ${cloudfs}/user-data
 		chpasswd:
 		  expire: false
 		  list : |
 	EOF
-	N=$((${c} - 1))
-	for i in $(seq 0 ${N}); do
-		local name=$(search_value ".environment.users[${i}].name")
-		local password=$(search_value ".environment.users[${i}].password")
-		echo "    ${name}:${password}" >> ${cloudfs}/user-data
-	done
-	cat <<- EOF >> ${cloudfs}/user-data
-		ssh_pwauth: true
-	EOF
+	if isTrue ${default_user}; then
+		cat <<- EOF >> ${cloudfs}/user-data
+			    linux:linux
+		EOF
+	else
+		N=$((${c} - 1))
+		for i in $(seq 0 ${N}); do
+			local name=$(search_value ".environment.users[${i}].name")
+			local password=$(search_value ".environment.users[${i}].password")
+			echo "    ${name}:${password}" >> ${cloudfs}/user-data
+		done
+		cat <<- EOF >> ${cloudfs}/user-data
+			ssh_pwauth: true
+		EOF
+	fi
 }
 
 #
