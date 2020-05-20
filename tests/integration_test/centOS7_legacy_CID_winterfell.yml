@@ -1,5 +1,5 @@
 bootloader:
-  kernel_parameter: 'console=ttyS1,115200n8'
+  kernel_parameter: "console=ttyS1,115200n8"
 
 linux:
   image: http://@@SHEEP_CI_RUNNER_IP@@/CentOS-7-x86_64-GenericCloud-1907.qcow2
@@ -15,9 +15,9 @@ linux:
 network:
   interfaces:
     - id: enp12s0
-      type: dhcp
+      mode: dhcp
     - id: ens9
-      type: static
+      mode: static
       address: 172.19.17.111
       gateway: 172.19.17.1
 

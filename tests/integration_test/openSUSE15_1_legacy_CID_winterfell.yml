@@ -1,5 +1,5 @@
 bootloader:
-  kernel_parameter: 'console=ttyS4,115200n8'
+  kernel_parameter: "console=ttyS4,115200n8"
 
 linux:
   image: http://@@SHEEP_CI_RUNNER_IP@@/openSUSE-Leap-15.1-OpenStack.x86_64.qcow2
@@ -15,9 +15,9 @@ linux:
 network:
   interfaces:
     - id: eth0
-      type: dhcp
+      mode: dhcp
     - id: eth1
-      type: static
+      mode: static
       address: 172.19.17.111
       gateway: 172.19.17.1
 

@@ -76,6 +76,11 @@ fi
 
 ## Conditions
 
+### Prefer `test` single bracket
+
+We prefer to uniforme `test` syntax using always single bracket `[` `]`.
+We write `[ condition1 ] || [ condition2 ]` instead of `[[ condition1 || condition2 ]] `.
+
 ### Prefer `test` flags
 
 Every time it is possible we prefer to use dash flags from the `test` command rather than merely compare using `=` operator. e.g. we write `[ -z "${my_var}" ]` instead of `[ "${my_var}" = "" ]`. And we write
@@ -93,5 +98,15 @@ To capture command output in a variable we use the `$()` notation. We write `foo
 
 ## Testing
 
+### About unit test
+
 Code must be structured in a way that we are able to write unit tests for functions every time we
 think it is necessary.
+
+### About integration test
+
+CI works using sheep configuration files contained in `sheep/tests/integration_test` repository.
+These files are named following this model : `distribution_bootMode_CIEouCID_hardware.yml`.
+
+* `hardware` is the type of server targeted by this configuration.
+* `distribution` is always written this way : `centOS7`, `openSUSE15_1`, `debian9` and `ubuntu16_04`.

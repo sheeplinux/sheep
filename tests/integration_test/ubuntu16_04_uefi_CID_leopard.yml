@@ -1,6 +1,6 @@
 bootloader:
   image: http://@@SHEEP_CI_RUNNER_IP@@/grub.tar.gz
-  kernel_parameter: 'console=ttyS1,57600n8'
+  kernel_parameter: "console=ttyS1,57600n8"
 
 linux:
   image: http://@@SHEEP_CI_RUNNER_IP@@/xenial-server-cloudimg-amd64-disk1.img
@@ -13,7 +13,7 @@ linux:
 network:
   interfaces:
     - id: ens1
-      type: dhcp
+      mode: dhcp
 
 pxePilot:
   enable: true
