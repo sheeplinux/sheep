@@ -452,6 +452,19 @@ isTrue() {
 }
 
 #
+# This function check whether a string value
+# reprensents a `false` boolean value or not
+#
+# $1 - string value representing a boolean
+#
+isFalse() {
+	if ! isTrue ${1}; then
+		return 0
+	fi
+	return 1
+}
+
+#
 # Create root directory rootfs
 # Mounts the root file system partition on this one
 # Create two directories in it : boot and inside efi
@@ -686,6 +699,9 @@ config_userdata_ci_disable() {
 
 	local c=0
 	local user=$(search_value ".environment.users[${c}]")
+	local sshCfg=false
+	local passwordCfg=false
+	local defaultUser=false
 
 	cat <<- EOF > ${cloudfs}/user-data
 		#cloud-config
@@ -697,23 +713,30 @@ config_userdata_ci_disable() {
 			local name=$(search_value ".environment.users[${c}].name")
 			local sudoer=$(search_value ".environment.users[${c}].sudoer")
 			local ssh=$(search_value ".environment.users[${c}].ssh_authorized_key")
+			local password=$(search_value ".environment.users[${c}].password")
 			local shell=$(search_value ".environment.users[${c}].shell")
 			cat <<- EOF >> ${cloudfs}/user-data
 				  - name: ${name}
 				    lock_passwd: false
 			EOF
-			echo "    ssh_authorized_keys: ${ssh}" >> ${cloudfs}/user-data
+			if [ -n "${ssh}" ]; then
+				echo "    ssh_authorized_keys: ${ssh}" >> ${cloudfs}/user-data
+				sshCfg=true
+			fi
+			if [ -n "${password}" ]; then
+				passwordCfg=true
+			fi
 			if isTrue ${sudoer}; then
 				echo "    sudo: ALL=(ALL) NOPASSWD:ALL" >> ${cloudfs}/user-data
 			fi
-			if ! [ -z "${shell}" ]; then
+			if [ -n "${shell}" ]; then
 				echo "    shell: ${shell}" >> ${cloudfs}/user-data
 			fi
 			c=$((${c} + 1))
 			user=$(search_value ".environment.users[${c}]")
 		done
 	else
-		local default_user=true
+		defaultUser=true
 		cat <<- EOF >> ${cloudfs}/user-data
 			  - name: linux
 			    lock_passwd: false
@@ -721,25 +744,36 @@ config_userdata_ci_disable() {
 			    shell: /bin/bash
 		EOF
 	fi
+
+	if isFalse "${passwordCfg}" && isFalse "${sshCfg}" && isFalse "${defaultUser}"; then
+		exit_on_error "ERROR: No password and no ssh key given in config file, you wont be able to login after reboot"
+	fi
+	if isFalse "${passwordCfg}" && isFalse "${defaultUser}"; then
+		return
+	fi
 	cat <<- EOF >> ${cloudfs}/user-data
 		chpasswd:
 		  expire: false
 		  list : |
 	EOF
-	if isTrue ${default_user}; then
+	if isTrue ${defaultUser}; then
 		cat <<- EOF >> ${cloudfs}/user-data
 			    linux:linux
 		EOF
 	else
 		N=$((${c} - 1))
 		for i in $(seq 0 ${N}); do
-			local name=$(search_value ".environment.users[${i}].name")
-			local password=$(search_value ".environment.users[${i}].password")
-			echo "    ${name}:${password}" >> ${cloudfs}/user-data
+			name=$(search_value ".environment.users[${i}].name")
+			password=$(search_value ".environment.users[${i}].password")
+			if [ -n "${password}" ]; then
+				echo "    ${name}:${password}" >> ${cloudfs}/user-data
+			fi
 		done
-		cat <<- EOF >> ${cloudfs}/user-data
-			ssh_pwauth: true
-		EOF
+		if [ -n "${ssh}" ]; then
+			cat <<- EOF >> ${cloudfs}/user-data
+				ssh_pwauth: true
+			EOF
+		fi
 	fi
 }
 

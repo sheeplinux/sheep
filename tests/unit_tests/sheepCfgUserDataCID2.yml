@@ -1,0 +1,7 @@
+environment:
+  users:
+    - name: linux
+      sudoer: true
+      ssh_authorized_key: ssh
+      shell: /bin/bash
+  local_hostname: sheep
