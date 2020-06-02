@@ -1,2 +1,14 @@
+
+install:
+  - sudo apt update
+  - sudo apt install -y python3-pip jq
+  - sudo pip3 install yq
+  - git clone https://github.com/sstephenson/bats.git
+  - cd bats
+  - sudo ./install.sh /usr/local
+  - cd ..
+  - pip3 install mkdocs Pygments
+
 script:
-  - echo "Hello world"
+  - cd tests/unit_tests
+  - ./run
