@@ -1,5 +1,7 @@
 # Sheep
 
+[![Build Status](https://api.travis-ci.org/sheeplinux/sheep.svg?branch=master)](https://travis-ci.org/sheeplinux/sheep)
+
 *Install any Linux distribution in seconds with Sheep*
 
 ![](img/sheep-logo.png)
