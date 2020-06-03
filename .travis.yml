@@ -12,3 +12,23 @@ install:
 script:
   - cd tests/unit_tests
   - ./run
+
+after_success:
+  - sudo apt install -y python-pip
+  - sudo pip install mkdocs
+  - cd $TRAVIS_BUILD_DIR/doc
+  - mkdocs build
+  - cp site/index.html site/index
+
+deploy:
+  - provider: pages
+    skip_cleanup: true
+    github_token: $GITHUB_TOKEN
+    keep_history: true
+    local_dir: doc/site
+    on:
+      branch: master
+
+env:
+  global:
+    secure: eTrGBimGc5SZ58msRI5he3i09nAf/aeIO7GbIMjhbX0ixbm1I+glefhz3HAKQ1rLT7OIeLjskMGEAuxuUV8WzOc0myEYpL9eBCb4n6eX2i9/K3yfG29AZrOVhT3H1BV9KplrnTlLVjJPiMO4Mf79MOOgqBa3zz0xuTswMgh7/aoPnOArYnsjgHxaVpkmWw+T5LDrm7h+9XSAtcy3PFH6zrWqier/oTtoOeRBs7QiCWjTsct00YBiKEJXI7GHZ0/uMis6q+0SUXWr4+JkpUTji0GU1nq0gByd1CWs2qHZpWfnuR7ZgJwy0BiP9V0jZSQORrfhYvsXWhuJyKQ2jrhIKtDcCOWClYgEuEOCqQ74CTy4uSu9snUPo0SKj65DAWRtLk2YFxESI4ZQGtUHeKeUOxiZX9SPcSjvEocwszKlVqASC+sPngwtXTQOZcBhBxDK5v2VpS+f8DPCf024CVvST0/UbbtsPJd3DUusfOwO3JT9AMU625dFCXlTplY5t6L51KPEU7+fi/GGKB6n5R3i8ncy4JM6JjyAYaAp6X8bZHujQGajtrdm41PXDB2fwzCjm64Y9vr/bGmVxlmP8nk0leK1pKYX+dplRNFGQCSDwwOs9fAIoYjm0cslFP+zKE7lCXWuNKLoDFHLV7zBjuH/1rQGgsJ0HGs+tcQ/VKMGYkA=
