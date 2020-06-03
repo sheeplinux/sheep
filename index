@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="None">
+  <meta name="author" content="Guillaume Giamarchi, Mathilde Hermet">
+  
+  <link rel="shortcut icon" href="img/favicon.ico">
+  <title>Sheep</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700" />
+
+  <link rel="stylesheet" href="css/theme.css" />
+  <link rel="stylesheet" href="css/theme_extra.css" />
+  <link href="css/codehilite.css" rel="stylesheet" />
+  
+  <script>
+    // Current page data
+    var mkdocs_page_name = "Home";
+    var mkdocs_page_input_path = "index.md";
+    var mkdocs_page_url = null;
+  </script>
+  
+  <script src="js/jquery-2.1.1.min.js" defer></script>
+  <script src="js/modernizr-2.8.3.min.js" defer></script> 
+  
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+        <a href="." class="icon icon-home"> Sheep</a>
+        <div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="./search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+                <ul class="current">
+                    <li class="toctree-l1 current"><a class="reference internal current" href=".">Home</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#motivation">Motivation</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#supported-linux-distributions">Supported Linux distributions</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#license">License</a>
+    </li>
+    </ul>
+                    </li>
+                </ul>
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="quickstart/">Quickstart</a>
+                    </li>
+                </ul>
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="launching/">Sheep launching</a>
+                    </li>
+                </ul>
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="sheep-live/">Sheep-live</a>
+                    </li>
+                </ul>
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="bootloader/">Bootloaders</a>
+                    </li>
+                </ul>
+                <p class="caption"><span class="caption-text">Configuration</span></p>
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="config/">About</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="config_lin/">Linux installation</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="config_env/">Environment</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="config_net/">Networking</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="config_example/">Sheep configuration full examples</a>
+                    </li>
+                </ul>
+                <p class="caption"><span class="caption-text">Miscellaneous</span></p>
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="internals/">Internals</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="pxe-pilot/">PXE Pilot integration</a>
+                    </li>
+                </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href=".">Sheep</a>
+      </nav>
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href=".">Docs</a> &raquo;</li>
+    
+      
+    
+    <li>Home</li>
+    <li class="wy-breadcrumbs-aside">
+      
+    </li>
+  </ul>
+  
+  <hr/>
+</div>
+          <div role="main">
+            <div class="section">
+              
+                <h1 id="sheep">Sheep</h1>
+<p><a href="https://travis-ci.org/sheeplinux/sheep"><img alt="Build Status" src="https://api.travis-ci.org/sheeplinux/sheep.svg?branch=master" /></a></p>
+<p><em>Install any Linux distribution in seconds with Sheep</em></p>
+<p><img alt="" src="img/sheep-logo.png" /></p>
+<p>The aim of Sheep is to provide tooling to install any Linux distribution from a running Linux operating system in an automated way implementing a standard process. It also provide good efficiency in term of execution time.</p>
+<h2 id="motivation">Motivation</h2>
+<p>Installing a Linux distribution in an automated way has been a concern for system administrators for a long time. Of course, distribution vendors themselves provide mechanism to run their own installers in an automated way. The thing is, every single distribution comes with its own installation process and its own tools. Sheep proposes to uniform the installation process to easily install any Linux system whatever the distribution is.</p>
+<p>Tools provided by distribution vendors are powerful and highly configurable. However, they come with some important downsides :</p>
+<ul>
+<li>Configuration mechanisms and tools are specific to each distribution (or at least specific to the distribution family)</li>
+<li>Creating configuration is painful beacuse of file format constraints and the amount of possible configurations</li>
+<li>The installation process is quite long</li>
+<li>Installing a distribution offline - without relying on an internet connection - requires additionnal work (e.g. setup a local distribution package repository)</li>
+</ul>
+<p>Sheep goal is to get rid of all those painpoints. Looking at how Linux works and what are the necessary efforts to install it on a drive, it appears that it is quite easy to describe a process that is always
+the regardless the distribution. See <a href="internals/">Internals Section</a> to get more details about this
+process. The main idea of Sheep is to avoid using vendor installer programs and execute instead necessary steps to install the Linux operating system starting from a filesystem image.</p>
+<p>A central concept in Sheep is to install Linux starting from a cloud image. Today, most of the distribution
+vendors are publishing cloud images in various formats for the most popular cloud platforms. Sheep focuses
+on <code>qcow2</code> images. As this is a widespread open format, it's provided by all vendors. That said, Sheep is able to handle compressed <code>tar</code> archives for the root filesystem which can be very useful in many situations.</p>
+<p>To summarize, here are the advantages of Sheep over the standard vendors installers :</p>
+<ul>
+<li>Sheep is very easy to use with a minimal configuration</li>
+<li>Sheep is able to install any Linux distribution</li>
+<li>Using official cloud images from vendors makes easy to find images for Sheep</li>
+<li>Execution time is really fast. In the most advantageous situation, Sheep installs Linux in about 30 seconds</li>
+</ul>
+<p>Lastly, as any solution, Sheep comes with a couple of drawbacks. Sheep does not offer as much options as the
+vendors installers. That said, Sheep source code is quite simple and easy to customize.</p>
+<p>Don't hesitate to open issues to ask for help or request features.</p>
+<h2 id="supported-linux-distributions">Supported Linux distributions</h2>
+<p>Sheep provide a process able to install any Linux operating system. However, Sheep uses cloud-init to configuration the operating system.</p>
+<p>Sheep have been successfully tested with the following distributions</p>
+<ul>
+<li>Ubuntu 16.04</li>
+<li>Ubuntu 18.04</li>
+<li>CentOS 7</li>
+<li>Debian 9</li>
+<li>Fedora 28</li>
+<li>Fedora 29</li>
+<li>Fedora 30</li>
+<li>OpenSuse Leap 15.0</li>
+<li>OpenSuse Leap 15.1</li>
+</ul>
+<h2 id="license">License</h2>
+<div class="codehilite"><pre><span></span><code>Copyright 2020 Mathilde Hermet
+Copyright 2020 Guillaume Giamarchi
+
+Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+</code></pre></div>
+              
+            </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="quickstart/" class="btn btn-neutral float-right" title="Quickstart">Next <span class="icon icon-circle-arrow-right"></span></a>
+      
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+    
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+      
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="versions">
+    <span class="rst-current-version" data-toggle="rst-current-version">
+      
+      
+      
+        <span style="margin-left: 15px"><a href="quickstart/" style="color: #fcfcfc">Next &raquo;</a></span>
+      
+    </span>
+</div>
+    <script>var base_url = '.';</script>
+    <script src="js/theme.js" defer></script>
+      <script src="search/main.js" defer></script>
+    <script defer>
+        window.onload = function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        };
+    </script>
+
+</body>
+</html>
+
+<!--
+MkDocs version : 1.1.2
+Build Date UTC : 2020-06-03 14:13:25.842313+00:00
+-->

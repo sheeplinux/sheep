@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <meta name="author" content="Guillaume Giamarchi, Mathilde Hermet">
+  
+  <link rel="shortcut icon" href="../img/favicon.ico">
+  <title>Sheep launching - Sheep</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700" />
+
+  <link rel="stylesheet" href="../css/theme.css" />
+  <link rel="stylesheet" href="../css/theme_extra.css" />
+  <link href="../css/codehilite.css" rel="stylesheet" />
+  
+  <script>
+    // Current page data
+    var mkdocs_page_name = "Sheep launching";
+    var mkdocs_page_input_path = "launching.md";
+    var mkdocs_page_url = null;
+  </script>
+  
+  <script src="../js/jquery-2.1.1.min.js" defer></script>
+  <script src="../js/modernizr-2.8.3.min.js" defer></script> 
+  
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+        <a href=".." class="icon icon-home"> Sheep</a>
+        <div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="..">Home</a>
+                    </li>
+                </ul>
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="../quickstart/">Quickstart</a>
+                    </li>
+                </ul>
+                <ul class="current">
+                    <li class="toctree-l1 current"><a class="reference internal current" href="./">Sheep launching</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#launch-sheep-using-sheep-live">Launch sheep using sheep-live</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#execution-without-kernel-parameters-command-line">Execution without kernel parameters command line</a>
+    </li>
+    </ul>
+                    </li>
+                </ul>
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="../sheep-live/">Sheep-live</a>
+                    </li>
+                </ul>
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="../bootloader/">Bootloaders</a>
+                    </li>
+                </ul>
+                <p class="caption"><span class="caption-text">Configuration</span></p>
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="../config/">About</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../config_lin/">Linux installation</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../config_env/">Environment</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../config_net/">Networking</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../config_example/">Sheep configuration full examples</a>
+                    </li>
+                </ul>
+                <p class="caption"><span class="caption-text">Miscellaneous</span></p>
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="../internals/">Internals</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../pxe-pilot/">PXE Pilot integration</a>
+                    </li>
+                </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="..">Sheep</a>
+      </nav>
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="..">Docs</a> &raquo;</li>
+    
+      
+    
+    <li>Sheep launching</li>
+    <li class="wy-breadcrumbs-aside">
+      
+    </li>
+  </ul>
+  
+  <hr/>
+</div>
+          <div role="main">
+            <div class="section">
+              
+                <h1 id="sheep-launching">Sheep launching</h1>
+<h2 id="launch-sheep-using-sheep-live">Launch sheep using sheep-live</h2>
+<p>This first way to launch sheep makes the process run fully automated.
+It is documented in <a href="../sheep-live/">sheep-live documentation</a></p>
+<h2 id="execution-without-kernel-parameters-command-line">Execution without kernel parameters command line</h2>
+<p>Reading variables through /proc/cmdline is good for deployment automation,
+especially when booting a live distribution from the network as an installation
+environment.</p>
+<p>However, we are able to run Sheep passing parameters directly
+to the script because there are no reason to enforce this way of doing. We are
+be able to pass parameters even if it was not previoulsy configured in the
+kernel parameter line.</p>
+<p>It's also usefull for testing purpose during development because we can run
+different tests without the need of rebooting the machine.</p>
+<p>See the example below :</p>
+<div class="codehilite"><pre><span></span><code><span class="nv">SHEEP_PARAMETERS</span><span class="o">=</span><span class="s1">&#39;sheep.config=http://netserver/ubuntu-16.04-leopard-sheep-cfg.yml&#39;</span> sheep
+</code></pre></div>
+              
+            </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="../sheep-live/" class="btn btn-neutral float-right" title="Sheep-live">Next <span class="icon icon-circle-arrow-right"></span></a>
+      
+      
+        <a href="../quickstart/" class="btn btn-neutral" title="Quickstart"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+    
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+      
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="versions">
+    <span class="rst-current-version" data-toggle="rst-current-version">
+      
+      
+        <span><a href="../quickstart/" style="color: #fcfcfc;">&laquo; Previous</a></span>
+      
+      
+        <span style="margin-left: 15px"><a href="../sheep-live/" style="color: #fcfcfc">Next &raquo;</a></span>
+      
+    </span>
+</div>
+    <script>var base_url = '..';</script>
+    <script src="../js/theme.js" defer></script>
+      <script src="../search/main.js" defer></script>
+    <script defer>
+        window.onload = function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        };
+    </script>
+
+</body>
+</html>

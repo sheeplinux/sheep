@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <meta name="author" content="Guillaume Giamarchi, Mathilde Hermet">
+  
+  <link rel="shortcut icon" href="../img/favicon.ico">
+  <title>Quickstart - Sheep</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700" />
+
+  <link rel="stylesheet" href="../css/theme.css" />
+  <link rel="stylesheet" href="../css/theme_extra.css" />
+  <link href="../css/codehilite.css" rel="stylesheet" />
+  
+  <script>
+    // Current page data
+    var mkdocs_page_name = "Quickstart";
+    var mkdocs_page_input_path = "quickstart.md";
+    var mkdocs_page_url = null;
+  </script>
+  
+  <script src="../js/jquery-2.1.1.min.js" defer></script>
+  <script src="../js/modernizr-2.8.3.min.js" defer></script> 
+  
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+        <a href=".." class="icon icon-home"> Sheep</a>
+        <div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="..">Home</a>
+                    </li>
+                </ul>
+                <ul class="current">
+                    <li class="toctree-l1 current"><a class="reference internal current" href="./">Quickstart</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#write-a-sheep-configuration">Write a Sheep configuration</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#setup-the-execution-environment">Setup the execution environment</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#run-sheep">Run Sheep</a>
+    </li>
+    </ul>
+                    </li>
+                </ul>
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="../launching/">Sheep launching</a>
+                    </li>
+                </ul>
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="../sheep-live/">Sheep-live</a>
+                    </li>
+                </ul>
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="../bootloader/">Bootloaders</a>
+                    </li>
+                </ul>
+                <p class="caption"><span class="caption-text">Configuration</span></p>
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="../config/">About</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../config_lin/">Linux installation</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../config_env/">Environment</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../config_net/">Networking</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../config_example/">Sheep configuration full examples</a>
+                    </li>
+                </ul>
+                <p class="caption"><span class="caption-text">Miscellaneous</span></p>
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="../internals/">Internals</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../pxe-pilot/">PXE Pilot integration</a>
+                    </li>
+                </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="..">Sheep</a>
+      </nav>
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="..">Docs</a> &raquo;</li>
+    
+      
+    
+    <li>Quickstart</li>
+    <li class="wy-breadcrumbs-aside">
+      
+    </li>
+  </ul>
+  
+  <hr/>
+</div>
+          <div role="main">
+            <div class="section">
+              
+                <h1 id="quickstart">Quickstart</h1>
+<p>Installing a Linux distribution on a physical machine using Sheep basically consists in runnning a single script
+that will perform Linux installation in a fully automated way. The sheep script only needs a configuration file describing the Linux distribution you aim to install.</p>
+<h2 id="write-a-sheep-configuration">Write a Sheep configuration</h2>
+<p>Here is a minimalist Sheep YAML configuration</p>
+<div class="codehilite"><pre><span></span><code><span class="nt">bootloader</span><span class="p">:</span>
+  <span class="nt">image</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">http://replace/by/real/path/grub.tar.gz</span>
+
+<span class="nt">linux</span><span class="p">:</span>
+  <span class="nt">image</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">https://cloud-images.ubuntu.com/xenial/current/xenial-server-cloudimg-amd64-disk1.img</span>
+  <span class="nt">label</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Ubuntu 16.04 LTS</span>
+
+<span class="nt">network</span><span class="p">:</span>
+  <span class="nt">interfaces</span><span class="p">:</span>
+    <span class="p p-Indicator">-</span> <span class="nt">id</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">ens1</span>
+      <span class="nt">type</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">dhcp</span>
+
+<span class="nt">environment</span><span class="p">:</span>
+  <span class="nt">users</span><span class="p">:</span>
+    <span class="p p-Indicator">-</span> <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">linux</span>
+      <span class="nt">sudoer</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">true</span>
+      <span class="nt">password</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">linux</span>
+      <span class="nt">ssh_authorized_key</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">ssh-rsa ...</span>
+  <span class="nt">local_hostname</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">linux</span>
+</code></pre></div>
+
+
+<p>In this example, we use an official Ubuntu qcow2 cloud image. The bootloader image is only needed when your machine runs an UEFI firmware. When in BIOS (Legacy) mode, you can basically remove the bootloader section.</p>
+<h2 id="setup-the-execution-environment">Setup the execution environment</h2>
+<p>The purpose of Sheep is to install Linux from Linux. That means you need your system to run Linux to install Linux on your local drive. That is the purpose of Sheep Live, a Live Linux distribution made to run Sheep.</p>
+<p>As Sheep primarily makes sense in a fully automated environement, Sheep Live provides artifacts to easily boot over the network.</p>
+<p>Download the Sheep Live kernel, initrd and root filesystem binaries <a href="https://dev.splitted-desktop.com/sesame/sheep-live/-/jobs/9389/artifacts/browse/build/">here</a>.</p>
+<p>Using these artifacts deployed on your TFTP/HTTP server, you can write a configuration to boot Sheep Live.</p>
+<p><strong>Example using pxelinux/syslinux</strong></p>
+<div class="codehilite"><pre><span></span><code>default sheep
+label sheep
+    kernel /sheep-live/vmlinuz
+    append boot=live fetch=http://netserver/sheep-live.squashfs initrd=/sheep-live/initrd.img ssh=sheep sheep.script=http://netserver/sheep sheep.config=http://netserver/ubuntu-16.04-leopard.yml startup=/usr/bin/sheep-service
+</code></pre></div>
+
+
+<p>To learn more about Sheep Live, please refer to <a href="http://PAGE_DOES_NOT_YET_EXIST_IN_THIS_BRANCH">Sheep live environment</a> page.</p>
+<h2 id="run-sheep">Run Sheep</h2>
+<p>Once Sheep Live is up and running, it automatically runs the Linux installation process using Sheep and then reboot the machine when installation complete.</p>
+<p>If for any reason you want to prevent Sheep to run automatically (e.g. to debug or run manually) you only have to remove the <code>startup</code> kernel parameter on the command line.</p>
+              
+            </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="../launching/" class="btn btn-neutral float-right" title="Sheep launching">Next <span class="icon icon-circle-arrow-right"></span></a>
+      
+      
+        <a href=".." class="btn btn-neutral" title="Home"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+    
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+      
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="versions">
+    <span class="rst-current-version" data-toggle="rst-current-version">
+      
+      
+        <span><a href=".." style="color: #fcfcfc;">&laquo; Previous</a></span>
+      
+      
+        <span style="margin-left: 15px"><a href="../launching/" style="color: #fcfcfc">Next &raquo;</a></span>
+      
+    </span>
+</div>
+    <script>var base_url = '..';</script>
+    <script src="../js/theme.js" defer></script>
+      <script src="../search/main.js" defer></script>
+    <script defer>
+        window.onload = function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        };
+    </script>
+
+</body>
+</html>

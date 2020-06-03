@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <meta name="author" content="Guillaume Giamarchi, Mathilde Hermet">
+  
+  <link rel="shortcut icon" href="../img/favicon.ico">
+  <title>Sheep-live - Sheep</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700" />
+
+  <link rel="stylesheet" href="../css/theme.css" />
+  <link rel="stylesheet" href="../css/theme_extra.css" />
+  <link href="../css/codehilite.css" rel="stylesheet" />
+  
+  <script>
+    // Current page data
+    var mkdocs_page_name = "Sheep-live";
+    var mkdocs_page_input_path = "sheep-live.md";
+    var mkdocs_page_url = null;
+  </script>
+  
+  <script src="../js/jquery-2.1.1.min.js" defer></script>
+  <script src="../js/modernizr-2.8.3.min.js" defer></script> 
+  
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+        <a href=".." class="icon icon-home"> Sheep</a>
+        <div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="..">Home</a>
+                    </li>
+                </ul>
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="../quickstart/">Quickstart</a>
+                    </li>
+                </ul>
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="../launching/">Sheep launching</a>
+                    </li>
+                </ul>
+                <ul class="current">
+                    <li class="toctree-l1 current"><a class="reference internal current" href="./">Sheep-live</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#what-is-sheep-live">What is sheep-live ?</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#why-sheep-live">Why sheep-live ?</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#how-to-create-a-sheep-live-build">How to create a sheep-live build ?</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#how-to-launch-sheep-live">How to launch sheep-live</a>
+    </li>
+    </ul>
+                    </li>
+                </ul>
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="../bootloader/">Bootloaders</a>
+                    </li>
+                </ul>
+                <p class="caption"><span class="caption-text">Configuration</span></p>
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="../config/">About</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../config_lin/">Linux installation</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../config_env/">Environment</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../config_net/">Networking</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../config_example/">Sheep configuration full examples</a>
+                    </li>
+                </ul>
+                <p class="caption"><span class="caption-text">Miscellaneous</span></p>
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="../internals/">Internals</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../pxe-pilot/">PXE Pilot integration</a>
+                    </li>
+                </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="..">Sheep</a>
+      </nav>
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="..">Docs</a> &raquo;</li>
+    
+      
+    
+    <li>Sheep-live</li>
+    <li class="wy-breadcrumbs-aside">
+      
+    </li>
+  </ul>
+  
+  <hr/>
+</div>
+          <div role="main">
+            <div class="section">
+              
+                <h1 id="sheep-live">Sheep-live</h1>
+<h2 id="what-is-sheep-live">What is sheep-live ?</h2>
+<p>Sheep-live is a Debian 10 Linux based on the GRML Live building system.
+We use it to have a faster and optimized sheep execution.
+It contains some packages absent in a basic grml and has a mechanism to download and run sheep via the information given in kernel command parameters while launching sheep-live.
+As it, the user can simply have on his main server the sheep configuration file and the pxeboot file specifying in the kernel parameters to launch the service sheep when booting on sheep-live.</p>
+<h2 id="why-sheep-live">Why sheep-live ?</h2>
+<p>Sheep could be run from any Linux distribution as soon as all the dependencies are present.
+Providing a specific distribution gives two major advantages to avoid undesirable side effects :</p>
+<ul>
+<li>Linux environment to run Sheep with all the needed material for Sheep inside (avoid internet interaction during the Sheep process)</li>
+<li>A distribution used to test and validate sheep in the continuous integration platform</li>
+</ul>
+<h2 id="how-to-create-a-sheep-live-build">How to create a sheep-live build ?</h2>
+<p>All the documentation related to this question is available in the git repository <a href="https://dev.splitted-desktop.com/sesame/sheep-live">sheep-live</a></p>
+<h2 id="how-to-launch-sheep-live">How to launch sheep-live</h2>
+<p>To launch sheep-live, place the sheep-live squashfs in your web server, the initrd and the kernel file in your HTTP / TFTP server.
+Create a network boot file specifying the path to sheep-live squashfs.
+If you want sheep to be run automatically after the operating system boot, specify it in the kernel command line with <code>startup=/usr/bin/sheep-service</code>.
+Below is an example of a pxelinux file we use to launch sheep on our machines :</p>
+<div class="codehilite"><pre><span></span><code><span class="k">DEFAULT</span> <span class="n">sheeplive</span>
+
+<span class="n">label</span> <span class="n">sheeplive</span>
+    <span class="n">kernel</span> <span class="o">/</span><span class="n">sheep</span><span class="o">-</span><span class="n">live</span><span class="o">/</span><span class="n">vmlinuz</span>
+    <span class="n">append</span> <span class="n">boot</span><span class="o">=</span><span class="n">live</span> <span class="k">fetch</span><span class="o">=</span><span class="n">http</span><span class="p">:</span><span class="o">//</span><span class="n">server_add</span><span class="o">/</span><span class="n">sheep</span><span class="o">-</span><span class="n">live</span><span class="p">.</span><span class="n">squashfs</span> <span class="n">initrd</span><span class="o">=/</span><span class="n">sheep</span><span class="o">-</span><span class="n">live</span><span class="o">/</span><span class="n">initrd</span><span class="p">.</span><span class="n">img</span> <span class="n">ssh</span><span class="o">=</span><span class="n">sheep</span> <span class="n">console</span><span class="o">=</span><span class="n">ttyS1</span><span class="p">,</span><span class="mi">57600</span><span class="n">n8</span>  <span class="n">sheep</span><span class="p">.</span><span class="n">script</span><span class="o">=</span><span class="n">http</span><span class="p">:</span><span class="o">//</span><span class="n">server_add</span><span class="o">/</span><span class="n">sheep</span><span class="p">.</span><span class="n">sh</span> <span class="n">sheep</span><span class="p">.</span><span class="n">config</span><span class="o">=</span><span class="n">http</span><span class="p">:</span><span class="o">//</span><span class="n">server_add</span><span class="o">/</span><span class="n">sheepCfg</span><span class="p">.</span><span class="n">yml</span> <span class="n">startup</span><span class="o">=/</span><span class="n">usr</span><span class="o">/</span><span class="n">bin</span><span class="o">/</span><span class="n">sheep</span><span class="o">-</span><span class="n">service</span>
+</code></pre></div>
+
+
+<p>With <code>server_add</code> the address of the network interface connected to the machine we want to install.
+As shown above, <a href="https://git.grml.org/?p=grml-live.git;a=blob_plain;f=templates/GRML/grml-cheatcodes.txt;hb=HEAD">GRML kernel parameters</a> can be used to tune your configuration.
+Here are the Sheep specific kernel parameters to automatically run Sheep when Sheep Live is booted:</p>
+<ul>
+<li><code>sheep.script=http://...</code> : URL to download Sheep script from.</li>
+<li><code>sheep.config=http://...</code> : URL to download the Sheep YAML configuration for your machine.</li>
+<li><code>startup=/usr/bin/sheep-service</code> : Give script path to automatically start the Sheep service on boot (automatically install linux on your drive).
+Without the <code>startup</code> parameter you'll have to log into Sheep Live to run the Sheep service</li>
+</ul>
+<div class="codehilite"><pre><span></span><code>$ sheep-service
+</code></pre></div>
+
+
+<ul>
+<li><code>sheep.log.level</code> : Configure the logger with value <code>error</code> <code>warning</code> <code>info</code> or <code>debug</code>.</li>
+<li><code>sheep.delay</code> : Delay in seconds to delay sheep-service execution. Can be useful to avoid having boot log in sheep log.</li>
+</ul>
+              
+            </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="../bootloader/" class="btn btn-neutral float-right" title="Bootloaders">Next <span class="icon icon-circle-arrow-right"></span></a>
+      
+      
+        <a href="../launching/" class="btn btn-neutral" title="Sheep launching"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+    
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+      
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="versions">
+    <span class="rst-current-version" data-toggle="rst-current-version">
+      
+      
+        <span><a href="../launching/" style="color: #fcfcfc;">&laquo; Previous</a></span>
+      
+      
+        <span style="margin-left: 15px"><a href="../bootloader/" style="color: #fcfcfc">Next &raquo;</a></span>
+      
+    </span>
+</div>
+    <script>var base_url = '..';</script>
+    <script src="../js/theme.js" defer></script>
+      <script src="../search/main.js" defer></script>
+    <script defer>
+        window.onload = function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        };
+    </script>
+
+</body>
+</html>

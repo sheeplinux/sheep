@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <meta name="author" content="Guillaume Giamarchi, Mathilde Hermet">
+  
+  <link rel="shortcut icon" href="../img/favicon.ico">
+  <title>Linux installation - Sheep</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700" />
+
+  <link rel="stylesheet" href="../css/theme.css" />
+  <link rel="stylesheet" href="../css/theme_extra.css" />
+  <link href="../css/codehilite.css" rel="stylesheet" />
+  
+  <script>
+    // Current page data
+    var mkdocs_page_name = "Linux installation";
+    var mkdocs_page_input_path = "config_lin.md";
+    var mkdocs_page_url = null;
+  </script>
+  
+  <script src="../js/jquery-2.1.1.min.js" defer></script>
+  <script src="../js/modernizr-2.8.3.min.js" defer></script> 
+  
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+        <a href=".." class="icon icon-home"> Sheep</a>
+        <div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="..">Home</a>
+                    </li>
+                </ul>
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="../quickstart/">Quickstart</a>
+                    </li>
+                </ul>
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="../launching/">Sheep launching</a>
+                    </li>
+                </ul>
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="../sheep-live/">Sheep-live</a>
+                    </li>
+                </ul>
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="../bootloader/">Bootloaders</a>
+                    </li>
+                </ul>
+                <p class="caption"><span class="caption-text">Configuration</span></p>
+                <ul class="current">
+                    <li class="toctree-l1"><a class="reference internal" href="../config/">About</a>
+                    </li>
+                    <li class="toctree-l1 current"><a class="reference internal current" href="./">Linux installation</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#bootloader">Bootloader</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#linux-system">Linux system</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#pxe-pilot">Pxe-pilot</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#sheep-execution">Sheep execution</a>
+    </li>
+    </ul>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../config_env/">Environment</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../config_net/">Networking</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../config_example/">Sheep configuration full examples</a>
+                    </li>
+                </ul>
+                <p class="caption"><span class="caption-text">Miscellaneous</span></p>
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="../internals/">Internals</a>
+                    </li>
+                    <li class="toctree-l1"><a class="reference internal" href="../pxe-pilot/">PXE Pilot integration</a>
+                    </li>
+                </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="..">Sheep</a>
+      </nav>
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="..">Docs</a> &raquo;</li>
+    
+      
+        
+          <li>Configuration &raquo;</li>
+        
+      
+    
+    <li>Linux installation</li>
+    <li class="wy-breadcrumbs-aside">
+      
+    </li>
+  </ul>
+  
+  <hr/>
+</div>
+          <div role="main">
+            <div class="section">
+              
+                <h1 id="linux-installation">Linux installation</h1>
+<h2 id="bootloader">Bootloader</h2>
+<p>Configure the bootloader of the future linux OS</p>
+<ul>
+<li><code>image</code> : Path to grub-efi.tar.gz archive - For <strong>UEFI</strong> system only</li>
+<li><code>kernel_parameter</code> : Kernel parameters you want to add to customize the way your system boots</li>
+</ul>
+<div class="codehilite"><pre><span></span><code><span class="nt">bootloader</span><span class="p">:</span>
+  <span class="nt">image</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">http://path/to/grub-efi.tar.gz</span>
+  <span class="nt">kernel_parameter</span><span class="p">:</span> <span class="s">&#39;console=ttyS1,57600n8&#39;</span>
+</code></pre></div>
+
+
+<h2 id="linux-system">Linux system</h2>
+<p>Configure your linux OS</p>
+<ul>
+<li><code>image</code> : Path to the linux filesystem image you want to use</li>
+<li><code>label</code> : Name your distribution for <strong>EFI menu entry</strong> and <strong>grub menu</strong> - Default value <strong>Linux</strong></li>
+<li><code>device</code> : Storage device to contain OS - First storage disk listed during the installation by default</li>
+<li><code>rootfsType</code> : <strong>ext4</strong> &amp; <strong>btrfs</strong> supported - Default value <strong>ext4</strong></li>
+<li><code>rootfsLabel</code> : label of root partition <br />
+ It has to be 12 characters or less : <code>[0-9]</code>  <code>[a-z]</code> <code>[A-Z]</code> <code>-</code>  <code>_</code> allowed <br />
+ Default value <strong>rootfs</strong></li>
+<li><code>selinux</code> : <strong>enable</strong> or <strong>disable</strong> - Default value <strong>disable</strong></li>
+<li><code>blacklist_module</code> : List kernel module that has to be disable</li>
+</ul>
+<div class="codehilite"><pre><span></span><code><span class="nt">linux</span><span class="p">:</span>
+  <span class="nt">image</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">https://cloud-images.ubuntu.com/xenial/current/xenial-server-cloudimg-amd64-disk1.img</span>
+  <span class="nt">label</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">ubuntu_16_09</span>
+  <span class="nt">device</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">/dev/sda</span>
+  <span class="nt">rootfsType</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">ext4</span>
+  <span class="nt">rootfsLabel</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">cloudimg-rootfs</span>
+  <span class="nt">selinux</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">disable</span>
+  <span class="nt">blacklist_module</span><span class="p">:</span>
+    <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">mei</span>
+    <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">mei_me</span>
+</code></pre></div>
+
+
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<ul>
+<li>SELINUX isn't used by every linux distribtuion. For example enabling it for ubuntu will have no effect</li>
+<li>Permissive mode of Selinux not available for the moment with sheep</li>
+</ul>
+</div>
+<h2 id="pxe-pilot">Pxe-pilot</h2>
+<p>Configure pxe-pilot with sheep installation</p>
+<ul>
+<li><code>enable</code> : <strong>true</strong> or <strong>false</strong></li>
+<li><code>url</code> : Pxe-pilot API endpoint URL</li>
+<li><code>config_after_reboot</code> : Pxe-pilot configuration name to indicate the machine to reboot on it's hard disk</li>
+</ul>
+<div class="codehilite"><pre><span></span><code><span class="nt">pxePilot</span><span class="p">:</span>
+  <span class="nt">enable</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">true</span>
+  <span class="nt">url</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">http://pxe_pilot_server_address</span>
+  <span class="nt">config_after_reboot</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">local</span>
+</code></pre></div>
+
+
+<h2 id="sheep-execution">Sheep execution</h2>
+<p>Configure machine reboot by the end of sheep execution.</p>
+<ul>
+<li><code>reboot</code>: <strong>true</strong> or <strong>false</strong></li>
+</ul>
+<div class="codehilite"><pre><span></span><code><span class="nt">sheep</span><span class="p">:</span>
+  <span class="nt">reboot</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">false</span>
+</code></pre></div>
+              
+            </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="../config_env/" class="btn btn-neutral float-right" title="Environment">Next <span class="icon icon-circle-arrow-right"></span></a>
+      
+      
+        <a href="../config/" class="btn btn-neutral" title="About"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+    
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+      
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="versions">
+    <span class="rst-current-version" data-toggle="rst-current-version">
+      
+      
+        <span><a href="../config/" style="color: #fcfcfc;">&laquo; Previous</a></span>
+      
+      
+        <span style="margin-left: 15px"><a href="../config_env/" style="color: #fcfcfc">Next &raquo;</a></span>
+      
+    </span>
+</div>
+    <script>var base_url = '..';</script>
+    <script src="../js/theme.js" defer></script>
+      <script src="../search/main.js" defer></script>
+    <script defer>
+        window.onload = function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        };
+    </script>
+
+</body>
+</html>
