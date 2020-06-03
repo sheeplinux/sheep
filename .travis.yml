@@ -8,10 +8,14 @@ install:
   - sudo ./install.sh /usr/local
   - cd ..
   - pip3 install mkdocs Pygments
+  - wget -O $HOME/shfmt https://github.com/mvdan/sh/releases/download/v3.0.1/shfmt_v3.0.1_linux_amd64
+  - chmod +x $HOME/shfmt
 
 script:
   - cd tests/unit_tests
   - ./run
+  - cd $TRAVIS_BUILD_DIR
+  - $HOME/shfmt -sr -i 0 -d sheep tests/unit_tests/run tests/integration_test/run
 
 after_success:
   - sudo apt install -y python-pip
