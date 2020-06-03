@@ -12,7 +12,6 @@ nav:
   - quickstart.md
   - launching.md
   - sheep-live.md
-  - bootloader.md
   - Configuration:
       - config.md
       - config_lin.md

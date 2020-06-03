@@ -29,6 +29,8 @@ environment:
 
 !!! Note
 
+    If users are configured but none of them can access the OS because neither the `ssh_authorized_key` nor a `password` is configured, the program will exit with an error
+
     If this section is left empty:
 
     * User **linux** with password **linux** will be given.
