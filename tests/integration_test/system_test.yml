@@ -1,0 +1,133 @@
+ubuntu16_04_qcow2_uefi_boot:
+  - name: "uname"
+    data: "Linux sheep 4.4.0-173-generic"
+  - name: "shell"
+    data: "/bin/sh"
+
+centos7_qcow2_uefi_boot:
+  - name: "uname"
+    data: "Linux sheep 3.10.0-957.27.2.el7.x86_64"
+  - name: "shell"
+    data: "/bin/bash"
+
+debian9_qcow2_uefi_boot:
+  - name: "uname"
+    data: "Linux sheep 4.9.0-11-amd64"
+  - name: "shell"
+    data: "/bin/bash"
+
+opensuse15_1_qcow2_uefi_boot:
+  - name: "uname"
+    data: "Linux sheep 4.12.14-lp151.28.36-default"
+  - name: "shell"
+    data: "/bin/bash"
+
+ubuntu16_04_qcow2_legacy_boot:
+  - name: "uname"
+    data: "Linux sheep 4.4.0-173-generic"
+  - name: "shell"
+    data: "/bin/bash"
+  - name: "network"
+    data:
+      mode: "iface enp12s0 inet dhcp"
+      filePath: "/etc/network/interfaces.d/50-cloud-init.cfg"
+  - name: "network"
+    data:
+      mode: "iface ens9 inet static"
+      filePath: "/etc/network/interfaces.d/50-cloud-init.cfg"
+      ipAdd: "172.19.17.111"
+
+centos7_qcow2_legacy_boot:
+  - name: "uname"
+    data: "Linux sheep 3.10.0-957.27.2.el7.x86_64"
+  - name: "shell"
+    data: "/bin/bash"
+  - name: "network"
+    data:
+      mode: "BOOTPROTO=dhcp"
+      filePath: "/etc/sysconfig/network-scripts/ifcfg-enp12s0"
+  - name: "network"
+    data:
+      mode: "BOOTPROTO=none"
+      filePath: "/etc/sysconfig/network-scripts/ifcfg-ens9"
+      ipAdd: "172.19.17.111"
+
+debian9_qcow2_legacy_boot:
+  - name: "uname"
+    data: "Linux sheep 4.9.0-11-amd64"
+  - name: "shell"
+    data: "/bin/bash"
+  - name: "network"
+    data:
+      mode: "iface enp12s0 inet dhcp"
+      filePath: "/etc/network/interfaces.d/50-cloud-init.cfg"
+  - name: "network"
+    data:
+      mode: "iface ens9 inet static"
+      filePath: "/etc/network/interfaces.d/50-cloud-init.cfg"
+      ipAdd: "172.19.17.111"
+
+opensuse15_1_qcow2_legacy_boot:
+  - name: "uname"
+    data: "Linux sheep 4.12.14-lp151.28.36-default"
+  - name: "shell"
+    data: "/bin/bash"
+  - name: "network"
+    data:
+      mode: "BOOTPROTO=dhcp"
+      filePath: "/etc/sysconfig/network/ifcfg-eth0"
+
+ubuntu16_04_qcow2_legacy_boot_CIE:
+  - name: "uname"
+    data: "Linux sheep 4.4.0-173-generic"
+  - name: "shell"
+    data: "/bin/bash"
+  - name: "network"
+    data:
+      mode: "iface enp12s0 inet dhcp"
+      filePath: "/etc/network/interfaces.d/50-cloud-init.cfg"
+  - name: "network"
+    data:
+      mode: "iface ens9 inet static"
+      filePath: "/etc/network/interfaces.d/50-cloud-init.cfg"
+      ipAdd: "172.19.17.111"
+
+centos7_qcow2_legacy_boot_CIE:
+  - name: "uname"
+    data: "Linux sheep 3.10.0-957.27.2.el7.x86_64"
+  - name: "shell"
+    data: "/bin/bash"
+  - name: "network"
+    data:
+      mode: "BOOTPROTO=dhcp"
+      filePath: "/etc/sysconfig/network-scripts/ifcfg-enp12s0"
+  - name: "network"
+    data:
+      mode: "BOOTPROTO=none"
+      filePath: "/etc/sysconfig/network-scripts/ifcfg-ens9"
+      ipAdd: "172.19.17.111"
+
+debian9_qcow2_legacy_boot_CIE:
+  - name: "uname"
+    data: "Linux sheep 4.9.0-11-amd64"
+  - name: "shell"
+    data: "/bin/bash"
+  - name: "network"
+    data:
+      mode: "iface enp12s0 inet dhcp"
+      filePath: "/etc/network/interfaces.d/50-cloud-init.cfg"
+  - name: "network"
+    data:
+      mode: "iface ens9 inet static"
+      filePath: "/etc/network/interfaces.d/50-cloud-init.cfg"
+      ipAdd: "172.19.17.111"
+
+opensuse15_1_qcow2_legacy_boot_CIE:
+  - name: "uname"
+    data: "Linux sheep 4.12.14-lp151.28.36-default"
+  - name: "shell"
+    data: "/bin/bash"
+  - name: "network"
+    data:
+      mode: "BOOTPROTO=dhcp"
+      filePath: "/etc/sysconfig/network/ifcfg-eth0"
