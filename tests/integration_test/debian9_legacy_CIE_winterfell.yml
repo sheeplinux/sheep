@@ -1,5 +1,6 @@
 bootloader:
-  kernel_parameter: 'console=ttyS1,115200n8'
+  change_boot_order: none
+  kernel_parameter: "console=ttyS1,115200n8"
 
 linux:
   image: http://@@SHEEP_CI_RUNNER_IP@@/debian-9.11.2-20190926-openstack-amd64.qcow2

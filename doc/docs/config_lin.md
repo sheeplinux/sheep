@@ -16,11 +16,13 @@ Sheep is able to install the operating system using either UEFI mode and Legacy 
 Configure the bootloader of the future linux OS
 
 * `image` : Path to grub-efi.tar.gz archive - For **UEFI** system only
+* `change_boot_order` : **none** (EFI boot entry created but boot order unchanged), **persistent** (change boot order, default) or **once** (change next boot for one reboot only) - Set new EFI menu entry as first in boot order - For **UEFI** system only
 * `kernel_parameter` : Kernel parameters you want to add to customize the way your system boots
 
 ```yaml
 bootloader:
   image: http://path/to/grub-efi.tar.gz
+  change_boot_order: none
   kernel_parameter: 'console=ttyS1,57600n8'
 
 ```

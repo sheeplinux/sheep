@@ -1,4 +1,5 @@
 bootloader:
+  change_boot_order: none
   kernel_parameter: "console=ttyS1,115200n8"
 
 linux:

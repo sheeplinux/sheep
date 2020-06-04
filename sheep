@@ -568,6 +568,7 @@ bootloader_installation_uefi() {
 
 	local bootloader_dir=${rootfs}/boot/efi/EFI/${bootloader_name}
 	local bootloader_archive_file=/tmp/efi.tar.gz
+	local change_boot_order=$(search_value ".bootloader.change_boot_order" "persistent")
 
 	wget --quiet -O ${bootloader_archive_file} ${EFI_ARCHIVE_URL}
 	tar xvzf ${bootloader_archive_file} -C ${rootfs}/boot/efi
@@ -579,6 +580,25 @@ bootloader_installation_uefi() {
 	EOF
 
 	efibootmgr -c -d ${BLOCK_DEVICE} -p 1 -L "${EFI_ENTRY_LABEL}" -l "\EFI\\${bootloader_name}\shimx64.efi"
+
+	case "${change_boot_order}" in
+	"persistent")
+		local boot_num=$(efibootmgr -v | grep "${EFI_ENTRY_LABEL}" | grep 'GPT' | grep -o -e "Boot[0-9]*" | sed -r -e "s/Boot//")
+		efibootmgr -o ${boot_num}
+		;;
+	"once")
+		local boot_num=$(efibootmgr -v | grep "${EFI_ENTRY_LABEL}" | grep 'GPT' | grep -o -e "Boot[0-9]*" | sed -r -e "s/Boot//")
+		efibootmgr -n ${boot_num}
+		;;
+	"none")
+		if isFalse ${PXE_PILOT_ENABLED}; then
+			log_warning "Option .pxePilot.enable and .bootloader.change_boot_order configured on false, Sheep won't manage changing of boot order"
+		fi
+		;;
+	*)
+		exit_on_error "Incorrect value for .bootloader.change_boot_order"
+		;;
+	esac
 }
 
 #

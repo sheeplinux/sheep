@@ -1,6 +1,7 @@
 bootloader:
-  change_boot_order: none
-  kernel_parameter: "console=ttyS4,115200n8"
+  change_boot_order: once
+  image: http://@@SHEEP_CI_RUNNER_IP@@/grub.tar.gz
+  kernel_parameter: "console=ttyS1,57600n8"
 
 linux:
   image: http://@@SHEEP_CI_RUNNER_IP@@/xenial-server-cloudimg-amd64-disk1.img
@@ -9,23 +10,14 @@ linux:
   rootfsType: ext4
   rootfsLabel: Ubuntu-fs
   selinux: disable
-  blacklist_module:
-    - mei
-    - mei_me
 
 network:
   interfaces:
-    - id: enp12s0
+    - id: ens1
       mode: dhcp
-    - id: ens9
-      mode: static
-      address: 172.19.17.111
-      gateway: 172.19.17.1
 
 pxePilot:
-  enable: true
-  url: http://@@SHEEP_CI_RUNNER_IP@@:3478
-  config_after_reboot: local
+  enable: false
 
 environment:
   users:
@@ -33,7 +25,6 @@ environment:
       sudoer: true
       password: linux
       ssh_authorized_key: @@SHEEP_CI_SSH_PUB_KEY@@
-      shell: /bin/bash
   local_hostname: sheep
 
 cloudInit:

@@ -131,3 +131,9 @@ opensuse15_1_qcow2_legacy_boot_CIE:
     data:
       mode: "BOOTPROTO=dhcp"
       filePath: "/etc/sysconfig/network/ifcfg-eth0"
+
+ubuntu16_04_uefi_leopard__boot_order_once:
+  - name: "uname"
+    data: "Linux sheep 4.4.0-173-generic"
+  - name: "shell"
+    data: "/bin/sh"
