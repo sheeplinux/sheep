@@ -61,10 +61,6 @@
                     <li class="toctree-l1"><a class="reference internal" href="../sheep-live/">Sheep-live</a>
                     </li>
                 </ul>
-                <ul>
-                    <li class="toctree-l1"><a class="reference internal" href="../bootloader/">Bootloaders</a>
-                    </li>
-                </ul>
                 <p class="caption"><span class="caption-text">Configuration</span></p>
                 <ul class="current">
                     <li class="toctree-l1"><a class="reference internal" href="../config/">About</a>
@@ -155,6 +151,7 @@ This configuration will be turned into cloud-init user-data &amp; meta-data file
 
 <div class="admonition note">
 <p class="admonition-title">Note</p>
+<p>If users are configured but none of them can access the OS because neither the <code>ssh_authorized_key</code> nor a <code>password</code> is configured, the program will exit with an error</p>
 <p>If this section is left empty:</p>
 <ul>
 <li>User <strong>linux</strong> with password <strong>linux</strong> will be given.</li>

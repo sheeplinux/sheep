@@ -61,17 +61,21 @@
                     <li class="toctree-l1"><a class="reference internal" href="../sheep-live/">Sheep-live</a>
                     </li>
                 </ul>
-                <ul>
-                    <li class="toctree-l1"><a class="reference internal" href="../bootloader/">Bootloaders</a>
-                    </li>
-                </ul>
                 <p class="caption"><span class="caption-text">Configuration</span></p>
                 <ul class="current">
                     <li class="toctree-l1"><a class="reference internal" href="../config/">About</a>
                     </li>
                     <li class="toctree-l1 current"><a class="reference internal current" href="./">Linux installation</a>
     <ul class="current">
-    <li class="toctree-l2"><a class="reference internal" href="#bootloader">Bootloader</a>
+    <li class="toctree-l2"><a class="reference internal" href="#bootloaders">Bootloaders</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#supported-bootloaders">Supported bootloaders</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#supported-boot-modes">Supported boot modes</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#configuration">Configuration</a>
+    </li>
+        </ul>
     </li>
     <li class="toctree-l2"><a class="reference internal" href="#linux-system">Linux system</a>
     </li>
@@ -132,7 +136,13 @@
             <div class="section">
               
                 <h1 id="linux-installation">Linux installation</h1>
-<h2 id="bootloader">Bootloader</h2>
+<h2 id="bootloaders">Bootloaders</h2>
+<h3 id="supported-bootloaders">Supported bootloaders</h3>
+<p>GRUB is the only one supported bootloader at this time. There is currently no plan to support
+more bootloaders.</p>
+<h3 id="supported-boot-modes">Supported boot modes</h3>
+<p>Sheep is able to install the operating system using either UEFI mode and Legacy (MBR) mode</p>
+<h3 id="configuration">Configuration</h3>
 <p>Configure the bootloader of the future linux OS</p>
 <ul>
 <li><code>image</code> : Path to grub-efi.tar.gz archive - For <strong>UEFI</strong> system only</li>
@@ -144,6 +154,11 @@
 </code></pre></div>
 
 
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Sheep does not support multiboot. Be careful, installating Linux with Sheep on a drive,
+flush the whole partition table on the drive.</p>
+</div>
 <h2 id="linux-system">Linux system</h2>
 <p>Configure your linux OS</p>
 <ul>
