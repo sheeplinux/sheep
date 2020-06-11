@@ -26,7 +26,8 @@ Here are the steps executed by this tool in order to install a Linux distributio
 Here are the steps executed by this tool in order to install a Linux distribution
 
 1. Wipe the target drive (every single partition is deleted)
-2. Create two GPT partitions
+2. Create three GPT partitions
+    - The bios boot partition for MBR
     - The cloud-init partition
     - The Linux root filesystem partition
 3. Format partitions using the appropriate filesystem
