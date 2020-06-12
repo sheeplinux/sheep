@@ -204,3 +204,18 @@ opensuse15_1_qcow2_legacy_boot_CIE:
       - "*.cast"
   tags:
     - integration-legacy
+
+ubuntu16_04_uefi_leopard__boot_order_once:
+  stage: test-integ
+  variables:
+    CONFIG_FILE_NAME: ubuntu16_04_uefi_leopard__boot_order_once.yml
+    EXTRA_KERNEL_CMDLINE: console=ttyS1,57600n8
+  script:
+    - cd ${CI_PROJECT_DIR}
+    - tests/integration_test/run
+  artifacts:
+    when: always
+    paths:
+      - "*.cast"
+  tags:
+    - integration
