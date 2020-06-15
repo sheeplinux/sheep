@@ -146,10 +146,12 @@ more bootloaders.</p>
 <p>Configure the bootloader of the future linux OS</p>
 <ul>
 <li><code>image</code> : Path to grub-efi.tar.gz archive - For <strong>UEFI</strong> system only</li>
+<li><code>change_boot_order</code> : <strong>none</strong> (EFI boot entry created but boot order unchanged), <strong>persistent</strong> (change boot order, default) or <strong>once</strong> (change next boot for one reboot only) - Set new EFI menu entry as first in boot order - For <strong>UEFI</strong> system only</li>
 <li><code>kernel_parameter</code> : Kernel parameters you want to add to customize the way your system boots</li>
 </ul>
 <div class="codehilite"><pre><span></span><code><span class="nt">bootloader</span><span class="p">:</span>
   <span class="nt">image</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">http://path/to/grub-efi.tar.gz</span>
+  <span class="nt">change_boot_order</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">none</span>
   <span class="nt">kernel_parameter</span><span class="p">:</span> <span class="s">&#39;console=ttyS1,57600n8&#39;</span>
 </code></pre></div>
 
