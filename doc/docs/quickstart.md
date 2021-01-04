@@ -37,7 +37,7 @@ The purpose of Sheep is to install Linux from Linux. That means you need your sy
 
 As Sheep primarily makes sense in a fully automated environement, Sheep Live provides artifacts to easily boot over the network.
 
-Download the Sheep Live kernel, initrd and root filesystem binaries [here](https://dev.splitted-desktop.com/sesame/sheep-live/-/jobs/9389/artifacts/browse/build/).
+Download the Sheep Live kernel, initrd and root filesystem binaries [here](https://github.com/sheeplinux/sheep-live/releases/latest).
 
 Using these artifacts deployed on your TFTP/HTTP server, you can write a configuration to boot Sheep Live.
 
@@ -50,7 +50,7 @@ label sheep
     append boot=live fetch=http://netserver/sheep-live.squashfs initrd=/sheep-live/initrd.img ssh=sheep sheep.script=http://netserver/sheep sheep.config=http://netserver/ubuntu-16.04-leopard.yml startup=/usr/bin/sheep-service
 ```
 
-To learn more about Sheep Live, please refer to [Sheep live environment](http://PAGE_DOES_NOT_YET_EXIST_IN_THIS_BRANCH) page.
+To learn more about Sheep Live, please refer to [Sheep live environment](https://sheeplinux.github.io/sheep/sheep-live/) page.
 
 ## Run Sheep
 

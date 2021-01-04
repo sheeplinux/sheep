@@ -17,7 +17,7 @@ Providing a specific distribution gives two major advantages to avoid undesirabl
 
 ## How to create a sheep-live build ?
 
-All the documentation related to this question is available in the git repository [sheep-live](https://dev.splitted-desktop.com/sesame/sheep-live)
+All the documentation related to this question is available in the git repository [sheep-live](https://github.com/sheeplinux/sheep-live)
 
 ## How to launch sheep-live
 
